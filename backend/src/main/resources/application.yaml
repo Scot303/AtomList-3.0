@@ -1,0 +1,40 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: atomlist-backend
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: ${APP_TIME_ZONE:Europe/Warsaw}
+    show-sql: true
+
+  flyway:
+    enabled: false
+
+app:
+  # Zone every clock calculation is anchored to, independent of the JVM default.
+  time-zone: ${APP_TIME_ZONE:Europe/Warsaw}
+  security:
+    jwt-secret: ${JWT_SECRET}
+    jwt-issuer: ${JWT_ISSUER:atomlist-app}
+    access-token-ttl: ${ACCESS_TOKEN_TTL:10m}
+    refresh-token-ttl: ${REFRESH_TOKEN_TTL:10d}
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      capacity: ${RATE_LIMIT_CAPACITY:10}
+      refill-period: ${RATE_LIMIT_REFILL_PERIOD:1m}
+      trust-forwarded-header: ${RATE_LIMIT_TRUST_FORWARDED_HEADER:false}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}

@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/atomlist
+    username: atomlist
+    password: atomlist
+
+app:
+  security:
+    jwt-secret: VHrNLgkhDpF37s5w7THto967GAYoMjX4Bta2/imjfswga1XO8iClX4EBUci1ZE38
