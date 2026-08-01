@@ -1,5 +1,8 @@
 server:
   port: ${SERVER_PORT:8080}
+  # Railway terminates TLS at its edge and forwards over plain HTTP. Without this the app sees
+  # scheme "http" and its own internal host, which breaks generated URLs and Secure-cookie handling.
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -10,18 +13,34 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      # Managed Postgres plans cap total connections low, and the cap is shared with everything else
+      # touching the database (migrations, a psql session, the old instance during a rolling deploy).
+      maximum-pool-size: ${DB_POOL_SIZE:5}
+      minimum-idle: ${DB_POOL_MIN_IDLE:1}
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${DDL_AUTO:update}
     properties:
       hibernate:
         jdbc:
           time_zone: ${APP_TIME_ZONE:Europe/Warsaw}
     show-sql: true
+    # Keeps transaction boundaries at the service layer instead of holding a connection open for the whole request while the response serializes.
+    open-in-view: false
 
   flyway:
-    enabled: false
+    enabled: ${FLYWAY_ENABLED:false}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 app:
   # Zone every clock calculation is anchored to, independent of the JVM default.
@@ -31,10 +50,40 @@ app:
     jwt-issuer: ${JWT_ISSUER:atomlist-app}
     access-token-ttl: ${ACCESS_TOKEN_TTL:10m}
     refresh-token-ttl: ${REFRESH_TOKEN_TTL:10d}
+    refresh-cookie:
+      name: ${REFRESH_COOKIE_NAME:__Secure-refreshToken}
+      path: ${REFRESH_COOKIE_PATH:/api/auth}
+      secure: ${REFRESH_COOKIE_SECURE:true}
+      # None because the frontend and the API are on different sites. Use Lax if that ever stops
+      # being true - it is strictly safer, and it removes the need for the CSRF header.
+      same-site: ${REFRESH_COOKIE_SAME_SITE:None}
+      domain: ${REFRESH_COOKIE_DOMAIN:}
+    # Passwordless sign-in. Every value has a working default; see LoginPolicyProperties.
+    login:
+      code:
+        length: ${LOGIN_CODE_LENGTH:16}
+        ttl: ${LOGIN_CODE_TTL:15m}
+        resend-cooldown: ${LOGIN_CODE_RESEND_COOLDOWN:60s}
+        max-attempts: ${LOGIN_CODE_MAX_ATTEMPTS:5}
+      lockout:
+        max-failed-attempts: ${LOGIN_LOCKOUT_MAX_ATTEMPTS:10}
+        duration: ${LOGIN_LOCKOUT_DURATION:60m}
+      email-verification:
+        ttl: ${EMAIL_VERIFICATION_TTL:1d}
+        resend-cooldown: ${EMAIL_VERIFICATION_RESEND_COOLDOWN:5m}
     rate-limit:
       enabled: ${RATE_LIMIT_ENABLED:true}
       capacity: ${RATE_LIMIT_CAPACITY:10}
       refill-period: ${RATE_LIMIT_REFILL_PERIOD:1m}
-      trust-forwarded-header: ${RATE_LIMIT_TRUST_FORWARDED_HEADER:false}
+      # Reverse-proxy hops in front of the app. 0 = trust the socket address only.
+      # Set to 1 on Railway, 2 if Cloudflare also proxies the API hostname. Setting this higher than
+      # the real hop count lets callers forge their own source address and evade the limiter.
+      trusted-proxy-count: ${TRUSTED_PROXY_COUNT:0}
+  mail:
+    from: ${MAIL_FROM:no-reply@localhost}
+    from-name: ${MAIL_FROM_NAME:AtomList}
+    # A frontend address, not an API one - the page it opens is what posts the token to
+    # /api/auth/email/verify. {token} is substituted.
+    verification-url: ${MAIL_VERIFICATION_URL:http://localhost:5173/verify-email?token={token}}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:5173}
