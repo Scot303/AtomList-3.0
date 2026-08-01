@@ -2,8 +2,7 @@ package atomdance.app.modules.user.model;
 
 public enum Permission {
 
-	ADD_USERS,
-	MODIFY_PERMISSIONS,
+	MANAGE_USERS,
 	READ_LOGS,
 
 	VIEW_STATS,

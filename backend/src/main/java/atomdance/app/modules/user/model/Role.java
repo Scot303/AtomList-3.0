@@ -1,5 +1,6 @@
 package atomdance.app.modules.user.model;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ public enum Role {
 	private final Set<Permission> permissions;
 
 	Role(Set<Permission> permissions) {
-		this.permissions = permissions;
+		this.permissions = Collections.unmodifiableSet(permissions);
 	}
 
 	public Set<Permission> getPermissions() {
@@ -30,7 +31,8 @@ public enum Role {
 	}
 
 	private static Set<Permission> combine(Role baseRole, Set<Permission> additional) {
-		Set<Permission> combined = EnumSet.copyOf(baseRole.permissions);
+		Set<Permission> combined = EnumSet.noneOf(Permission.class);
+		combined.addAll(baseRole.permissions);
 		combined.addAll(additional);
 
 		return combined;
