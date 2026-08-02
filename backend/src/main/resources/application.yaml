@@ -70,7 +70,7 @@ app:
         duration: ${LOGIN_LOCKOUT_DURATION:60m}
       email-verification:
         ttl: ${EMAIL_VERIFICATION_TTL:1d}
-        resend-cooldown: ${EMAIL_VERIFICATION_RESEND_COOLDOWN:5m}
+        resend-cooldown: ${EMAIL_VERIFICATION_RESEND_COOLDOWN:5m}ó
     rate-limit:
       enabled: ${RATE_LIMIT_ENABLED:true}
       capacity: ${RATE_LIMIT_CAPACITY:10}
@@ -82,6 +82,9 @@ app:
   mail:
     from: ${MAIL_FROM:no-reply@localhost}
     from-name: ${MAIL_FROM_NAME:AtomList}
+    resend:
+      # Unset means mail is written to the log instead of being sent, which the 'prod' profile refuses to start with.
+      api-key: ${RESEND_API_KEY:}
     # A frontend address, not an API one - the page it opens is what posts the token to
     # /api/auth/email/verify. {token} is substituted.
     verification-url: ${MAIL_VERIFICATION_URL:http://localhost:5173/verify-email?token={token}}
