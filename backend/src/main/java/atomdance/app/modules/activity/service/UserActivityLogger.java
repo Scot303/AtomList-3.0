@@ -21,17 +21,29 @@ public class UserActivityLogger {
 
 	/**
 	 * Commits now, on its own transaction, independent of the caller's.
+	 *
+	 * @param userId            who performed the action, or {@code null} for the system
+	 * @param affectedRecordId  what the action was performed on, or {@code null} if it was performed on nothing in particular
 	 */
-	public void record(UUID userId, ActivityType type, ActivityStatus status, String message) {
-		write(build(userId, type, status, message, Instant.now()));
+	public void record(UUID userId, UUID affectedRecordId, ActivityType type, ActivityStatus status, String message) {
+		write(build(userId, affectedRecordId, type, status, message, Instant.now()));
 	}
 
+	/**
+	 * For actions with no subject beyond the actor themselves.
+	 */
+	public void record(UUID userId, ActivityType type, ActivityStatus status, String message) {
+		record(userId, null, type, status, message);
+	}
 
 	/**
 	 * Commits after - and only if - the caller's transaction commits.
+	 *
+	 * @param userId            who performed the action, or {@code null} for the system
+	 * @param affectedRecordId  what the action was performed on, or {@code null} if it was performed on nothing in particular
 	 */
-	public void recordOnCommit(UUID userId, ActivityType type, ActivityStatus status, String message) {
-		UserActivity activity = build(userId, type, status, message, Instant.now());
+	public void recordOnCommit(UUID userId, UUID affectedRecordId, ActivityType type, ActivityStatus status, String message) {
+		UserActivity activity = build(userId, affectedRecordId, type, status, message, Instant.now());
 
 		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
 			write(activity);
@@ -47,6 +59,13 @@ public class UserActivityLogger {
 		});
 	}
 
+	/**
+	 * For actions with no subject beyond the actor themselves.
+	 */
+	public void recordOnCommit(UUID userId, ActivityType type, ActivityStatus status, String message) {
+		recordOnCommit(userId, null, type, status, message);
+	}
+
 	private void write(UserActivity activity) {
 		try {
 			writer.write(activity);
@@ -56,9 +75,10 @@ public class UserActivityLogger {
 		}
 	}
 
-	private UserActivity build(UUID userId, ActivityType type, ActivityStatus status, String message, Instant occurredAt) {
+	private UserActivity build(UUID userId, UUID affectedRecordId, ActivityType type, ActivityStatus status, String message, Instant occurredAt) {
 		return UserActivity.builder()
 				.userId(userId)
+				.affectedRecordId(affectedRecordId)
 				.type(type)
 				.status(status)
 				.message(message)

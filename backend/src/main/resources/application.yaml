@@ -70,7 +70,7 @@ app:
         duration: ${LOGIN_LOCKOUT_DURATION:60m}
       email-verification:
         ttl: ${EMAIL_VERIFICATION_TTL:1d}
-        resend-cooldown: ${EMAIL_VERIFICATION_RESEND_COOLDOWN:5m}ó
+        resend-cooldown: ${EMAIL_VERIFICATION_RESEND_COOLDOWN:5m}
     rate-limit:
       enabled: ${RATE_LIMIT_ENABLED:true}
       capacity: ${RATE_LIMIT_CAPACITY:10}
