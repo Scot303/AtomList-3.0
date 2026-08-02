@@ -53,7 +53,7 @@ public class EmailVerificationService {
 
 		if (lastIssued.isPresent() && lastIssued.get().plus(policy.getEmailVerification().getResendCooldown()).isAfter(now)) {
 			log.debug("Suppressing verification mail for user {} - still inside the resend cooldown", user.getId());
-			activityLogger.record(user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.FAILURE, "Suppressing verification mail for user, still inside the resend cooldown.");
+			activityLogger.record(null, user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.FAILURE, "Suppressing verification mail for user, still inside the resend cooldown.");
 			return false;
 		}
 
@@ -84,7 +84,7 @@ public class EmailVerificationService {
 
 		if (!token.getEmail().equals(user.getEmail())) {
 			log.warn("Refusing a verification link for user {} - it was issued for an address that has since changed", user.getId());
-			activityLogger.record(user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.FAILURE, "Refusing a verification link for user, it was issued for an address that has since changed.");
+			activityLogger.record(null, user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.FAILURE, "Refusing a verification link for user, it was issued for an address that has since changed.");
 
 			throw new InvalidVerificationTokenException();
 		}
@@ -93,7 +93,7 @@ public class EmailVerificationService {
 		user.setEmailVerified(true);
 
 		log.info("Verified the email address on account {}", user.getId());
-		activityLogger.recordOnCommit(user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.SUCCESS, "Verified the email address on account.");
+		activityLogger.recordOnCommit(null, user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.SUCCESS, "Verified the email address on account.");
 
 		return user;
 	}
