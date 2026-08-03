@@ -13,4 +13,13 @@ public class InvalidOperationException extends BaseException {
 				HttpStatus.BAD_REQUEST
 		);
 	}
+
+	public InvalidOperationException(String messageKey, Object... args) {
+		super(
+				"error.invalid_operation_template",
+				new Object[]{new DefaultMessageSourceResolvable(new String[]{messageKey}, args)},
+				"INVALID_OPERATION",
+				HttpStatus.BAD_REQUEST
+		);
+	}
 }

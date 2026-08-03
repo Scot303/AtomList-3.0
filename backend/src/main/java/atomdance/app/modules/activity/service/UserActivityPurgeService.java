@@ -25,15 +25,42 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserActivityPurgeService {
 
+	private static final Duration FINANCIAL_RETENTION = Duration.ofDays(5 * 365);
+	private static final Duration BUSINESS_RECORD_RETENTION = Duration.ofDays(365);
+	private static final Duration DEFAULT_RETENTION = Duration.ofDays(90);
+
 	/**
 	 * How long each kind of record is kept.
 	 */
-	private static final Map<ActivityType, Duration> RETENTION = new EnumMap<>(Map.of(
-			ActivityType.EMAIL_VERIFICATION, Duration.ofDays(30),
-			ActivityType.SYSTEM_CLEANUP, Duration.ofDays(60)
-	));
+	private static final Map<ActivityType, Duration> RETENTION = new EnumMap<>(Map.ofEntries(
+			Map.entry(ActivityType.EMAIL_VERIFICATION, DEFAULT_RETENTION),
+			Map.entry(ActivityType.SYSTEM_CLEANUP, DEFAULT_RETENTION),
+			Map.entry(ActivityType.EMAIL_DELIVERY, DEFAULT_RETENTION),
+			Map.entry(ActivityType.USER_CREATION, DEFAULT_RETENTION),
+			Map.entry(ActivityType.USER_MANAGEMENT, DEFAULT_RETENTION),
 
-	private static final Duration DEFAULT_RETENTION = Duration.ofDays(90);
+			Map.entry(ActivityType.PERSON_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(ActivityType.FAMILY_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(ActivityType.GROUP_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(ActivityType.MEMBERSHIP_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(ActivityType.INSTRUCTOR_PREVIEW, DEFAULT_RETENTION),
+
+			Map.entry(ActivityType.DISCOUNT_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(ActivityType.LIST_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(ActivityType.PAYMENT_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(ActivityType.TRANSACTION_PREVIEW, DEFAULT_RETENTION),
+
+			Map.entry(ActivityType.PERSON_MANAGEMENT, BUSINESS_RECORD_RETENTION),
+			Map.entry(ActivityType.FAMILY_MANAGEMENT, BUSINESS_RECORD_RETENTION),
+			Map.entry(ActivityType.GROUP_MANAGEMENT, BUSINESS_RECORD_RETENTION),
+			Map.entry(ActivityType.MEMBERSHIP_MANAGEMENT, BUSINESS_RECORD_RETENTION),
+			Map.entry(ActivityType.INSTRUCTOR_MANAGEMENT, BUSINESS_RECORD_RETENTION),
+
+			Map.entry(ActivityType.DISCOUNT_MANAGEMENT, FINANCIAL_RETENTION),
+			Map.entry(ActivityType.LIST_MANAGEMENT, FINANCIAL_RETENTION),
+			Map.entry(ActivityType.PAYMENT_MANAGEMENT, FINANCIAL_RETENTION),
+			Map.entry(ActivityType.TRANSACTION_MANAGEMENT, FINANCIAL_RETENTION)
+	));
 
 	private final UserActivityRepository repository;
 	private final UserActivityLogger activityLogger;

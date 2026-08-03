@@ -1,6 +1,9 @@
 package atomdance.app.modules.user.service;
 
 import atomdance.app.modules.user.exception.UserNotAuthenticatedException;
+import atomdance.app.modules.user.model.Permission;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,27 @@ public class SecurityService {
 
 	public String getCurrentUsername() {
 		return currentToken().getToken().getClaimAsString(JwtService.USERNAME_CLAIM);
+	}
+
+	public boolean hasPermission(Permission permission) {
+		String authority = permission.name();
+
+		for (GrantedAuthority granted : currentToken().getAuthorities()) {
+			if (authority.equals(granted.getAuthority())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * @throws AccessDeniedException handled by {@code GlobalExceptionHandler} into a 403
+	 */
+	public void requirePermission(Permission permission) {
+		if (!hasPermission(permission)) {
+			throw new AccessDeniedException("Missing authority " + permission.name());
+		}
 	}
 
 	private JwtAuthenticationToken currentToken() {

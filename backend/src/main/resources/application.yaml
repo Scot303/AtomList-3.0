@@ -45,6 +45,10 @@ management:
 app:
   # Zone every clock calculation is anchored to, independent of the JVM default.
   time-zone: ${APP_TIME_ZONE:Europe/Warsaw}
+  lists:
+    auto-create: ${LISTS_AUTO_CREATE:true}
+  discounts:
+    seed-defaults: ${DISCOUNTS_SEED_DEFAULTS:true}
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-issuer: ${JWT_ISSUER:atomlist-app}
