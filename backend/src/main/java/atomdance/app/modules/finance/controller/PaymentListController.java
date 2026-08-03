@@ -3,7 +3,6 @@ package atomdance.app.modules.finance.controller;
 import atomdance.app.modules.finance.dto.CreateCustomListRequest;
 import atomdance.app.modules.finance.dto.PaymentListView;
 import atomdance.app.modules.finance.model.ListType;
-import atomdance.app.modules.finance.service.ListStatsService;
 import atomdance.app.modules.finance.service.PaymentListService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -25,7 +24,6 @@ import java.util.UUID;
 public class PaymentListController {
 
 	private final PaymentListService paymentListService;
-	private final ListStatsService listStatsService;
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_LISTS')")
