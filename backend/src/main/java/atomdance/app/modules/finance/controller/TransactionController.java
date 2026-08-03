@@ -30,7 +30,7 @@ public class TransactionController {
 	@GetMapping("/lists/{listId}/transactions")
 	@PreAuthorize("hasAnyAuthority('READ_INCOME_TRANSACTIONS', 'READ_EXPENSE_TRANSACTIONS')")
 	public List<TransactionView> listForList(@PathVariable UUID listId) {
-		return transactionService.listForList(listId);
+		return transactionService.getAllForList(listId);
 	}
 
 	/**
