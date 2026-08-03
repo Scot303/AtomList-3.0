@@ -1,8 +1,8 @@
 package atomdance.app.common.mail;
 
-import atomdance.app.modules.activity.model.ActivityStatus;
-import atomdance.app.modules.activity.model.ActivityType;
-import atomdance.app.modules.activity.service.UserActivityLogger;
+import atomdance.app.modules.audit.model.AuditEventType;
+import atomdance.app.modules.audit.model.AuditOutcome;
+import atomdance.app.modules.audit.service.AuditLogger;
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
@@ -24,7 +24,7 @@ public class ResendAuthMailer implements AuthMailer {
 	private final Resend resend;
 	private final MessageSource messageSource;
 	private final MailProperties properties;
-	private final UserActivityLogger activityLogger;
+	private final AuditLogger auditLogger;
 
 	@Override
 	@Async
@@ -60,10 +60,10 @@ public class ResendAuthMailer implements AuthMailer {
 			CreateEmailResponse response = resend.emails().send(message);
 
 			log.info("Sent {} to {} (message {})", what, redact(to), response.getId());
-			activityLogger.record(null, ActivityType.EMAIL_DELIVERY, ActivityStatus.SUCCESS, String.format("Successfully sent %s ", what));
+			auditLogger.record(null, AuditEventType.EMAIL_DELIVERY, AuditOutcome.SUCCESS, String.format("Successfully sent %s ", what));
 		} catch (ResendException | RuntimeException e) {
 			log.error("Failed to send {} to {}: {}", what, redact(to), e.getMessage());
-			activityLogger.record(null, ActivityType.EMAIL_DELIVERY, ActivityStatus.FAILURE, String.format("Failed to send %s ", what));
+			auditLogger.record(null, AuditEventType.EMAIL_DELIVERY, AuditOutcome.FAILURE, String.format("Failed to send %s ", what));
 		}
 	}
 

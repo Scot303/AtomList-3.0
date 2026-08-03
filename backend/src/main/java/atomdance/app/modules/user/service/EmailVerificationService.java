@@ -4,9 +4,9 @@ import atomdance.app.common.mail.AuthMailer;
 import atomdance.app.common.mail.MailProperties;
 import atomdance.app.common.utils.OpaqueTokens;
 import atomdance.app.config.LoginPolicyProperties;
-import atomdance.app.modules.activity.model.ActivityStatus;
-import atomdance.app.modules.activity.model.ActivityType;
-import atomdance.app.modules.activity.service.UserActivityLogger;
+import atomdance.app.modules.audit.model.AuditEventType;
+import atomdance.app.modules.audit.model.AuditOutcome;
+import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.user.exception.InvalidVerificationTokenException;
 import atomdance.app.modules.user.model.EmailVerificationToken;
 import atomdance.app.modules.user.model.User;
@@ -33,7 +33,7 @@ public class EmailVerificationService {
 	private final LoginPolicyProperties policy;
 	private final MailProperties mailProperties;
 	private final AuthMailer mailer;
-	private final UserActivityLogger activityLogger;
+	private final AuditLogger auditLogger;
 
 	/**
 	 * Sends a fresh link, ignoring the resend cooldown.
@@ -53,7 +53,7 @@ public class EmailVerificationService {
 
 		if (lastIssued.isPresent() && lastIssued.get().plus(policy.getEmailVerification().getResendCooldown()).isAfter(now)) {
 			log.debug("Suppressing verification mail for user {} - still inside the resend cooldown", user.getId());
-			activityLogger.record(null, user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.FAILURE, "Suppressing verification mail for user, still inside the resend cooldown.");
+			auditLogger.record(null, user.getId(), AuditEventType.EMAIL_VERIFICATION, AuditOutcome.FAILURE, "Suppressing verification mail for user, still inside the resend cooldown.");
 			return false;
 		}
 
@@ -84,7 +84,7 @@ public class EmailVerificationService {
 
 		if (!token.getEmail().equals(user.getEmail())) {
 			log.warn("Refusing a verification link for user {} - it was issued for an address that has since changed", user.getId());
-			activityLogger.record(null, user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.FAILURE, "Refusing a verification link for user, it was issued for an address that has since changed.");
+			auditLogger.record(null, user.getId(), AuditEventType.EMAIL_VERIFICATION, AuditOutcome.FAILURE, "Refusing a verification link for user, it was issued for an address that has since changed.");
 
 			throw new InvalidVerificationTokenException();
 		}
@@ -93,7 +93,7 @@ public class EmailVerificationService {
 		user.setEmailVerified(true);
 
 		log.info("Verified the email address on account {}", user.getId());
-		activityLogger.recordOnCommit(null, user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.SUCCESS, "Verified the email address on account.");
+		auditLogger.recordOnCommit(null, user.getId(), AuditEventType.EMAIL_VERIFICATION, AuditOutcome.SUCCESS, "Verified the email address on account.");
 
 		return user;
 	}
@@ -108,7 +108,7 @@ public class EmailVerificationService {
 
 		if (deleted > 0) {
 			log.info("Purged {} expired email-verification token(s)", deleted);
-			activityLogger.recordOnCommit(null, ActivityType.SYSTEM_CLEANUP, ActivityStatus.SUCCESS, String.format("Purged %d expired email-verification token(s).", deleted));
+			auditLogger.recordOnCommit(null, AuditEventType.SYSTEM_CLEANUP, AuditOutcome.SUCCESS, String.format("Purged %d expired email-verification token(s).", deleted));
 		}
 	}
 

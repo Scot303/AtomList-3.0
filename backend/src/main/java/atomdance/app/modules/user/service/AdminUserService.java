@@ -2,9 +2,9 @@ package atomdance.app.modules.user.service;
 
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NameTakenException;
-import atomdance.app.modules.activity.model.ActivityStatus;
-import atomdance.app.modules.activity.model.ActivityType;
-import atomdance.app.modules.activity.service.UserActivityLogger;
+import atomdance.app.modules.audit.model.AuditEventType;
+import atomdance.app.modules.audit.model.AuditOutcome;
+import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.user.dto.AdminUserView;
 import atomdance.app.modules.user.dto.CreateUserRequest;
 import atomdance.app.modules.user.dto.UpdateUserRequest;
@@ -39,7 +39,7 @@ public class AdminUserService {
 	private final EmailVerificationService emailVerificationService;
 	private final AccountLockService accountLockService;
 	private final SecurityService securityService;
-	private final UserActivityLogger activityLogger;
+	private final AuditLogger auditLogger;
 
 
 	private User getUserOrThrow(UUID id) {
@@ -86,7 +86,7 @@ public class AdminUserService {
 		emailVerificationService.issue(user);
 
 		log.info("Created account {} ({}) with role {}", user.getId(), user.getUsername(), user.getRole());
-		activityLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), ActivityType.USER_CREATION, ActivityStatus.SUCCESS, String.format("Account %s has been created with a role %s.", user.getUsername(), user.getRole()));
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_CREATION, AuditOutcome.SUCCESS, String.format("Account %s has been created with a role %s.", user.getUsername(), user.getRole()));
 
 		return AdminUserView.from(user, Instant.now());
 	}
@@ -108,7 +108,7 @@ public class AdminUserService {
 			guardLastAdmin(user, request.role(), user.isActive());
 
 			log.info("Changing the role on account {} from {} to {}", user.getId(), user.getRole(), request.role());
-			activityLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), ActivityType.USER_MANAGEMENT, ActivityStatus.SUCCESS, String.format("Account's role changed to %s.", request.role()));
+			auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's role changed to %s.", request.role()));
 
 			user.setRole(request.role());
 			revokeSessions = true;
@@ -118,7 +118,7 @@ public class AdminUserService {
 			guardSelfEdit(user, "error.cannot_change_own_permissions");
 
 			log.info("Changed the additional permissions on account {} from {} to {}", user.getId(), user.getAdditionalPermissions(), request.additionalPermissions());
-			activityLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), ActivityType.USER_MANAGEMENT, ActivityStatus.SUCCESS, String.format("Account's additional permissions changed to %s.", request.additionalPermissions()));
+			auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's additional permissions changed to %s.", request.additionalPermissions()));
 
 			user.setAdditionalPermissions(copyOf(request.additionalPermissions()));
 			revokeSessions = true;
@@ -131,7 +131,7 @@ public class AdminUserService {
 			}
 
 			log.info("Changed isActive status on account {} from {} to {}", user.getId(), user.isActive(), request.active());
-			activityLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), ActivityType.USER_MANAGEMENT, ActivityStatus.SUCCESS, String.format("Account's isActive status changed to %s.", request.active()));
+			auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's isActive status changed to %s.", request.active()));
 
 			user.setActive(request.active());
 			revokeSessions = true;
@@ -154,7 +154,7 @@ public class AdminUserService {
 		accountLockService.reset(user);
 
 		log.info("Account manually {} unlocked by {}", user.getId(), securityService.getCurrentUsername());
-		activityLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), ActivityType.USER_MANAGEMENT, ActivityStatus.SUCCESS, "Account manually unlocked before time limit.");
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, "Account manually unlocked before time limit.");
 
 		return AdminUserView.from(user, Instant.now());
 	}
@@ -170,7 +170,7 @@ public class AdminUserService {
 			throw new InvalidOperationException("error.email_already_verified");
 		}
 
-		activityLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), ActivityType.EMAIL_VERIFICATION, ActivityStatus.SUCCESS, "New verification link resent.");
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.EMAIL_VERIFICATION, AuditOutcome.SUCCESS, "New verification link resent.");
 
 		emailVerificationService.issue(user);
 	}
@@ -184,7 +184,7 @@ public class AdminUserService {
 
 		refreshTokenService.revokeAllForUser(user.getId());
 
-		activityLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), ActivityType.USER_MANAGEMENT, ActivityStatus.SUCCESS, "Ended every session for account.");
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, "Ended every session for account.");
 
 		log.info("Ended every session for account {} at the request of {}", user.getId(), securityService.getCurrentUsername());
 	}
@@ -204,7 +204,7 @@ public class AdminUserService {
 		}
 
 		log.info("Changing the address on account {} - it must be verified again before sign-in works", user.getId());
-		activityLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), ActivityType.USER_MANAGEMENT, ActivityStatus.SUCCESS, String.format("Account's address email changed to %s.", email));
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's address email changed to %s.", email));
 
 		user.setEmail(email);
 		user.setEmailVerified(false);
