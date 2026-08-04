@@ -1,0 +1,58 @@
+package atomdance.app.modules.person.controller;
+
+import atomdance.app.modules.person.dto.CreatePersonRequest;
+import atomdance.app.modules.person.dto.PersonView;
+import atomdance.app.modules.person.dto.UpdatePersonRequest;
+import atomdance.app.modules.person.service.PersonService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/persons")
+@RequiredArgsConstructor
+public class PersonController {
+
+	private final PersonService personService;
+
+	@GetMapping
+	@PreAuthorize("hasAuthority('READ_PERSONS')")
+	public PagedModel<PersonView> getAll(@RequestParam(required = false) String search, @RequestParam(defaultValue = "false") boolean activeOnly,
+	                                     @PageableDefault(size = 500, sort = {"lastName", "name"}, direction = Sort.Direction.ASC) Pageable pageable) {
+		return new PagedModel<>(personService.getAll(search, activeOnly, pageable));
+	}
+
+	@GetMapping("/{id}")
+	@PreAuthorize("hasAuthority('READ_PERSONS')")
+	public PersonView get(@PathVariable UUID id) {
+		return personService.get(id);
+	}
+
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	@PreAuthorize("hasAuthority('MODIFY_PERSONS')")
+	public PersonView create(@RequestBody @Valid CreatePersonRequest request) {
+		return personService.create(request);
+	}
+
+	@PatchMapping("/{id}")
+	@PreAuthorize("hasAuthority('MODIFY_PERSONS')")
+	public PersonView update(@PathVariable UUID id, @RequestBody @Valid UpdatePersonRequest request) {
+		return personService.update(id, request);
+	}
+
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@PreAuthorize("hasAuthority('MODIFY_PERSONS')")
+	public void delete(@PathVariable UUID id) {
+		personService.delete(id);
+	}
+}

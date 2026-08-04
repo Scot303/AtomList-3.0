@@ -29,7 +29,7 @@ public class PaymentController {
 	@GetMapping("/lists/{listId}/payments")
 	@PreAuthorize("hasAuthority('READ_PAYMENTS')")
 	public PagedModel<PaymentView> listForList(@PathVariable UUID listId, @PageableDefault(size = 500, sort = {"person.lastName", "person.name"}, direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(paymentService.listForList(listId, pageable));
+		return new PagedModel<>(paymentService.getForList(listId, pageable));
 	}
 
 	@GetMapping("/payments/{id}")
