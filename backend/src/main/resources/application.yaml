@@ -94,3 +94,10 @@ app:
     verification-url: ${MAIL_VERIFICATION_URL:http://localhost:5173/verify-email?token={token}}
   cors:
     allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:5173}
+  sms:
+    schedule.reminder:
+      enabled: true
+    rest:
+      justSendApiKey: ${JUSTSEND_API_KEY:}
+
+

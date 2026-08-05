@@ -16,6 +16,7 @@ public enum Permission {
 
 	READ_PAYMENTS,
 	MODIFY_PAYMENTS,
+	SEND_SMS,
 
 	READ_GROUPS,
 	MODIFY_GROUPS,
