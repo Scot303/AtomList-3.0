@@ -165,19 +165,54 @@ public class SecurityConfig {
 	}
 
 	/**
+	 * Domains anyone can get a host under by signing up, plus the two-level public suffixes we are
+	 * likely to meet. A wildcard sitting directly on top of one of these is open to the whole
+	 * internet, and with {@code allowCredentials} that means any stranger's site could read this
+	 * API's authenticated responses.
+	 */
+	private static final Set<String> SHARED_SUFFIXES = Set.of(
+			"pages.dev", "workers.dev", "trycloudflare.com",
+			"vercel.app", "netlify.app", "netlify.com",
+			"github.io", "gitlab.io",
+			"up.railway.app", "onrender.com", "fly.dev", "herokuapp.com",
+			"azurewebsites.net", "azurestaticapps.net", "web.app", "firebaseapp.com",
+			"ngrok-free.app", "ngrok.app", "loca.lt",
+			"co.uk", "org.uk", "com.pl", "net.pl", "org.pl", "com.au", "co.jp", "com.br", "co.nz"
+	);
+
+	/**
 	 * Refuses to start on an origin pattern whose wildcard covers a whole public suffix.
 	 */
 	static void assertOriginPatternsAreScoped(List<String> patterns) {
 		for (String pattern : patterns) {
-			String host = pattern.replaceFirst("^[a-zA-Z]+://", "");
+			String host = hostOf(pattern);
 
-			if (host.equals("*") || host.startsWith("*.")) {
+			if (!host.startsWith("*")) {
+				continue;
+			}
+
+			String belowWildcard = host.startsWith("*.") ? host.substring(2) : "";
+			boolean coversWholeLabels = host.startsWith("*.");
+			boolean namesADomainWeControl = belowWildcard.indexOf('.') > 0 && !SHARED_SUFFIXES.contains(belowWildcard);
+
+			if (!coversWholeLabels || !namesADomainWeControl) {
 				throw new IllegalStateException(
 						"CORS origin pattern '" + pattern + "' is too broad to use with credentials: its wildcard " +
-								"covers every host under that domain, so any site deployed there could read this API's " +
-								"authenticated responses. Scope the wildcard to your own project, e.g. " +
-								"'https://atomlist-*.pages.dev', or name the origin exactly.");
+								"covers hosts you do not own, so a stranger's site could read this API's authenticated " +
+								"responses. Anchor the wildcard on a domain of yours with a dot, e.g. " +
+								"'https://*.yourdomain.pages.dev', or name the origin exactly.");
 			}
 		}
+	}
+
+	/**
+	 * The host part of an origin pattern, with the scheme and any port pattern removed.
+	 */
+	private static String hostOf(String originPattern) {
+		String host = originPattern.replaceFirst("^[a-zA-Z][a-zA-Z0-9+.-]*://", "");
+		int portSeparator = host.lastIndexOf(':');
+
+		// Compared against ']' so the colons inside a bracketed IPv6 literal are left alone.
+		return portSeparator > host.lastIndexOf(']') ? host.substring(0, portSeparator) : host;
 	}
 }

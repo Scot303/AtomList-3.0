@@ -1,6 +1,7 @@
 package atomdance.app.common.ratelimit;
 
 import atomdance.app.common.exception.ErrorResponseWriter;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,6 +10,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.filter.ForwardedHeaderFilter;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -101,6 +106,45 @@ class RateLimitFilterClientIpTest {
 		MockHttpServletRequest request = request("10.0.0.1", "198.51.100.1");
 
 		assertThat(filter.resolveClientIp(request)).isEqualTo("198.51.100.1");
+	}
+
+	/**
+	 * The deployed app runs behind Spring's own {@code ForwardedHeaderFilter}, whose wrapper hides
+	 * every {@code X-Forwarded-*} header and rewrites {@code getRemoteAddr()} to the caller-supplied
+	 * leftmost entry. Resolving through that wrapper silently reverts every guarantee the tests above
+	 * assert, so the real filter is exercised here rather than a stand-in for it.
+	 */
+	@Test
+	void seesPastSpringsForwardedHeaderWrapper() throws Exception {
+		properties.setTrustedProxyCount(1);
+
+		MockHttpServletRequest request = request("10.0.0.1", "1.2.3.4, 198.51.100.1");
+		request.setRequestURI("/api/auth/otp/request");
+
+		AtomicReference<String> resolved = new AtomicReference<>();
+
+		new ForwardedHeaderFilter().doFilter(request, new MockHttpServletResponse(),
+				(wrapped, ignored) -> resolved.set(filter.resolveClientIp((HttpServletRequest) wrapped)));
+
+		assertThat(resolved.get()).isEqualTo("198.51.100.1");
+	}
+
+	/**
+	 * Same wrapper, no trusted hops: the socket address the container saw, not the one the wrapper substituted from the header.
+	 */
+	@Test
+	void reportsTheContainerSocketAddressThroughTheWrapperWhenNoProxyIsTrusted() throws Exception {
+		properties.setTrustedProxyCount(0);
+
+		MockHttpServletRequest request = request("10.0.0.1", "1.2.3.4, 198.51.100.1");
+		request.setRequestURI("/api/auth/otp/request");
+
+		AtomicReference<String> resolved = new AtomicReference<>();
+
+		new ForwardedHeaderFilter().doFilter(request, new MockHttpServletResponse(),
+				(wrapped, ignored) -> resolved.set(filter.resolveClientIp((HttpServletRequest) wrapped)));
+
+		assertThat(resolved.get()).isEqualTo("10.0.0.1");
 	}
 
 	private static MockHttpServletRequest request(String remoteAddr, String forwardedFor) {
