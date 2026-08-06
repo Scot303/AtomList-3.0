@@ -52,7 +52,7 @@
     }
 
     .popover-surface {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
         var(--color-os-surface-dark);
         border-radius: 20px;
 
