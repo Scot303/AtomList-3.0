@@ -17,12 +17,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 	@Query("SELECT u FROM User u LEFT JOIN FETCH u.additionalPermissions WHERE u.id = :id")
 	Optional<User> findByIdWithPermissions(@Param("id") UUID id);
 
-	@Query("SELECT u FROM User u LEFT JOIN FETCH u.additionalPermissions WHERE u.username = :username")
-	Optional<User> findByUsernameWithPermissions(@Param("username") String username);
-
 	/**
-	 * Resolves whoever is trying to sign in. Either their username or their email address is accepted,
-	 * because the people using this app will not reliably remember which one they were given.
+	 * Resolves whoever is trying to sign in. Either their username or their email address is accepted.
 	 */
 	@Query("""
 			SELECT u FROM User u LEFT JOIN FETCH u.additionalPermissions

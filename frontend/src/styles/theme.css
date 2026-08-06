@@ -13,6 +13,9 @@
     --color-os-border: rgba(255, 255, 255, 0.15);
     --color-os-border-highlight: rgba(255, 255, 255, 0.25);
 
+    /* Selected rows, hovered controls - anywhere something needs to lift off its surface. */
+    --color-os-bg-highlight: rgba(255, 255, 255, 0.05);
+
     --color-os-primary: #007ba7;
     --color-os-text: #f0f0f0;
     --color-os-text-muted: #9e9e9e;

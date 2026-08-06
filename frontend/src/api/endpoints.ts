@@ -32,3 +32,14 @@ export const NO_TOKEN_RENEWAL_PATHS: readonly string[] = [
 	AUTH_ENDPOINTS.verifyEmail,
 	AUTH_ENDPOINTS.resendVerification,
 ];
+
+/**
+ * Account administration. Every one of these needs the `MANAGE_USERS` authority.
+ */
+export const ADMIN_USER_ENDPOINTS = {
+	base: '/api/admin/users',
+	byId: (id: string) => `/api/admin/users/${ id }`,
+	unlock: (id: string) => `/api/admin/users/${ id }/unlock`,
+	resendVerification: (id: string) => `/api/admin/users/${ id }/resend-verification`,
+	forceLogout: (id: string) => `/api/admin/users/${ id }/force-logout`,
+} as const;
