@@ -3,8 +3,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { BrowserRouter } from 'react-router';
 import { ToastContainer } from 'react-toastify';
 
-import { GlobalDialog } from '@/components/ui/modal/GlobalDialog';
-import { GlobalModal } from '@/components/ui/modal/GlobalModal';
+import { GlobalDialog } from '@/components/ui/modals/GlobalDialog';
+import { GlobalModal } from '@/components/ui/modals/GlobalModal';
 import { queryClient } from '@/lib/queryClient';
 import { AuthProvider } from '@/modules/auth/AuthProvider';
 import { AppRoutes } from '@/routes/AppRoutes';
