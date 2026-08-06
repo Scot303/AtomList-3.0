@@ -1,8 +1,9 @@
-import { useMutation, type UseMutationResult } from '@tanstack/react-query';
+import { useMutation, type UseMutationResult, useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { type ApiError, rethrowAsApiError } from '@/api/errors';
 import type { LoginResponse } from '@/types/auth';
 import { requestLoginCode, resendVerification, verifyEmail, verifyLoginCode, type VerifyLoginCodeInput, } from '../api/authApi';
 import { useAuth } from './useAuth';
+import { authKeys } from "@/modules/auth/api/authKeys.ts";
 
 
 export function useRequestLoginCode(): UseMutationResult<void, ApiError, string> {
@@ -33,8 +34,18 @@ export function useResendVerification(): UseMutationResult<void, ApiError, strin
 }
 
 
-export function useVerifyEmail(): UseMutationResult<void, ApiError, string> {
-	return useMutation({
-		mutationFn: (token: string) => verifyEmail(token).catch(rethrowAsApiError),
+export function useEmailVerification(token: string): UseQueryResult<true, ApiError> {
+	return useQuery<true, ApiError>({
+		queryKey: authKeys.emailVerification(token),
+		queryFn: async (): Promise<true> => {
+			await verifyEmail(token).catch(rethrowAsApiError);
+
+			return true;
+		},
+		staleTime: Infinity,
+		gcTime: Infinity,
+		retry: false,
+		refetchOnReconnect: false,
+		meta: { silent: true },
 	});
 }
