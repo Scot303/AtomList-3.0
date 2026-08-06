@@ -1,0 +1,4 @@
+# Cloudflare Pages serves files, and the routes below only exist inside the bundle. Without this,
+# opening /verify-email?token=... from an email - or reloading on any page but the root - returns
+# the platform's 404 instead of the application.
+/*  /index.html  200

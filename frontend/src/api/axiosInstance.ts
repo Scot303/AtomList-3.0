@@ -1,0 +1,109 @@
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { canRenewSession, endSession, getAccessToken, renewSession } from './authBridge';
+import { API_BASE_URL, API_LANGUAGE, CSRF_HEADER, REQUEST_TIMEOUT_MS } from './config';
+import { ANONYMOUS_PATHS, NO_TOKEN_RENEWAL_PATHS } from './endpoints';
+import { ErrorCode, toApiError } from './errors';
+
+
+declare module 'axios' {
+	export interface AxiosRequestConfig {
+		/** Opts a single request out of the automatic renew-and-retry on a 401. */
+		skipTokenRenewal?: boolean;
+		/** Set internally. Guarantees a request is only ever replayed once. */
+		tokenRenewalAttempted?: boolean;
+	}
+}
+
+/**
+ * The client every part of the application talks to the API through.
+ */
+export const axiosInstance = axios.create({
+	baseURL: API_BASE_URL,
+	timeout: REQUEST_TIMEOUT_MS,
+
+	// Cross-site request without it silently drops the cookie rather than failing loudly.
+	withCredentials: true,
+
+	headers: {
+		Accept: 'application/json',
+		'Content-Type': 'application/json',
+		'Accept-Language': API_LANGUAGE,
+	},
+});
+
+
+axiosInstance.interceptors.request.use((config) => {
+	const token = getAccessToken();
+
+	if (token !== null && !matchesPath(config.url, ANONYMOUS_PATHS)) {
+		config.headers.set('Authorization', `Bearer ${ token }`);
+	}
+
+	config.headers.set(CSRF_HEADER, '1');
+
+	return config;
+});
+
+
+axiosInstance.interceptors.response.use(
+	(response) => response,
+	async (error: unknown) => {
+		if (!axios.isAxiosError(error) || !error.config) {
+			throw toApiError(error);
+		}
+
+		const config = error.config as InternalAxiosRequestConfig;
+		const status = error.response?.status;
+
+		if (status === 401 && shouldRenewToken(config)) {
+			config.tokenRenewalAttempted = true;
+
+			try {
+				await renewSession();
+			} catch {
+				throw toApiError(error);
+			}
+
+			return axiosInstance(config);
+		}
+
+		const apiError = toApiError(error);
+
+		if (apiError.is(ErrorCode.accountInactive)) {
+			endSession();
+		}
+
+		throw apiError;
+	},
+);
+
+
+function shouldRenewToken(config: InternalAxiosRequestConfig): boolean {
+	if (config.skipTokenRenewal === true || config.tokenRenewalAttempted === true) {
+		return false;
+	}
+
+	if (!canRenewSession()) {
+		return false;
+	}
+
+	return !matchesPath(config.url, NO_TOKEN_RENEWAL_PATHS);
+}
+
+
+function matchesPath(url: string | undefined, paths: readonly string[]): boolean {
+	if (url === undefined) {
+		return false;
+	}
+
+	const path = url.split('?')[0];
+
+	// endsWith covers a caller that passed an absolute URL rather than a path relative to baseURL.
+	return paths.some((candidate) => path === candidate || path.endsWith(candidate));
+}
+
+
+/** Narrowing helper for the rare caller that needs the raw axios error rather than an ApiError. */
+export function isAxiosError(error: unknown): error is AxiosError {
+	return axios.isAxiosError(error);
+}
