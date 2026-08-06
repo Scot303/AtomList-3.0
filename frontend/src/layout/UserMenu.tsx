@@ -47,7 +47,7 @@ export function UserMenu() {
 			<MenuItems
 				transition
 				anchor={ { to: 'bottom end', gap: 8 } }
-				className={ cn('popover-surface z-1400 w-73 p-1.5', 'transition duration-150 ease-out-soft data-closed:scale-95 data-closed:opacity-0') }
+				className={ cn('popover-surface z-1400 w-73 p-1.5 focus:outline-none', 'transition duration-150 ease-out-soft data-closed:scale-95 data-closed:opacity-0') }
 			>
 				<div className="border-b border-os-border px-3 py-3">
 					<p className="truncate text-sm font-medium text-os-text">{ user.username }</p>
