@@ -8,7 +8,6 @@ import { useCountdown } from '@/hooks/useCountdown.ts';
 import { useRequestLoginCode, useVerifyLoginCode } from '../hooks/useAuthMutations';
 import { loginCodeSchema } from '../schemas/authSchemas';
 import { OtpCodeInput } from './OtpCodeInput';
-import { ResendVerificationNotice } from './ResendVerificationNotice';
 
 
 interface CodeStepProps {
@@ -103,10 +102,6 @@ export const CodeStep = (props: CodeStepProps) => {
 					{ LOGIN_CODE_TTL_MINUTES } minut.
 				</Alert>
 			) }
-
-			{ emailUnverified ? (
-				<ResendVerificationNotice identifier={ identifier } message={ verify.error?.message }/>
-			) : null }
 
 			<Button
 				type="submit"
