@@ -19,16 +19,13 @@ const STORAGE_KEY = 'atomlist.session-hint';
  */
 const HINT_TTL_MS = 10 * 24 * 60 * 60 * 1000;
 
-
 export function markSessionHint(): void {
 	write(String(Date.now() + HINT_TTL_MS));
 }
 
-
 export function clearSessionHint(): void {
 	write(null);
 }
-
 
 export function hasSessionHint(): boolean {
 	const raw = read();
@@ -48,7 +45,6 @@ export function hasSessionHint(): boolean {
 	return true;
 }
 
-
 function read(): string | null {
 	try {
 		return window.localStorage.getItem(STORAGE_KEY);
@@ -56,7 +52,6 @@ function read(): string | null {
 		return null;
 	}
 }
-
 
 function write(value: string | null): void {
 	try {

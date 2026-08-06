@@ -25,4 +25,4 @@ export const useUiStore = create<UiState>()(
 			partialize: (state) => ({ sidebarOpen: state.sidebarOpen }),
 		},
 	),
-)
+);

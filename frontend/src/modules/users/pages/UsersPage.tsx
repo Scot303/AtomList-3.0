@@ -1,7 +1,9 @@
-import { FullPageLoader } from "@/components/feedback/FullPageLoader.tsx";
+import { FullPageLoader } from '@/components/feedback/FullPageLoader.tsx';
 
 export function UsersPage() {
-	return <div>
-		<FullPageLoader/>
-	</div>
+	return (
+		<div>
+			<FullPageLoader/>
+		</div>
+	);
 }

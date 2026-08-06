@@ -1,12 +1,7 @@
-import { createContext } from 'react'
+import { createContext } from 'react';
+import type { LoginResponse, Permission, UserInfo } from '@/types/auth';
 
-import type { LoginResponse, Permission, UserInfo } from '@/types/auth'
-
-export type AuthStatus =
-	| 'initializing'
-	| 'authenticated'
-	| 'unauthenticated'
-	| 'unavailable'
+export type AuthStatus = 'initializing' | 'authenticated' | 'unauthenticated' | 'unavailable';
 
 export interface AuthContextValue {
 	status: AuthStatus;

@@ -1,17 +1,15 @@
-import { QueryCache, QueryClient } from '@tanstack/react-query'
-import { type ApiError, ErrorCode, isClientError, toApiError } from '@/api/errors'
-import { notifyApiError } from './toast'
-
+import { QueryCache, QueryClient } from '@tanstack/react-query';
+import { type ApiError, ErrorCode, isClientError, toApiError } from '@/api/errors';
+import { notifyApiError } from './toast';
 
 const MAX_RETRIES = 2;
-
 
 declare module '@tanstack/react-query' {
 	interface Register {
 		queryMeta: {
 			/** Opts a query out of the automatic toast, for one that reports its failure itself. */
 			silent?: boolean;
-		}
+		};
 	}
 }
 
@@ -30,7 +28,6 @@ function isAlreadyHandled(error: ApiError): boolean {
 	return error.is(ErrorCode.accountInactive) || error.is(ErrorCode.invalidRefreshToken);
 }
 
-
 export const queryClient = new QueryClient({
 	queryCache: new QueryCache({
 		onError: (error, query) => {
@@ -38,7 +35,7 @@ export const queryClient = new QueryClient({
 				return;
 			}
 
-			const apiError = toApiError(error)
+			const apiError = toApiError(error);
 
 			if (!isAlreadyHandled(apiError)) {
 				notifyApiError(apiError);
@@ -58,4 +55,4 @@ export const queryClient = new QueryClient({
 			retry: false,
 		},
 	},
-})
+});

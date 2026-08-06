@@ -1,7 +1,7 @@
-import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { cn } from '@/lib/cn.ts';
 
-import { cn } from '@/lib/cn.ts'
 
 const TONES = {
 	info: {
@@ -20,7 +20,8 @@ const TONES = {
 		box: 'border-os-error text-os-error',
 		icon: <XCircle className="size-4 shrink-0 text-os-error"/>,
 	},
-} as const
+} as const;
+
 
 interface AlertProps {
 	tone?: keyof typeof TONES;
@@ -30,8 +31,9 @@ interface AlertProps {
 	className?: string;
 }
 
+
 export function Alert({ tone = 'info', title, children, action, className }: AlertProps) {
-	const { box, icon } = TONES[tone]
+	const { box, icon } = TONES[tone];
 
 	return (
 		<div

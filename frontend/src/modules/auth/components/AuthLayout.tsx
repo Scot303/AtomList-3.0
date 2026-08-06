@@ -1,14 +1,11 @@
-import type { ReactNode } from 'react'
-
-import logo from '@public/atomlisticon.png'
-
+import type { ReactNode } from 'react';
+import logo from '@public/atomlisticon.png';
 
 interface AuthLayoutProps {
 	title: string;
 	subtitle?: ReactNode;
 	children: ReactNode;
 }
-
 
 export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 	return (
@@ -18,19 +15,21 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 					<img
 						src={ logo }
 						alt=""
-						className="size-25 rounded-2xl shadow-glow"
+						className="size-25 rounded-2xl shadow-lg shadow-os-primary/20"
 					/>
-					<h1 className="text-4xl font-bold text-os-text tracking-widest uppercase antialiased">AtomList</h1>
+					<h1 className="text-4xl font-bold text-os-text tracking-widest uppercase antialiased">
+						AtomList
+					</h1>
 				</div>
 
 				<div className="popover-surface p-8">
 					<div className="text-center">
 						<h1 className="text-2xl font-bold uppercase">{ title }</h1>
-						{ subtitle ?
+						{ subtitle ? (
 							<p className="mt-2 text-sm ">{ subtitle }</p>
-							:
+						) : (
 							<div className="mb-8"></div>
-						}
+						) }
 					</div>
 
 					<div className="mt-5">{ children }</div>

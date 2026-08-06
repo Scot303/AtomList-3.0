@@ -7,7 +7,7 @@ export const AUTH_ENDPOINTS = {
 	logoutEverywhere: '/api/auth/logout-all',
 	verifyEmail: '/api/auth/email/verify',
 	resendVerification: '/api/auth/email/resend',
-} as const
+} as const;
 
 /**
  * Endpoints reached before anyone is signed in, which must be called without an Authorization header.
@@ -17,7 +17,7 @@ export const ANONYMOUS_PATHS: readonly string[] = [
 	AUTH_ENDPOINTS.verifyLoginCode,
 	AUTH_ENDPOINTS.verifyEmail,
 	AUTH_ENDPOINTS.resendVerification,
-]
+];
 
 /**
  * Endpoints that must never trigger the "401 means the access token lapsed, renew it and retry" path.
@@ -31,4 +31,4 @@ export const NO_TOKEN_RENEWAL_PATHS: readonly string[] = [
 	AUTH_ENDPOINTS.logout,
 	AUTH_ENDPOINTS.verifyEmail,
 	AUTH_ENDPOINTS.resendVerification,
-]
+];

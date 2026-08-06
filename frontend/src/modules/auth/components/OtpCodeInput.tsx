@@ -1,23 +1,34 @@
-import { type ClipboardEvent, type KeyboardEvent, useEffect, useRef } from 'react'
-import { cn } from '@/lib/cn'
-import { LOGIN_CODE_GROUP_SIZE, LOGIN_CODE_LENGTH, normalizeLoginCode } from '../constants'
+import { type ClipboardEvent, type KeyboardEvent, useEffect, useRef } from 'react';
+import { cn } from '@/lib/cn';
+import { LOGIN_CODE_GROUP_SIZE, LOGIN_CODE_LENGTH, normalizeLoginCode } from '../constants';
 
 interface OtpCodeInputProps {
-	value: string
-	onChange: (value: string) => void
+	value: string;
+	onChange: (value: string) => void;
 	/** Fired once the last character lands, so the form can submit without a second gesture. */
-	onComplete?: (value: string) => void
-	disabled?: boolean
-	invalid?: boolean
-	autoFocus?: boolean
-	length?: number
-	groupSize?: number
+	onComplete?: (value: string) => void;
+	disabled?: boolean;
+	invalid?: boolean;
+	autoFocus?: boolean;
+	length?: number;
+	groupSize?: number;
 }
 
 /**
  * The sign-in code, split into groups of four to match how the email prints it.
  */
-export function OtpCodeInput({ value, onChange, onComplete, disabled = false, invalid = false, autoFocus = false, length = LOGIN_CODE_LENGTH, groupSize = LOGIN_CODE_GROUP_SIZE, }: OtpCodeInputProps) {
+export const OtpCodeInput = (props: OtpCodeInputProps) => {
+	const {
+		value,
+		onChange,
+		onComplete,
+		disabled = false,
+		invalid = false,
+		autoFocus = false,
+		length = LOGIN_CODE_LENGTH,
+		groupSize = LOGIN_CODE_GROUP_SIZE,
+	} = props;
+
 	const groupCount = Math.ceil(length / groupSize);
 	const inputs = useRef<Array<HTMLInputElement | null>>([]);
 	const lastCompleted = useRef<string | null>(null);
@@ -121,7 +132,7 @@ export function OtpCodeInput({ value, onChange, onComplete, disabled = false, in
 				<input
 					key={ index }
 					ref={ (element) => {
-						inputs.current[index] = element
+						inputs.current[index] = element;
 					} }
 					value={ value.slice(index * groupSize, (index + 1) * groupSize) }
 					onChange={ (event) => handleChange(index, event.target.value) }
@@ -147,5 +158,5 @@ export function OtpCodeInput({ value, onChange, onComplete, disabled = false, in
 				/>
 			)) }
 		</div>
-	)
+	);
 }

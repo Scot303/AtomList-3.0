@@ -1,5 +1,5 @@
-import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export type LoginStep = 'identifier' | 'code';
 
@@ -36,4 +36,4 @@ export const useLoginFlowStore = create<LoginFlowState>()(
 			storage: createJSONStorage(() => sessionStorage),
 		},
 	),
-)
+);

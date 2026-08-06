@@ -1,11 +1,13 @@
-import { QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { BrowserRouter } from 'react-router'
-import { ToastContainer } from 'react-toastify'
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { BrowserRouter } from 'react-router';
+import { ToastContainer } from 'react-toastify';
 
-import { queryClient } from '@/lib/queryClient'
-import { AuthProvider } from '@/modules/auth/AuthProvider'
-import { AppRoutes } from '@/routes/AppRoutes'
+import { GlobalDialog } from '@/components/ui/modal/GlobalDialog';
+import { GlobalModal } from '@/components/ui/modal/GlobalModal';
+import { queryClient } from '@/lib/queryClient';
+import { AuthProvider } from '@/modules/auth/AuthProvider';
+import { AppRoutes } from '@/routes/AppRoutes';
 
 export default function App() {
 	return (
@@ -13,6 +15,8 @@ export default function App() {
 			<BrowserRouter>
 				<AuthProvider>
 					<AppRoutes/>
+					<GlobalModal/>
+					<GlobalDialog/>
 				</AuthProvider>
 			</BrowserRouter>
 

@@ -1,12 +1,12 @@
-import type { ComponentType } from 'react'
-import { ListChecks, type LucideIcon, UserRound, Users } from 'lucide-react'
+import type { ComponentType } from 'react';
+import { ListChecks, type LucideIcon, UserRound, Users } from 'lucide-react';
 
-import { paths } from '@/routes/paths'
-import type { Permission } from '@/types/auth'
+import { paths } from '@/routes/paths';
+import type { Permission } from '@/types/auth';
 
-import { PaymentListsPage } from './paymentLists/pages/PaymentListsPage'
-import { PersonsPage } from './persons/pages/PersonsPage'
-import { UsersPage } from './users/pages/UsersPage'
+import { PaymentListsPage } from './paymentLists/pages/PaymentListsPage';
+import { PersonsPage } from './persons/pages/PersonsPage';
+import { UsersPage } from './users/pages/UsersPage';
 
 export interface AppModule {
 	/** Stable identity, independent of the path - which is only ever a URL and may be renamed. */
@@ -51,4 +51,4 @@ export const MODULES: readonly AppModule[] = [
 		permissions: ['READ_PERSONS'],
 		Component: PersonsPage,
 	},
-]
+];

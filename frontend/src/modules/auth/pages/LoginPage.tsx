@@ -1,13 +1,12 @@
-import { useCallback } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router'
+import { useCallback } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router';
+import { DEFAULT_AUTHENTICATED_PATH, safeInternalPath } from '@/routes/paths';
+import { CodeStep } from '../components/CodeStep';
+import { AuthLayout } from '../components/AuthLayout';
+import { IdentifierStep } from '../components/IdentifierStep';
+import { useAuth } from '../hooks/useAuth';
+import { useLoginFlowStore } from '../stores/loginFlowStore';
 
-import { DEFAULT_AUTHENTICATED_PATH, safeInternalPath } from '@/routes/paths'
-
-import { CodeStep } from '../components/CodeStep'
-import { AuthLayout } from '../components/AuthLayout'
-import { IdentifierStep } from '../components/IdentifierStep'
-import { useAuth } from '../hooks/useAuth'
-import { useLoginFlowStore } from '../stores/loginFlowStore'
 
 export function LoginPage() {
 	const { isAuthenticated } = useAuth();
@@ -47,7 +46,10 @@ export function LoginPage() {
 	}
 
 	return (
-		<AuthLayout title="Zaloguj się" subtitle="Podaj swój login, a my wyślemy Ci jednorazowy kod.">
+		<AuthLayout
+			title="Zaloguj się"
+			subtitle="Podaj swój login, a my wyślemy Ci jednorazowy kod."
+		>
 			<IdentifierStep defaultIdentifier={ identifier } onCodeRequested={ beginCodeStep }/>
 		</AuthLayout>
 	);

@@ -1,10 +1,8 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-
-import { installAuthBridge } from '@/modules/auth/session'
-
-import App from './App.tsx'
-import './styles/index.css'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { installAuthBridge } from '@/modules/auth/session';
+import App from './App.tsx';
+import './styles/index.css';
 
 // Before anything renders, so no request can leave while the API client still has no way to reach the token.
 installAuthBridge();
@@ -19,4 +17,4 @@ createRoot(container).render(
 	<StrictMode>
 		<App/>
 	</StrictMode>,
-)
+);

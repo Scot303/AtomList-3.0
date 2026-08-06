@@ -1,6 +1,5 @@
-import { z } from 'zod'
-
-import { LOGIN_CODE_LENGTH, normalizeLoginCode } from '../constants'
+import { z } from 'zod';
+import { LOGIN_CODE_LENGTH, normalizeLoginCode } from '../constants';
 
 export const identifierSchema = z.object({
 	identifier: z

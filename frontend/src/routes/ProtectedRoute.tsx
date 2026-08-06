@@ -82,7 +82,7 @@ function SessionUnavailable() {
 }
 
 /** Wraps a single route whose module needs a specific permission. */
-export function RequirePermission({ permissions, children, }: { permissions: readonly Permission[]; children: React.ReactNode }) {
+export function RequirePermission({ permissions, children, }: { permissions: readonly Permission[]; children: React.ReactNode; }) {
 	const { hasAnyPermission } = useAuth();
 
 	if (hasAnyPermission(permissions)) {

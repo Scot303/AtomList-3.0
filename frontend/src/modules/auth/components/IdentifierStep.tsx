@@ -1,14 +1,11 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, User } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-
-import { Alert } from '@/components/feedback/Alert.tsx'
-import { Button } from '@/components/ui/buttons/Button.tsx'
-import { Input } from '@/components/ui/fields/Input.tsx'
-
-import { useRequestLoginCode } from '../hooks/useAuthMutations'
-import { type IdentifierFormValues, identifierSchema } from '../schemas/authSchemas'
-
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowRight, User } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Alert } from '@/components/feedback/Alert.tsx';
+import { Button } from '@/components/ui/buttons/Button.tsx';
+import { Input } from '@/components/ui/fields/Input.tsx';
+import { useRequestLoginCode } from '../hooks/useAuthMutations';
+import { type IdentifierFormValues, identifierSchema } from '../schemas/authSchemas';
 
 interface IdentifierStepProps {
 	defaultIdentifier?: string;

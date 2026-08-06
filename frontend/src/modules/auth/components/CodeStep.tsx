@@ -1,27 +1,33 @@
-import { useState } from 'react'
-import { LogIn, MailCheck, RotateCcw } from 'lucide-react'
+import { useState } from 'react';
+import { LogIn, MailCheck, RotateCcw } from 'lucide-react';
+import { ErrorCode } from '@/api/errors';
+import { Alert } from '@/components/feedback/Alert.tsx';
+import { Button } from '@/components/ui/buttons/Button.tsx';
+import { LOGIN_CODE_LENGTH, LOGIN_CODE_RESEND_COOLDOWN_SECONDS, LOGIN_CODE_TTL_MINUTES, normalizeLoginCode, } from '../constants';
+import { useCountdown } from '@/hooks/useCountdown.ts';
+import { useRequestLoginCode, useVerifyLoginCode } from '../hooks/useAuthMutations';
+import { loginCodeSchema } from '../schemas/authSchemas';
+import { OtpCodeInput } from './OtpCodeInput';
+import { ResendVerificationNotice } from './ResendVerificationNotice';
 
-import { ErrorCode } from '@/api/errors'
-import { Alert } from '@/components/feedback/Alert.tsx'
-import { Button } from '@/components/ui/buttons/Button.tsx'
-
-import { LOGIN_CODE_LENGTH, LOGIN_CODE_RESEND_COOLDOWN_SECONDS, LOGIN_CODE_TTL_MINUTES, normalizeLoginCode, } from '../constants'
-import { useCountdown } from '@/hooks/useCountdown.ts'
-import { useRequestLoginCode, useVerifyLoginCode } from '../hooks/useAuthMutations'
-import { loginCodeSchema } from '../schemas/authSchemas'
-
-import { OtpCodeInput } from './OtpCodeInput'
-import { ResendVerificationNotice } from './ResendVerificationNotice'
 
 interface CodeStepProps {
-	identifier: string
-	codeRequestedAt: number | null
-	onCodeResent: () => void
-	onChangeIdentifier: () => void
-	onSignedIn: () => void
+	identifier: string;
+	codeRequestedAt: number | null;
+	onCodeResent: () => void;
+	onChangeIdentifier: () => void;
+	onSignedIn: () => void;
 }
 
-export function CodeStep({ identifier, codeRequestedAt, onCodeResent, onChangeIdentifier, onSignedIn, }: CodeStepProps) {
+
+export const CodeStep = (props: CodeStepProps) => {
+	const {
+		identifier,
+		codeRequestedAt,
+		onCodeResent,
+		onChangeIdentifier,
+		onSignedIn,
+	} = props;
 
 	const [code, setCode] = useState('');
 	const [validationError, setValidationError] = useState<string | null>(null);
@@ -29,7 +35,10 @@ export function CodeStep({ identifier, codeRequestedAt, onCodeResent, onChangeId
 	const verify = useVerifyLoginCode(onSignedIn);
 	const resend = useRequestLoginCode();
 
-	const cooldownDeadline = codeRequestedAt === null ? null : codeRequestedAt + LOGIN_CODE_RESEND_COOLDOWN_SECONDS * 1000;
+	const cooldownDeadline =
+		codeRequestedAt === null
+			? null
+			: codeRequestedAt + LOGIN_CODE_RESEND_COOLDOWN_SECONDS * 1000;
 	const secondsUntilResend = useCountdown(cooldownDeadline);
 
 	const submit = (submitted: string) => {
@@ -43,7 +52,7 @@ export function CodeStep({ identifier, codeRequestedAt, onCodeResent, onChangeId
 
 		setValidationError(null);
 		verify.mutate({ identifier, code: normalizeLoginCode(submitted) });
-	}
+	};
 
 	const handleChange = (next: string) => {
 		setCode(next);
@@ -55,16 +64,17 @@ export function CodeStep({ identifier, codeRequestedAt, onCodeResent, onChangeId
 		if (verify.isError) {
 			verify.reset();
 		}
-	}
+	};
 
 	const emailUnverified = verify.error?.is(ErrorCode.emailNotVerified) === true;
-	const errorMessage = validationError ?? (emailUnverified ? null : (verify.error?.message ?? null));
+	const errorMessage =
+		validationError ?? (emailUnverified ? null : (verify.error?.message ?? null));
 
 	return (
 		<form
 			onSubmit={ (event) => {
-				event.preventDefault()
-				submit(code)
+				event.preventDefault();
+				submit(code);
 			} }
 			noValidate
 			className="space-y-5"
@@ -80,17 +90,19 @@ export function CodeStep({ identifier, codeRequestedAt, onCodeResent, onChangeId
 				/>
 
 				<p className="mt-2 text-sm leading-relaxed text-os-text-muted">
-					Wielkość liter ma znaczenie. Możesz wkleić cały kod naraz - spacje zostaną pominięte.
+					Wielkość liter ma znaczenie. Możesz wkleić cały kod naraz - spacje zostaną
+					pominięte.
 				</p>
 			</div>
 
-			{ errorMessage !== null ?
+			{ errorMessage !== null ? (
 				<Alert tone="danger">{ errorMessage }</Alert>
-				:
+			) : (
 				<Alert tone="info" title="Sprawdź swoją skrzynkę pocztową">
-					Na podany login wysłaliśmy { LOGIN_CODE_LENGTH }-znakowy kod ważny przez{ ' ' } { LOGIN_CODE_TTL_MINUTES } minut.
+					Na podany login wysłaliśmy { LOGIN_CODE_LENGTH }-znakowy kod ważny przez{ ' ' }
+					{ LOGIN_CODE_TTL_MINUTES } minut.
 				</Alert>
-			}
+			) }
 
 			{ emailUnverified ? (
 				<ResendVerificationNotice identifier={ identifier } message={ verify.error?.message }/>
@@ -127,7 +139,11 @@ export function CodeStep({ identifier, codeRequestedAt, onCodeResent, onChangeId
 					) : (
 						<RotateCcw className="size-3.5"/>
 					) }
-					{ secondsUntilResend > 0 ? `Wyślij ponownie za ${ secondsUntilResend }s` : 'Wyślij kod ponownie' }
+					{ secondsUntilResend > 0 ?
+						`Wyślij ponownie za ${ secondsUntilResend }s`
+						:
+						'Wyślij kod ponownie'
+					}
 				</button>
 			</div>
 

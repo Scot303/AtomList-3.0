@@ -1,6 +1,6 @@
-import axios from 'axios'
+import axios from 'axios';
 
-import { API_BASE_URL, API_LANGUAGE, CSRF_HEADER, REQUEST_TIMEOUT_MS } from './config'
+import { API_BASE_URL, API_LANGUAGE, CSRF_HEADER, REQUEST_TIMEOUT_MS } from './config';
 
 /**
  * A second, deliberately plain axios instance for the two endpoints that authenticate from the
@@ -21,4 +21,4 @@ export const refreshClient = axios.create({
 		'Accept-Language': API_LANGUAGE,
 		[CSRF_HEADER]: '1',
 	},
-})
+});

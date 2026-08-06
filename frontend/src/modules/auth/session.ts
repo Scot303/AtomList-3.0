@@ -22,7 +22,7 @@ const MIN_RENEWAL_DELAY_MS = 5_000;
 const REFRESH_LOCK = 'atomlist.auth.refresh';
 
 export type SessionEndReason =
-/** The refresh cookie is gone, expired, or was rejected. */
+	/** The refresh cookie is gone, expired, or was rejected. */
 	| 'expired'
 	/** The user asked to be signed out. */
 	| 'signed-out';
