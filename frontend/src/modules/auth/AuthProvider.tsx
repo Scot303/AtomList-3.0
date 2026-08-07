@@ -1,9 +1,8 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import type { ApiError } from '@/api/errors';
 import { notifySessionExpired } from '@/lib/toast';
-import type { LoginResponse, Permission, UserInfo } from '@/types/auth';
+import type { LoginResponse, Permission } from '@/types/auth';
 
 import { fetchCurrentUser, logoutEverywhere } from './api/authApi';
 import { authKeys } from './api/authKeys';
@@ -55,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		[queryClient],
 	);
 
-	const userQuery = useQuery<UserInfo, ApiError>({
+	const userQuery = useQuery({
 		queryKey: authKeys.me(),
 		queryFn: fetchCurrentUser,
 		enabled: accessToken !== null,

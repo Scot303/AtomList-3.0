@@ -6,6 +6,14 @@ const MAX_RETRIES = 2;
 
 declare module '@tanstack/react-query' {
 	interface Register {
+		/**
+		 * Every request the application makes goes through {@link '@/api/axiosInstance'}, whose response
+		 * interceptor normalizes on all three of its throw paths - so there is no way for a query or a
+		 * mutation to reject with anything but an {@link ApiError}. Declaring it once here is what lets
+		 * every call site drop the type argument and still reach `status`, `errorCode` and `is()`.
+		 */
+		defaultError: ApiError;
+
 		queryMeta: {
 			/** Opts a query out of the automatic toast, for one that reports its failure itself. */
 			silent?: boolean;
@@ -35,6 +43,9 @@ export const queryClient = new QueryClient({
 				return;
 			}
 
+			// Kept even though `error` is already declared an ApiError. This is the one sink that also sees
+			// whatever a `queryFn` body throws on its own - a TypeError over a response that changed shape.
+			// Being wrong here would throw from inside an error handler.
 			const apiError = toApiError(error);
 
 			if (!isAlreadyHandled(apiError)) {

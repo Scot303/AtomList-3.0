@@ -108,14 +108,6 @@ export function toApiError(error: unknown): ApiError {
 }
 
 /**
- * Re-throws anything as an {@link ApiError}.
- * Meant for `.catch(rethrowAsApiError)` on the promise a query or mutation returns.
- */
-export function rethrowAsApiError(error: unknown): never {
-	throw toApiError(error);
-}
-
-/**
  * True when the failure is the caller's fault and repeating the identical request cannot help.
  */
 export function isClientError(error: ApiError): boolean {

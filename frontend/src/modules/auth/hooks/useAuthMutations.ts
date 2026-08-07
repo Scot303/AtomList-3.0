@@ -1,24 +1,22 @@
-import { useMutation, type UseMutationResult, useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { type ApiError, rethrowAsApiError } from '@/api/errors';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type { LoginResponse } from '@/types/auth';
-import { requestLoginCode, resendVerification, verifyEmail, verifyLoginCode, type VerifyLoginCodeInput, } from '../api/authApi';
+import { requestLoginCode, resendVerification, verifyEmail, verifyLoginCode } from '../api/authApi';
 import { useAuth } from './useAuth';
 import { authKeys } from "@/modules/auth/api/authKeys.ts";
 
 
-export function useRequestLoginCode(): UseMutationResult<void, ApiError, string> {
+export function useRequestLoginCode() {
 	return useMutation({
-		mutationFn: (identifier: string) => requestLoginCode(identifier).catch(rethrowAsApiError),
+		mutationFn: requestLoginCode,
 	});
 }
 
 
-export function useVerifyLoginCode(onVerified?: (response: LoginResponse) => void): UseMutationResult<LoginResponse, ApiError, VerifyLoginCodeInput> {
+export function useVerifyLoginCode(onVerified?: (response: LoginResponse) => void) {
 	const { signIn } = useAuth();
 
 	return useMutation({
-		mutationFn: (input: VerifyLoginCodeInput) =>
-			verifyLoginCode(input).catch(rethrowAsApiError),
+		mutationFn: verifyLoginCode,
 		onSuccess: (response) => {
 			signIn(response);
 			onVerified?.(response);
@@ -27,18 +25,18 @@ export function useVerifyLoginCode(onVerified?: (response: LoginResponse) => voi
 }
 
 
-export function useResendVerification(): UseMutationResult<void, ApiError, string> {
+export function useResendVerification() {
 	return useMutation({
-		mutationFn: (identifier: string) => resendVerification(identifier).catch(rethrowAsApiError),
+		mutationFn: resendVerification,
 	});
 }
 
 
-export function useEmailVerification(token: string): UseQueryResult<true, ApiError> {
-	return useQuery<true, ApiError>({
+export function useEmailVerification(token: string) {
+	return useQuery({
 		queryKey: authKeys.emailVerification(token),
 		queryFn: async (): Promise<true> => {
-			await verifyEmail(token).catch(rethrowAsApiError);
+			await verifyEmail(token);
 
 			return true;
 		},

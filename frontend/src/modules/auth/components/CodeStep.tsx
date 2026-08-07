@@ -66,8 +66,7 @@ export const CodeStep = (props: CodeStepProps) => {
 	};
 
 	const emailUnverified = verify.error?.is(ErrorCode.emailNotVerified) === true;
-	const errorMessage =
-		validationError ?? (emailUnverified ? null : (verify.error?.message ?? null));
+	const errorMessage = validationError ?? (emailUnverified ? null : (verify.error?.message ?? null));
 
 	return (
 		<form

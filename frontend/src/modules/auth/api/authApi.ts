@@ -1,6 +1,5 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { AUTH_ENDPOINTS } from '@/api/endpoints';
-import { rethrowAsApiError } from '@/api/errors';
 import type { LoginResponse, UserInfo } from '@/types/auth';
 
 
@@ -24,13 +23,9 @@ export async function verifyLoginCode(input: VerifyLoginCodeInput): Promise<Logi
 
 /**
  * Re-reads the current user, including any permission change made since signing in.
- *
- * Normalized here rather than at the call site because the auth provider has to tell a failure
- * that ended the session from one that only means the server was unreachable.
  */
 export async function fetchCurrentUser(): Promise<UserInfo> {
-	const { data } = await axiosInstance.get<UserInfo>(AUTH_ENDPOINTS.me).catch(rethrowAsApiError);
-
+	const { data } = await axiosInstance.get<UserInfo>(AUTH_ENDPOINTS.me);
 	return data;
 }
 
