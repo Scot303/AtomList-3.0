@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { FloatingPortal } from '@floating-ui/react';
-import type { SelectPopoverState } from '@/hooks/useSelectPopover';
+import { MAX_PANEL_HEIGHT, type SelectPopoverState } from '@/hooks/useSelectPopover';
 
 
 interface SelectPopoverProps {
@@ -20,7 +20,7 @@ export function SelectPopover({ popover, children }: SelectPopoverProps) {
 		<FloatingPortal>
 			<div
 				ref={ setFloating }
-				style={ { ...floatingStyles, zIndex: 9999 } }
+				style={ { ...floatingStyles, zIndex: 9999, maxHeight: MAX_PANEL_HEIGHT } }
 				{ ...getFloatingProps() }
 				className="flex flex-col"
 			>

@@ -8,7 +8,7 @@ const GAP = 6;
 const VIEWPORT_PADDING = 8;
 
 /** The panel never grows past this, even with room to spare. */
-const MAX_PANEL_HEIGHT = 320;
+export const MAX_PANEL_HEIGHT = 320;
 
 interface UseSelectPopoverOptions {
 	onBlur?: () => void;

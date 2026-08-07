@@ -36,7 +36,7 @@ export const SelectCell = (props: SelectCellProps) => {
 				title={ title }
 				{ ...getReferenceProps() }
 				className={ cn(
-					'inline-flex max-w-full items-center gap-0.5 rounded-full text-left focus:outline-none',
+					'inline-flex min-h-6 max-w-full items-center gap-0.5 rounded-full text-left focus:outline-none',
 					disabled ? 'cursor-default' : 'cursor-pointer',
 					className,
 				) }
