@@ -43,9 +43,8 @@ export const MODAL_REGISTRY = {
 		size: 'md',
 	}),
 
-	// The title is set per field by the caller, since one modal edits either the login or the address.
-	'users.editField': defineModal({
-		load: () => import('@/modules/users/modals/EditUserFieldModal.tsx'),
+	'users.edit': defineModal({
+		load: () => import('@/modules/users/modals/EditUserModal.tsx'),
 		title: 'Edytuj konto',
 		size: 'md',
 	}),

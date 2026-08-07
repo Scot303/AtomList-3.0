@@ -44,14 +44,8 @@
 
 @layer components {
     .styled-card {
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
-        var(--color-os-surface);
-
+        background: rgba(20, 20, 20, 0.7);
         border: 1px solid var(--color-os-border);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-        transition: border-color 0.2s,
-        box-shadow 0.2s,
-        transform 0.2s;
     }
 
     .popover-surface {
