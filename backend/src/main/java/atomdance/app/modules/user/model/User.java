@@ -2,6 +2,7 @@ package atomdance.app.modules.user.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.Instant;
 import java.util.*;
@@ -30,6 +31,8 @@ public class User {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "permission", nullable = false, length = 64)
 	@Builder.Default
+
+	@BatchSize(size = 64)
 	private Set<Permission> additionalPermissions = new HashSet<>();
 
 	@Column(nullable = false)

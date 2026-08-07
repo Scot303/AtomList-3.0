@@ -1,10 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import type { ApiError } from '@/api/errors';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { Button } from '@/components/ui/buttons/Button';
 import { useModalStore } from '@/stores/modalStore';
-import type { UserInfo } from '@/types/auth';
 import { fetchCurrentUser } from '../api/authApi';
 import { authKeys } from '../api/authKeys';
 
@@ -12,7 +10,7 @@ import { authKeys } from '../api/authKeys';
 export default function AccountModal() {
 	const closeModal = useModalStore((state) => state.closeModal);
 
-	const { data, isPending, isError, error } = useQuery<UserInfo, ApiError>({
+	const { data, isPending, isError, error } = useQuery({
 		queryKey: authKeys.me(),
 		queryFn: fetchCurrentUser,
 		staleTime: 5 * 60_000,

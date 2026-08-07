@@ -36,6 +36,18 @@ export const MODAL_REGISTRY = {
 		title: 'Twoje konto',
 		size: 'md',
 	}),
+
+	'users.create': defineModal({
+		load: () => import('@/modules/users/modals/CreateUserModal.tsx'),
+		title: 'Nowe konto',
+		size: 'md',
+	}),
+
+	'users.edit': defineModal({
+		load: () => import('@/modules/users/modals/EditUserModal.tsx'),
+		title: 'Edytuj konto',
+		size: 'md',
+	}),
 };
 
 

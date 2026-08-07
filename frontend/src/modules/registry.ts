@@ -4,9 +4,9 @@ import { ListChecks, type LucideIcon, UserRound, Users } from 'lucide-react';
 import { paths } from '@/routes/paths';
 import type { Permission } from '@/types/auth';
 
-import { PaymentListsPage } from './paymentLists/pages/PaymentListsPage';
-import { PersonsPage } from './persons/pages/PersonsPage';
-import { UsersPage } from './users/pages/UsersPage';
+import { PaymentListsPage } from './paymentLists/PaymentListsPage.tsx';
+import { PersonsPage } from './persons/PersonsPage.tsx';
+import { UsersPage } from './users/UsersPage.tsx';
 
 export interface AppModule {
 	/** Stable identity, independent of the path - which is only ever a URL and may be renamed. */
@@ -36,19 +36,19 @@ export const MODULES: readonly AppModule[] = [
 		Component: PaymentListsPage,
 	},
 	{
-		id: 'users',
-		label: 'Zarządzanie użytkownikami',
-		path: paths.users,
-		icon: Users,
-		permissions: ['MANAGE_USERS'],
-		Component: UsersPage,
-	},
-	{
 		id: 'persons',
 		label: 'Osoby',
 		path: paths.persons,
 		icon: UserRound,
 		permissions: ['READ_PERSONS'],
 		Component: PersonsPage,
+	},
+	{
+		id: 'users',
+		label: 'Zarządzanie użytkownikami',
+		path: paths.users,
+		icon: Users,
+		permissions: ['MANAGE_USERS'],
+		Component: UsersPage,
 	},
 ];

@@ -28,8 +28,8 @@ public class AdminUserController {
 	private final AdminUserService adminUserService;
 
 	@GetMapping
-	public PagedModel<AdminUserView> list(@PageableDefault(size = 50, sort = "username", direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(adminUserService.list(pageable));
+	public PagedModel<AdminUserView> getAll(@PageableDefault(size = 50, sort = "username", direction = Sort.Direction.ASC) Pageable pageable) {
+		return new PagedModel<>(adminUserService.getAll(pageable));
 	}
 
 	@GetMapping("/{id}")
