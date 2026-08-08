@@ -1,0 +1,89 @@
+import { Fragment, useEffect } from 'react';
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import { X } from 'lucide-react';
+import { useCloseOnNavigate } from '@/hooks/useCloseOnNavigate';
+import { cn } from '@/lib/cn';
+import { loadedModals, MODAL_REGISTRY, type ModalSize, preloadAllModals } from '@/stores/modalRegistry.ts';
+import { useModalStore } from '@/stores/modalStore';
+
+
+const SIZES: Record<ModalSize, string> = {
+	sm: 'max-w-sm',
+	md: 'max-w-md',
+	lg: 'max-w-2xl',
+	xl: 'max-w-4xl',
+	custom: ''
+};
+
+/**
+ * The one modal on the page. Mounted once, near the root; everything else opens it through `useModalStore().openModal(key, props)`.
+ */
+export function GlobalModal() {
+	const isOpen = useModalStore((state) => state.isOpen);
+	const current = useModalStore((state) => state.current);
+	const closeModal = useModalStore((state) => state.closeModal);
+	const resetModal = useModalStore((state) => state.resetModal);
+
+	useCloseOnNavigate(closeModal);
+
+	// Every modal's chunk, fetched once the browser has nothing better to do, so that the await inside `openModal` has nothing left to wait for.
+	useEffect(preloadAllModals, []);
+
+	const definition = current === null ? null : MODAL_REGISTRY[current.key];
+	const title = current?.options.title ?? definition?.title ?? '';
+	const size = current?.options.size ?? definition?.size ?? 'md';
+	const dismissible = current?.options.dismissible ?? definition?.dismissible ?? true;
+
+	const Content = current === null ? undefined : loadedModals[current.key];
+
+	const onDismiss = () => {
+		if (dismissible) {
+			closeModal();
+		}
+	};
+
+	return (
+		<Transition show={ isOpen } as={ Fragment } afterLeave={ resetModal }>
+			<Dialog onClose={ onDismiss } className="relative z-1500">
+				<TransitionChild as={ Fragment } enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
+					<DialogBackdrop className="fixed inset-0 bg-black/20 backdrop-blur-sm"/>
+				</TransitionChild>
+
+				<div className="fixed inset-0 flex items-center justify-center">
+					<TransitionChild
+						as={ Fragment }
+						enter="ease-out duration-300"
+						enterFrom="opacity-0 scale-95"
+						enterTo="opacity-100 scale-100"
+						leave="ease-in duration-200"
+						leaveFrom="opacity-100 scale-100"
+						leaveTo="opacity-0 scale-95"
+					>
+						<DialogPanel
+							className={ cn('popover-surface relative flex max-h-[calc(100dvh-2rem)] w-full flex-col rounded-3xl shadow-2xl will-change-transform', SIZES[size], current?.options.className) }
+						>
+							<div className="shrink-0 p-8 pr-16 pb-4">
+								<DialogTitle className="text-xl font-bold wrap-break-word text-os-text">{ title }</DialogTitle>
+							</div>
+
+							{ dismissible ? (
+								<button
+									type="button"
+									onClick={ closeModal }
+									aria-label="Zamknij"
+									className="absolute top-4 right-4 rounded-xl p-2 text-os-text-muted transition-all hover:bg-os-bg-highlight hover:text-os-error focus-visible:ring-2 focus-visible:ring-os-primary/40 focus-visible:outline-none"
+								>
+									<X size={ 20 } aria-hidden/>
+								</button>
+							) : null }
+
+							<div className="themed-scrollbar min-h-0 flex-1 overflow-y-auto px-8 pb-8">
+								{ Content && current ? <Content { ...current.props } /> : null }
+							</div>
+						</DialogPanel>
+					</TransitionChild>
+				</div>
+			</Dialog>
+		</Transition>
+	);
+}

@@ -48,7 +48,7 @@ public class AdminUserService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<AdminUserView> list(Pageable pageable) {
+	public Page<AdminUserView> getAll(Pageable pageable) {
 		Instant now = Instant.now();
 
 		return userRepository.findAll(pageable).map(user -> AdminUserView.from(user, now));
@@ -98,6 +98,10 @@ public class AdminUserService {
 	public AdminUserView update(UUID id, UpdateUserRequest request) {
 		User user = getUserOrThrow(id);
 		boolean revokeSessions = false;
+
+		if (request.username() != null) {
+			revokeSessions |= changeUsername(user, request.username());
+		}
 
 		if (request.email() != null) {
 			revokeSessions |= changeEmail(user, request.email());
@@ -187,6 +191,26 @@ public class AdminUserService {
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, "Ended every session for account.");
 
 		log.info("Ended every session for account {} at the request of {}", user.getId(), securityService.getCurrentUsername());
+	}
+
+
+	private boolean changeUsername(User user, String requested) {
+		String username = requested.trim();
+
+		if (username.equals(user.getUsername())) {
+			return false;
+		}
+
+		if (userRepository.existsByUsernameIgnoreCase(username)) {
+			throw new NameTakenException("entity.user");
+		}
+
+		log.info("Changing the username on account {} from {} to {}", user.getId(), user.getUsername(), username);
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's username changed to %s.", username));
+
+		user.setUsername(username);
+
+		return true;
 	}
 
 	/**

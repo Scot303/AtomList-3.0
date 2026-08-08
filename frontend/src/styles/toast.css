@@ -1,0 +1,30 @@
+@import 'react-toastify/dist/ReactToastify.css';
+
+:root {
+    --toastify-color-light: var(--color-os-surface);
+    --toastify-color-dark: var(--color-os-surface);
+    --toastify-color-info: var(--color-os-surface);
+    --toastify-color-success: var(--color-os-green);
+    --toastify-color-warning: var(--color-os-warning);
+    --toastify-color-error: var(--color-os-error);
+
+    --toastify-text-color-light: var(--color-os-surface);
+    --toastify-text-color-dark: var(--color-os-surface);
+
+    --toastify-font-family: var(--font-sans);
+    --toastify-toast-min-height: 56px;
+    --toastify-toast-bd-radius: 10px;
+}
+
+.Toastify__toast {
+    border: 1px solid var(--color-os-border-highlight);
+}
+
+.Toastify__close-button {
+    color: var(--color-os-text-muted);
+    opacity: 1;
+}
+
+.Toastify__close-button:hover {
+    color: var(--color-os-text);
+}

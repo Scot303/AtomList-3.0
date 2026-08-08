@@ -1,12 +1,5 @@
-spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://sakura.proxy.rlwy.net:29771/railway}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:jBsrPViKsJuFmQjrfwuNicuEBMiVgIlc}
-
 app:
   security:
-    jwt-secret: ${JWT_SECRET:VHrNLgkhDpF37s5w7THto967GAYoMjX4Bta2/imjfswga1XO8iClX4EBUci1ZE38}
     # Over http://localhost a "__Secure-" cookie is dropped by the browser and SameSite=None is
     # refused without Secure, so both have to be relaxed here. Frontend and API are the same site
     # locally (a differing port does not change that), which is what makes Lax workable.
