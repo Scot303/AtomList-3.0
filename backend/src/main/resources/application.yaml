@@ -116,4 +116,6 @@ app:
     schedule.reminder:
       enabled: true
     rest:
-      justSendApiKey: ${JUSTSEND_API_KEY:}
+      justSend:
+        url: ${JUSTSEND_API_KEY}:"https://justsend.io/api/"}
+        apiKey: ${JUSTSEND_API_KEY:}

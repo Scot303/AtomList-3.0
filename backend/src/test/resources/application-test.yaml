@@ -38,6 +38,13 @@ app:
       enabled: false
   cors:
     allowed-origin-patterns: http://localhost:5173
+  sms:
+    schedule.reminder:
+      enabled: true
+    rest:
+      justSend:
+        url: "https://justsend.io/api/"
+        apiKey: "NICE_TRY"
 
 logging:
   level:
