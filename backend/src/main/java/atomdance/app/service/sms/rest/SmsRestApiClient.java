@@ -1,4 +1,4 @@
-package atomdance.app.config;
+package atomdance.app.service.sms.rest;
 
 import atomdance.json.justsend.BulkSendRequest;
 import org.springframework.web.service.annotation.HttpExchange;

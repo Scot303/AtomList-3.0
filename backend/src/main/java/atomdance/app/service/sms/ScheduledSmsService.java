@@ -1,6 +1,7 @@
-package atomdance.app.config;
+package atomdance.app.service.sms;
 
 import atomdance.app.common.utils.AppClock;
+import atomdance.app.service.sms.rest.SmsRestApiClient;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
@@ -19,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.math.BigDecimal;
@@ -31,7 +31,7 @@ import java.util.*;
 @ConditionalOnProperty(value = "app.sms.schedule.reminder.enabled", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentReminder {
+public class ScheduledSmsService {
     private final AppClock appClock;
     private final SmsService smsService;
     private final PaymentListRepository paymentListRepository;
