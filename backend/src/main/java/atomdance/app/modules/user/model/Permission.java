@@ -16,7 +16,6 @@ public enum Permission {
 
 	READ_PAYMENTS,
 	MODIFY_PAYMENTS,
-	SEND_SMS,
 
 	READ_GROUPS,
 	MODIFY_GROUPS,
@@ -34,5 +33,8 @@ public enum Permission {
 	MODIFY_PERSONS,
 
 	READ_FAMILIES,
-	MODIFY_FAMILIES
+	MODIFY_FAMILIES,
+
+	READ_SMS,
+	SEND_SMS
 }

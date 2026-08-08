@@ -239,6 +239,8 @@
                     <generateBuilders>true</generateBuilders>
                     <initializeCollections>false</initializeCollections>
                     <includeAdditionalProperties>false</includeAdditionalProperties>
+                    <includeConstructors>true</includeConstructors>
+                    <constructorsRequiredPropertiesOnly>true</constructorsRequiredPropertiesOnly>
                 </configuration>
             </plugin>
         </plugins>

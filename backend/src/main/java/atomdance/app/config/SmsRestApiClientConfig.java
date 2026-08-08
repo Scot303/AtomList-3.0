@@ -8,14 +8,14 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Configuration
-public class SmsRestClientConfig {
+public class SmsRestApiClientConfig {
 
     @Value("${app.rest.justSendApiKey}")
     private String justSendApiKey;
 
 
     @Bean
-    SmsRestClient justSendSmsRestClient() {
+    SmsRestApiClient justSendSmsRestApi() {
         var restClient = RestClient.builder()
                 .baseUrl("https://justsend.io/api/")
                 .defaultHeader("App-Key", justSendApiKey)
@@ -25,6 +25,6 @@ public class SmsRestClientConfig {
                 builderFor(RestClientAdapter.create(restClient))
                 .build();
 
-        return serviceProxy.createClient(SmsRestClient.class);
+        return serviceProxy.createClient(SmsRestApiClient.class);
     }
 }

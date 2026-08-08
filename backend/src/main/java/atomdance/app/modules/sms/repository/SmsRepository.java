@@ -1,0 +1,21 @@
+package atomdance.app.modules.sms.repository;
+
+import atomdance.app.modules.sms.model.Sms;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
+
+@Repository
+public interface SmsRepository extends JpaRepository<Sms, UUID> {
+    //TODO change to page/pageable?
+    List<Sms> findByPersonId(UUID personId);
+
+    List<Sms> findBySentToPhone(String phoneNumber);
+
+    @Query("SELECT s FROM Sms s JOIN FETCH s.person WHERE s.id = :personId")
+    List<Sms> findByPersonIdWithPerson(@Param("personId") UUID personId);
+}
