@@ -1,6 +1,5 @@
 package atomdance.app.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -12,8 +11,6 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.RestClient;
 
-import java.net.URI;
-
 @TestConfiguration
 public class SmsRestApiClientTestConfig {
 
@@ -23,23 +20,20 @@ public class SmsRestApiClientTestConfig {
     @Value("${app.sms.rest.justSend.url}")
     private String justSendUrl;
 
-    @Autowired
-    RestClient.Builder smsRestApiClientBuilder;
 
     @Bean
-    @Qualifier("mockRestServiceServerForJustSend")
-    MockRestServiceServer mockRestServiceServer() {
+    MockRestServiceServer mockRestServiceServer(@Qualifier("smsRestApiClientBuilder") RestClient.Builder smsRestApiClientBuilder) {
         MockRestServiceServer mockRestServiceServer = MockRestServiceServer
                 .bindTo(smsRestApiClientBuilder)
                 .bufferContent()
                 .build();
 
         mockRestServiceServer
-                .expect(ExpectedCount.min(1), MockRestRequestMatchers.requestTo(justSendUrl))
+                .expect(ExpectedCount.min(1), MockRestRequestMatchers.requestTo(justSendUrl + "sender/bulk/send"))
                 .andExpect(MockRestRequestMatchers.method(HttpMethod.POST))
                 .andExpect(MockRestRequestMatchers.header("App-Key", justSendApiKey))
                 .andExpect(MockRestRequestMatchers.header("Content-Type", "application/json"))
-                .andRespond(MockRestResponseCreators.withCreatedEntity(URI.create("SOMETHING")));
+                .andRespond(MockRestResponseCreators.withAccepted());
 
         return mockRestServiceServer;
     }

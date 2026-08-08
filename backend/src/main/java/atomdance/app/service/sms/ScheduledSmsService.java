@@ -42,8 +42,9 @@ public class ScheduledSmsService {
     // TODO templates in English?
     private static final String STANDARD_TEMPLATE = "Przypominamy o uregulowaniu płatności za zajęcia: %s zł.";
 
-    @Scheduled(cron = "0 0 13 15 * *", zone = "${app.time-zone}")
-    protected void bla() {
+    @Scheduled(cron = "${app.sms.schedule.reminder.cron}", zone = "${app.time-zone}")
+    public void scheduleSms() {
+        log.info("Running scheduled sms service for owed payments");
         var currentYearMonth = appClock.currentYearMonth();
 
         var owedPayments = getOwedPayments(currentYearMonth);
@@ -56,7 +57,7 @@ public class ScheduledSmsService {
         try {
             smsRestApiClient.bulkSendMessage(bulkSendRequest);
         } catch (HttpStatusCodeException e) {
-            String errorMsg = "JustSend API returned %s: %s".formatted(e.getStatusCode(), e.getStatusText());
+            String errorMsg = "JustSend API returned %s: %s".formatted(e.getStatusCode(), e.getMessage());
             log.error(errorMsg);
             auditLogger.record(null, AuditEventType.SMS_SEND, AuditOutcome.FAILURE, errorMsg);
             return;

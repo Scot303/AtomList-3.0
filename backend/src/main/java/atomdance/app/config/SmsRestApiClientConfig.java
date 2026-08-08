@@ -28,9 +28,9 @@ public class SmsRestApiClientConfig {
 
 
     @Bean
-    SmsRestApiClient justSendSmsRestApi(@Qualifier("smsRestApiClientBuilder") RestClient.Builder smsRestApliClientBuilder) {
+    SmsRestApiClient justSendSmsRestApi(@Qualifier("smsRestApiClientBuilder") RestClient.Builder smsRestApiClientBuilder) {
         var serviceProxy = HttpServiceProxyFactory.
-                builderFor(RestClientAdapter.create(smsRestApliClientBuilder.build()))
+                builderFor(RestClientAdapter.create(smsRestApiClientBuilder.build()))
                 .build();
 
         return serviceProxy.createClient(SmsRestApiClient.class);

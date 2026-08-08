@@ -115,6 +115,7 @@ app:
   sms:
     schedule.reminder:
       enabled: true
+      cron: 0 0 13 15 * *
     rest:
       justSend:
         url: ${JUSTSEND_API_KEY}:"https://justsend.io/api/"}
