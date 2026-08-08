@@ -61,5 +61,6 @@ function write(value: string | null): void {
 			window.localStorage.setItem(STORAGE_KEY, value);
 		}
 	} catch {
+		// Storage can be unavailable or full (private browsing, quota, storage disabled).
 	}
 }

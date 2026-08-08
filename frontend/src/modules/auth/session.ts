@@ -103,13 +103,14 @@ export async function signOut(): Promise<void> {
 	try {
 		await refreshClient.post(AUTH_ENDPOINTS.logout);
 	} catch {
+		// Swallowed on purpose: whether or not the server revoked the token, this tab is signing out.
 	} finally {
 		endSession('signed-out');
 	}
 }
 
 /* -------------------------------------------------------------------------------------------- */
-/* Renewal                                                                                        */
+/* Renewal                                                                                      */
 /* -------------------------------------------------------------------------------------------- */
 
 /**
