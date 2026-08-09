@@ -25,9 +25,8 @@ export function SelectPopover({ popover, children }: SelectPopoverProps) {
 					zIndex: 9999,
 					maxHeight,
 					/*
-					 * Hidden rather than unmounted while the trigger is out of view, so whatever the user
-					 * had going in the panel - a half-typed search, an open add-new form - is still there
-					 * when they scroll back to it.
+					 * Hidden rather than unmounted while the trigger is out of view, so whatever the user had going in
+					 * the panel - a half-typed search, an open add-new form - is still there when they scroll back to it.
 					 */
 					...(isTriggerHidden && { visibility: 'hidden' as const, pointerEvents: 'none' as const }),
 				} }
