@@ -4,8 +4,8 @@ import { ApiError, toApiError } from '@/api/errors';
 import { refreshClient } from '@/api/refreshClient';
 import { createBroadcast, withCrossTabLock } from '@/lib/crossTab';
 import { readAccessTokenExpiry } from '@/lib/jwt';
+import { namespaced } from '@/stores/storageKeys';
 import type { TokenResponse } from '@/types/auth';
-
 import { clearSessionHint, hasSessionHint, markSessionHint } from './sessionHint';
 import { useAuthStore } from './stores/authStore';
 
@@ -19,7 +19,8 @@ const RENEWAL_MARGIN_MS = 60_000;
 /** Never schedule a renewal closer than this, so a clock skew cannot spin the timer. */
 const MIN_RENEWAL_DELAY_MS = 5_000;
 
-const REFRESH_LOCK = 'atomlist.auth.refresh';
+const REFRESH_LOCK = namespaced('auth.refresh');
+const CROSS_TAB_CHANNEL = namespaced('auth');
 
 export type SessionEndReason =
 	/** The refresh cookie is gone, expired, or was rejected. */
@@ -31,7 +32,7 @@ type CrossTabMessage =
 	| { type: 'session-started'; token: string }
 	| { type: 'session-ended'; reason: SessionEndReason };
 
-const channel = createBroadcast<CrossTabMessage>('atomlist.auth');
+const channel = createBroadcast<CrossTabMessage>(CROSS_TAB_CHANNEL);
 
 let renewalTimer: ReturnType<typeof setTimeout> | null = null;
 let refreshInFlight: Promise<string> | null = null;
@@ -103,13 +104,14 @@ export async function signOut(): Promise<void> {
 	try {
 		await refreshClient.post(AUTH_ENDPOINTS.logout);
 	} catch {
+		// Swallowed on purpose: whether or not the server revoked the token, this tab is signing out.
 	} finally {
 		endSession('signed-out');
 	}
 }
 
 /* -------------------------------------------------------------------------------------------- */
-/* Renewal                                                                                        */
+/* Renewal                                                                                      */
 /* -------------------------------------------------------------------------------------------- */
 
 /**

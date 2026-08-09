@@ -11,7 +11,9 @@
  * let straight in.
  */
 
-const STORAGE_KEY = 'atomlist.session-hint';
+import { storageKey } from '@/stores/storageKeys';
+
+const STORAGE_KEY = storageKey('session-hint');
 
 /**
  * Matches app.security.refresh-token-ttl (REFRESH_TOKEN_TTL, 10d). Past this point the cookie is
@@ -61,5 +63,6 @@ function write(value: string | null): void {
 			window.localStorage.setItem(STORAGE_KEY, value);
 		}
 	} catch {
+		// Storage can be unavailable or full (private browsing, quota, storage disabled).
 	}
 }
