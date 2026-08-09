@@ -234,23 +234,25 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 		[visibleLeafColumns],
 	);
 
+	const isVisible = useCallback((columnId: string) => columnVisibility[columnId] ?? true, [columnVisibility]);
+
 	const visibilityColumns = useMemo(
 		() =>
 			allLeafColumns.map((column) => ({
 				id: column.id,
 				label: columnLabel(column),
-				visible: column.getIsVisible(),
+				visible: isVisible(column.id),
 				toggle: () => column.toggleVisibility(),
 			})),
-		[allLeafColumns],
+		[allLeafColumns, isVisible],
 	);
 
 	const groupableColumns = useMemo(
 		() =>
 			allLeafColumns
-				.filter((column) => column.getIsVisible() && column.columnDef.meta?.groupable)
+				.filter((column) => isVisible(column.id) && column.columnDef.meta?.groupable)
 				.map((column) => ({ id: column.id, label: columnLabel(column) })),
-		[allLeafColumns],
+		[allLeafColumns, isVisible],
 	);
 
 
