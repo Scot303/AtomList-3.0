@@ -24,6 +24,8 @@ interface SelectFieldProps {
 	clearable?: boolean;
 	onClear?: () => void;
 	className?: string;
+	/** Extra classes for the trigger itself, for a select whose value needs the box sized differently. */
+	triggerClassName?: string;
 }
 
 /**
@@ -48,6 +50,7 @@ export const SelectField = (props: SelectFieldProps) => {
 		clearable,
 		onClear,
 		className,
+		triggerClassName,
 	} = props;
 
 	const { open, setReference, getReferenceProps } = popover;
@@ -79,6 +82,7 @@ export const SelectField = (props: SelectFieldProps) => {
 					leftIcon && fieldControlWithLeftIcon[size],
 					// Room for the chevron, plus the clear button when it is showing.
 					showClear ? (size === 'sm' ? 'pr-14' : 'pr-16') : fieldControlWithRightAdornment[size],
+					triggerClassName,
 				) }
 			>
 				{ hasValue ? renderValue() : <span className="text-os-text-muted">{ placeholder }</span> }

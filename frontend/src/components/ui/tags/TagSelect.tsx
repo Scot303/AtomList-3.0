@@ -3,6 +3,7 @@ import { useId } from 'react';
 import { useSelectPopover } from '@/hooks/useSelectPopover';
 import type { SelectAddNew, SelectSize, SelectValueProps } from '@/components/ui/select';
 import { bindSelectValue, SelectField, SelectPanel } from '@/components/ui/select';
+import { fieldControlBadgeValue } from '@/components/ui/fields/fieldStyles';
 import { TagBadge } from './TagBadge';
 import { buildTagPanelOptions } from './tagPanelOptions';
 import type { TagOption } from './tagTypes';
@@ -49,6 +50,7 @@ export const TagSelect = (props: TagSelectProps) => {
 
 	const panel = buildTagPanelOptions(options);
 	const selectedTags = options.filter((option) => value.selectedIds.includes(option.id));
+	const hasValue = selectedTags.length > 0;
 
 	const handleSelect = (optionId: string) => {
 		value.toggle(optionId);
@@ -71,7 +73,9 @@ export const TagSelect = (props: TagSelectProps) => {
 			clearable={ clearable }
 			onClear={ value.clear }
 			className={ className }
-			hasValue={ selectedTags.length > 0 }
+			hasValue={ hasValue }
+			// Only while badges are showing - the placeholder is a bare text line and sizes like every other field.
+			triggerClassName={ hasValue ? fieldControlBadgeValue[size] : undefined }
 			renderValue={ () => (
 				<span className="flex min-w-0 flex-nowrap items-center gap-1 overflow-hidden">
 					{ selectedTags.map((tag) => (
