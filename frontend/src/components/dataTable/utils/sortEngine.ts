@@ -1,3 +1,5 @@
+import { LOCALE } from '@/lib/locale';
+
 import type { SortTag } from '../types/filterTypes';
 
 /**
@@ -62,6 +64,13 @@ function isDateLike(value: unknown): value is Date | string {
 }
 
 
+/**
+ * Locale collation, so under {@link LOCALE} 'ą' sorts next to 'a' rather than after 'z', and numeric
+ * collation, so 'Something 2' comes before 'Something 10' instead of being compared digit by digit.
+ */
+const collator = new Intl.Collator(LOCALE, { numeric: true, sensitivity: 'variant' });
+
+
 /** Blanks sort first ascending, so a column of mostly-empty values reads as a to-do list. */
 function compareValues(a: unknown, b: unknown): number {
 	if (a == null && b == null) {
@@ -91,6 +100,5 @@ function compareValues(a: unknown, b: unknown): number {
 		}
 	}
 
-	// Polish collation, so 'ą' sorts next to 'a' rather than after 'z'.
-	return String(a).localeCompare(String(b), 'pl');
+	return collator.compare(String(a), String(b));
 }
