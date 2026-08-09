@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { popoverAnchorProps } from '@/lib/popoverAnchor';
 import { fieldError, fieldErrorIconSize, fieldHint, fieldLabel, type FieldSize, fieldWrapper, showsLabel, } from './fieldStyles';
 
 interface FieldShellProps {
@@ -49,7 +50,8 @@ export const FieldShell = (props: FieldShellProps) => {
 				</LabelTag>
 			) }
 
-			<div className="relative">{ children }</div>
+			{ /* The anchor, so a panel opened from an adornment hangs off the whole control rather than the little button that opened it. */ }
+			<div { ...popoverAnchorProps } className="relative">{ children }</div>
 
 			{ hasError ? (
 				<p className={ fieldError }>

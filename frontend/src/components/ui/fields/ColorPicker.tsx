@@ -44,7 +44,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
 
 	const [supportsEyeDropper] = useState(() => 'EyeDropper' in window);
 
-	const popover = useSelectPopover({ width: '16rem', maxHeight: 400 });
+	const popover = useSelectPopover({ width: '16rem', maxHeight: 400, align: 'end' });
 	const { open, setReference, getReferenceProps, close } = popover;
 
 	const isComplete = value.length === HEX_LENGTH;

@@ -28,13 +28,18 @@ interface UseSelectPopoverOptions {
 	addModeWidth?: string;
 	/** Raises the cap for a panel that is more than a list. */
 	maxHeight?: number;
+	/**
+	 * Which edge of the anchor the panel lines up with.
+	 * Only worth setting for a panel narrower than the field it belongs to.
+	 */
+	align?: 'start' | 'end';
 }
 
 /**
  * Open state, dismissal, and positioning for a select panel that hangs off a trigger.
  */
 export function useSelectPopover(options: UseSelectPopoverOptions = {}) {
-	const { onBlur, onOpenChange, width = 'trigger', addModeWidth, maxHeight = MAX_PANEL_HEIGHT } = options;
+	const { onBlur, onOpenChange, width = 'trigger', addModeWidth, maxHeight = MAX_PANEL_HEIGHT, align = 'start' } = options;
 
 	const [open, setOpen] = useState(false);
 	const [isAddMode, setIsAddMode] = useState(false);
@@ -54,7 +59,7 @@ export function useSelectPopover(options: UseSelectPopoverOptions = {}) {
 	const { refs, floatingStyles, context, placement, middlewareData } = useFloating({
 		open,
 		onOpenChange: setOpen,
-		placement: 'bottom-start',
+		placement: `bottom-${ align }`,
 
 		// The trigger may sit inside a scrolling container; fixed keeps the panel with it.
 		strategy: 'fixed',
