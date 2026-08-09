@@ -11,7 +11,6 @@ import {
 	createFilteredRowModel,
 	createGroupedRowModel,
 	createSortedRowModel,
-	globalFilteringFeature,
 	rowAggregationFeature,
 	rowExpandingFeature,
 	rowSelectionFeature,
@@ -26,6 +25,10 @@ import type { AppColumnMeta } from './types/columnMeta';
 
 /**
  * The feature set every `DataTable` runs on.
+ *
+ * `globalFilteringFeature` is deliberately absent: the toolbar's search box is applied by
+ * {@link applyGlobalSearch} before the data reaches the table, so that it can be scoped to the visible
+ * columns and match tag and select values by label.
  */
 export const dataTableFeatures = tableFeatures({
 	columnOrderingFeature,
@@ -33,7 +36,6 @@ export const dataTableFeatures = tableFeatures({
 	columnSizingFeature,
 	columnResizingFeature,
 	columnFilteringFeature,
-	globalFilteringFeature,
 	rowSortingFeature,
 	sortedRowModel: createSortedRowModel(),
 	/** The comparators a column may be sorted by. */

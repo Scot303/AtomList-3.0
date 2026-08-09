@@ -21,8 +21,15 @@ export interface AppColumnMeta {
 	groupable?: boolean;
 	tagOptions?: TagOption[];
 	selectOptions?: ExtendedSelectOption[];
-	/** Adds a search box to the tag/select editor's panel. */
+	/** Adds a search box to the tag/select editor's panel. Unrelated to {@link globalSearch}. */
 	searchable?: boolean;
+	/**
+	 * Whether the toolbar's search box scans this column.
+	 *
+	 * Left unset, a column is scanned when it holds text or numbers, which leaves out tag arrays and booleans.
+	 * Hidden columns are never scanned, whatever this says.
+	 */
+	globalSearch?: boolean;
 	/** Stores an array of tag ids instead of a single one. */
 	multiTag?: boolean;
 	/** Lets the editor's panel create a new option inline. */

@@ -19,6 +19,7 @@ import type { FilterableColumn } from './types/filterTypes';
 import type { AppColumnDef, DataTableProps } from './types/dataTableTypes';
 import { dataTableFeatures, type DataTableFeatures } from './tableFeatures';
 import { applyFilterTags } from './utils/filterEngine';
+import { applyGlobalSearch, holdsSearchableText, type SearchField } from './utils/searchEngine';
 import { applyCustomSorts, type SortResolution } from './utils/sortEngine';
 import { reconcileColumnOrder, useTablePrefs } from './useTablePrefs';
 
@@ -96,6 +97,9 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 
 	const toggleFilters = useCallback(() => setShowFilters((visible) => !visible), [setShowFilters]);
 
+	/** Read off the stored state rather than off the table, so it can be asked before the table is built. */
+	const isVisible = useCallback((columnId: string) => columnVisibility[columnId] ?? true, [columnVisibility]);
+
 
 	/* ── Live column widths ───────────────────────────────────────────────── */
 
@@ -150,14 +154,41 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 	}, [columns]);
 
 	/**
+	 * The columns the search box scans, and how each of them reads.
+	 * Hidden columns are never scanned.
+	 */
+	const searchFields = useMemo<SearchField<T>[]>(() => {
+		const fields: SearchField<T>[] = [];
+
+		for (const column of columns) {
+			const id = resolveColumnId(column);
+
+			if (id === undefined || !isVisible(id) || column.meta?.globalSearch === false) {
+				continue;
+			}
+
+			const read = sortResolution.sortValues.get(id) ?? ((row: T) => (row as Record<string, unknown>)[id]);
+
+			if (column.meta?.globalSearch !== true && !holdsSearchableText(data, read)) {
+				continue;
+			}
+
+			fields.push({ read, names: sortResolution.optionNames.get(id) });
+		}
+
+		return fields;
+	}, [columns, isVisible, sortResolution, data]);
+
+	/**
 	 * Filter tags stay applied whether or not the filter bar is on screen.
 	 */
 	const processedData = useMemo<T[]>(() => {
 		const filtered = filterTags.length > 0 ? applyFilterTags(data, filterTags) : data;
+		const searched = applyGlobalSearch(filtered, globalFilter, searchFields);
 
 		// Clicking a column header is a temporary override of the saved sort, not an addition to it.
-		return sorting.length === 0 ? applyCustomSorts(filtered, sortTags, sortResolution) : filtered;
-	}, [data, filterTags, sortTags, sorting, sortResolution]);
+		return sorting.length === 0 ? applyCustomSorts(searched, sortTags, sortResolution) : searched;
+	}, [data, filterTags, globalFilter, searchFields, sortTags, sorting, sortResolution]);
 
 
 	/* ── Table instance ───────────────────────────────────────────────────── */
@@ -174,7 +205,6 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 		getRowId: rowId,
 		state: {
 			sorting,
-			globalFilter,
 			columnOrder,
 			columnVisibility,
 			columnSizing,
@@ -187,7 +217,6 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 		enableGrouping,
 		groupedColumnMode: false,
 		onSortingChange: setSorting,
-		onGlobalFilterChange: setGlobalFilter,
 		onColumnOrderChange: setColumnOrder,
 		onColumnVisibilityChange: setColumnVisibility,
 		onColumnSizingChange: handleColumnSizingChange,
@@ -233,8 +262,6 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 				})),
 		[visibleLeafColumns],
 	);
-
-	const isVisible = useCallback((columnId: string) => columnVisibility[columnId] ?? true, [columnVisibility]);
 
 	const visibilityColumns = useMemo(
 		() =>
