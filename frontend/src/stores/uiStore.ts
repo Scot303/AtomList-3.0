@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { storageKey } from '@/stores/storageKeys';
 
 interface UiState {
 	/** Whether the sidebar is pinned open on a wide screen. Remembered between visits. */
@@ -9,6 +10,8 @@ interface UiState {
 	toggleSidebar: () => void;
 	setMobileNavOpen: (open: boolean) => void;
 }
+
+const STORAGE_KEY = storageKey('ui');
 
 export const useUiStore = create<UiState>()(
 	persist(
@@ -20,7 +23,7 @@ export const useUiStore = create<UiState>()(
 			setMobileNavOpen: (mobileNavOpen) => set({ mobileNavOpen }),
 		}),
 		{
-			name: 'atomlist.ui',
+			name: STORAGE_KEY,
 			storage: createJSONStorage(() => localStorage),
 			partialize: (state) => ({ sidebarOpen: state.sidebarOpen }),
 		},

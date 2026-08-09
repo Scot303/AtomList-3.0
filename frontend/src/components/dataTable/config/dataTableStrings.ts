@@ -74,7 +74,10 @@ export const dataTableStrings = {
 	},
 } as const;
 
-/** Operator names. */
+
+/**
+ * Filter operators with their translated names.
+ */
 export const operatorStrings = {
 	equals: { select: 'równa się', badge: '=' },
 	not_equals: { select: 'nie równa się', badge: '≠' },
@@ -96,6 +99,7 @@ export const operatorStrings = {
 	tag_is_any_of: { select: 'jest jednym z', badge: 'jest jednym z' },
 	tag_is_none_of: { select: 'nie jest żadnym z', badge: 'nie jest żadnym z' },
 } as const;
+
 
 /**
  * Polish needs three forms, chosen by the last digit and the teens exception:
