@@ -1,3 +1,6 @@
+import { isValidElement, type ReactNode } from 'react';
+
+
 /**
  * One column's contribution to the toolbar's search box.
  * Built in `useDataTable`, where the row type is still known.
@@ -7,6 +10,8 @@ export interface SearchField<T> {
 	read: (row: T) => unknown;
 	/** Option id → display name, so a tag or select column matches on its label rather than on the stored id. */
 	names?: Map<string, string>;
+	/** Renders the value the way the cell shows it, so a reformatted date or amount is searchable as it reads. */
+	format?: (value: unknown) => ReactNode;
 }
 
 
@@ -34,21 +39,49 @@ export function applyGlobalSearch<T extends object>(data: T[], query: string, fi
  *
  * A multi-value cell is matched member by member, so a query cannot straddle two of them -
  * "vip par" is not a hit on a row tagged VIP and Partner.
+ *
+ * The formatted text is searched on top of the stored value rather than instead of it, so a column
+ * gaining a formatter can only ever make rows easier to find: a date reads as "2 lutego 2024" and is
+ * still found by the "2024-02-02" it is stored as.
  */
 function fieldMatches<T>(field: SearchField<T>, row: T, needle: string): boolean {
 	const raw = field.read(row);
 
-	if (raw == null) {
-		return false;
+	if (raw != null) {
+		const values = Array.isArray(raw) ? raw : [raw];
+
+		const hit = values.some((value) => {
+			const text = String(value ?? '');
+
+			return (field.names?.get(text) ?? text).toLowerCase().includes(needle);
+		});
+
+		if (hit) {
+			return true;
+		}
 	}
 
-	const values = Array.isArray(raw) ? raw : [raw];
+	return field.format !== undefined && nodeText(field.format(raw)).toLowerCase().includes(needle);
+}
 
-	return values.some((value) => {
-		const text = String(value ?? '');
 
-		return (field.names?.get(text) ?? text).toLowerCase().includes(needle);
-	});
+/**
+ * The text a rendered cell reads as.
+ */
+function nodeText(node: ReactNode): string {
+	if (typeof node === 'string' || typeof node === 'number') {
+		return String(node);
+	}
+
+	if (Array.isArray(node)) {
+		return node.map(nodeText).join(' ');
+	}
+
+	if (isValidElement(node)) {
+		return nodeText((node.props as { children?: ReactNode }).children);
+	}
+
+	return '';
 }
 
 

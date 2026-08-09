@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
 	type Column,
 	type ColumnOrderState,
@@ -14,6 +14,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { formatLongDate } from '@/components/ui/fields/dateUtils';
 import type { PopoverClip } from '@/hooks/usePopoverClip';
 import type { FilterableColumn } from './types/filterTypes';
 import type { AppColumnDef, DataTableProps } from './types/dataTableTypes';
@@ -173,7 +174,7 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 				continue;
 			}
 
-			fields.push({ read, names: sortResolution.optionNames.get(id) });
+			fields.push({ read, names: sortResolution.optionNames.get(id), format: displayFormat(column) });
 		}
 
 		return fields;
@@ -406,6 +407,18 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 		maxFilterTags, maxAdvancedRules,
 	};
 };
+
+
+/**
+ * How a column's cells render their value, where that is not the value itself.
+ */
+function displayFormat<T extends object>(column: AppColumnDef<T>): ((value: unknown) => ReactNode) | undefined {
+	if (column.meta?.displayFormatter) {
+		return column.meta.displayFormatter;
+	}
+
+	return column.fieldType === 'date' ? (value) => formatLongDate(String(value ?? '')) : undefined;
+}
 
 /**
  * A column definition's id, whether it was given one outright or is implied by a string accessor or header.

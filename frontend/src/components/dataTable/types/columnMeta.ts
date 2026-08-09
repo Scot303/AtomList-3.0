@@ -35,6 +35,9 @@ export interface AppColumnMeta {
 	/** Lets the editor's panel create a new option inline. */
 	addNewTag?: SelectAddNew;
 	addNewSelectOption?: SelectAddNew;
-	/** Overrides what a non-editing cell shows, without changing the value that gets filtered or sorted. */
+	/**
+	 * Overrides what a non-editing cell shows, without changing the value that gets filtered or sorted.
+	 * The toolbar's search box matches the text this produces as well as the stored value.
+	 */
 	displayFormatter?: (value: unknown) => React.ReactNode;
 }
