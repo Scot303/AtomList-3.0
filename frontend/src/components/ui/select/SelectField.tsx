@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
-import { AlertCircle, ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import type { SelectPopoverState } from '@/hooks/useSelectPopover';
+import { FieldShell } from '@/components/ui/fields/FieldShell';
+import { fieldControl, fieldControlWithLeftIcon, fieldControlWithRightAdornment, fieldLeftIcon, fieldRightAdornment, } from '@/components/ui/fields/fieldStyles';
 import { SelectPopover } from './SelectPopover';
 import type { SelectSize } from './selectTypes';
 
@@ -14,6 +16,7 @@ interface SelectFieldProps {
 	id?: string;
 	label?: string;
 	error?: string;
+	hint?: string;
 	size?: SelectSize;
 	leftIcon?: ReactNode;
 	placeholder?: string;
@@ -23,6 +26,11 @@ interface SelectFieldProps {
 	className?: string;
 }
 
+/**
+ * A select drawn as a form field.
+ *
+ * Shares its style with the rest of the field kit through {@link FieldShell} and `fieldStyles`.
+ */
 export const SelectField = (props: SelectFieldProps) => {
 	const {
 		popover,
@@ -32,6 +40,7 @@ export const SelectField = (props: SelectFieldProps) => {
 		id,
 		label,
 		error,
+		hint,
 		size = 'default',
 		leftIcon,
 		placeholder = 'Wybierz…',
@@ -41,99 +50,77 @@ export const SelectField = (props: SelectFieldProps) => {
 		className,
 	} = props;
 
-	// See the note in SelectPopover on why these are pulled out rather than read off `popover` below.
 	const { open, setReference, getReferenceProps } = popover;
 
 	const showClear = clearable === true && hasValue && !disabled && onClear !== undefined;
 
 	return (
-		<div className={ cn('w-full', disabled && 'opacity-70', className) }>
-			{ size !== 'sm' && label && (
-				<label
-					htmlFor={ id }
-					className={ cn(
-						'mb-1.5 block px-1 text-sm font-medium tracking-wide',
-						error ? 'text-os-error' : 'text-os-text',
-					) }
-				>
-					{ label }
-				</label>
+		<FieldShell
+			htmlFor={ id }
+			label={ label }
+			error={ error }
+			hint={ hint }
+			size={ size }
+			disabled={ disabled }
+			className={ className }
+		>
+			<button
+				id={ id }
+				type="button"
+				ref={ setReference }
+				disabled={ disabled }
+				aria-haspopup="listbox"
+				aria-expanded={ open }
+				aria-invalid={ error ? true : undefined }
+				{ ...getReferenceProps() }
+				className={ cn(
+					'peer text-left',
+					fieldControl(size, { hasError: Boolean(error), disabled, active: open }),
+					leftIcon && fieldControlWithLeftIcon[size],
+					// Room for the chevron, plus the clear button when it is showing.
+					showClear ? (size === 'sm' ? 'pr-14' : 'pr-16') : fieldControlWithRightAdornment[size],
+				) }
+			>
+				{ hasValue ? renderValue() : <span className="text-os-text-muted">{ placeholder }</span> }
+			</button>
+
+			{ leftIcon && (
+				<div className={ fieldLeftIcon(size, { hasError: Boolean(error), active: open }) }>
+					{ leftIcon }
+				</div>
 			) }
 
-			<div className="relative">
-				<button
-					id={ id }
-					type="button"
-					ref={ setReference }
-					disabled={ disabled }
-					aria-haspopup="listbox"
-					aria-expanded={ open }
-					{ ...getReferenceProps() }
-					className={ cn(
-						'w-full appearance-none border bg-os-surface text-left text-sm transition-all outline-none',
-						size === 'sm' ? 'rounded-lg py-1.5 pl-3' : 'rounded-xl py-2.5 pl-4',
-						leftIcon && (size === 'sm' ? 'pl-8' : 'pl-12'),
-						showClear ? (size === 'sm' ? 'pr-14' : 'pr-16') : size === 'sm' ? 'pr-8' : 'pr-10',
-						open ? 'border-os-primary' : error ? 'border-os-error' : 'border-os-border',
-						disabled && 'cursor-not-allowed',
-					) }
-				>
-					{ hasValue ? renderValue() : <span className="text-os-text-muted">{ placeholder }</span> }
-				</button>
-
-				{ leftIcon && (
-					<div
-						className={ cn(
-							'pointer-events-none absolute top-1/2 -translate-y-1/2 transition-colors',
-							size === 'sm' ? 'left-2.5' : 'left-4',
-							open ? 'text-os-primary' : 'text-os-text-muted',
-						) }
+			<div className={ cn(fieldRightAdornment(size), 'pointer-events-none') }>
+				{ showClear && (
+					<button
+						type="button"
+						tabIndex={ -1 }
+						title="Wyczyść"
+						aria-label="Wyczyść"
+						onMouseDown={ (event) => {
+							// Stops the trigger beneath from reading this as a request to open.
+							event.preventDefault();
+							event.stopPropagation();
+							onClear();
+						} }
+						className="pointer-events-auto mr-1 text-os-text-muted transition-colors hover:text-os-text"
 					>
-						{ leftIcon }
-					</div>
+						<X size={ size === 'sm' ? 14 : 16 }/>
+					</button>
 				) }
 
-				<div
+				<span
+					aria-hidden
 					className={ cn(
-						'pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center gap-1',
-						size === 'sm' ? 'right-3' : 'right-4',
+						'transition-all duration-200',
+						open ? 'rotate-180 text-os-primary' : 'text-os-text-muted',
 					) }
 				>
-					{ showClear && (
-						<button
-							type="button"
-							tabIndex={ -1 }
-							title="Wyczyść"
-							onMouseDown={ (event) => {
-								// Stops the trigger beneath from reading this as a request to open.
-								event.preventDefault();
-								event.stopPropagation();
-								onClear();
-							} }
-							className="pointer-events-auto mr-1 text-os-text-muted transition-colors hover:text-os-text"
-						>
-							<X size={ size === 'sm' ? 14 : 16 }/>
-						</button>
-					) }
-
-					<span
-						className={ cn(
-							'transition-all duration-200',
-							open ? 'rotate-180 text-os-primary' : 'text-os-text-muted',
-						) }
-					>
-						<ChevronDown size={ size === 'sm' ? 16 : 18 }/>
-					</span>
-				</div>
+					<ChevronDown size={ size === 'sm' ? 16 : 18 }/>
+				</span>
 			</div>
 
-			{ error && (
-				<p className="mt-2 flex items-center gap-1.5 pl-2 text-sm font-medium text-os-error">
-					<AlertCircle size={ 16 } className="shrink-0"/> { error }
-				</p>
-			) }
-
 			<SelectPopover popover={ popover }>{ children }</SelectPopover>
-		</div>
+		</FieldShell>
 	);
 };

@@ -1,128 +1,115 @@
 import * as React from 'react';
-import { forwardRef, type ReactNode, useCallback, useId, useRef } from 'react';
-import { cn } from '@/lib/cn.ts';
-import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { type ReactNode, type Ref, useCallback, useId, useRef } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { cn } from '@/lib/cn';
+import { FieldShell } from './FieldShell';
+import { fieldControl, fieldControlWithLeftIcon, fieldLeftIcon, fieldRightAdornment, type FieldSize } from './fieldStyles';
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
 	label: string;
 	error?: string;
+	hint?: string;
 	icon?: ReactNode;
-	size?: 'sm' | 'default';
+	size?: FieldSize;
+	ref?: Ref<HTMLInputElement>;
 }
 
+export const Input = (props: InputProps) => {
+	const { className, label, error, hint, icon, size = 'default', disabled, ref, ...rest } = props;
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-	({ className, label, error, icon, size = 'default', disabled, ...props }, ref) => {
+	const id = useId();
+	const innerRef = useRef<HTMLInputElement>(null);
+	const isNumber = rest.type === 'number';
 
-		const id = useId();
-		const innerRef = useRef<HTMLInputElement>(null);
-		const isNumber = props.type === 'number';
+	const setRef = useCallback((element: HTMLInputElement | null) => {
+		innerRef.current = element;
 
-		const setRef = useCallback((el: HTMLInputElement | null) => {
-			(innerRef as React.RefObject<HTMLInputElement | null>).current = el;
-			if (typeof ref === 'function') ref(el);
-			else if (ref) (ref as React.RefObject<HTMLInputElement | null>).current = el;
-		}, [ref]);
+		if (typeof ref === 'function') {
+			ref(element);
+		} else if (ref) {
+			ref.current = element;
+		}
+	}, [ref]);
 
-		return (
-			<div className={ cn('w-full', disabled && 'opacity-70') }>
-				{ size !== 'sm' && (
-					<label
-						htmlFor={ id }
+	const stepBy = (input: HTMLInputElement | null, direction: 'up' | 'down') => {
+		if (direction === 'up') {
+			input?.stepUp();
+		} else {
+			input?.stepDown();
+		}
+
+		// React does not see `stepUp`, so the change has to be announced for `onChange` to fire.
+		input?.dispatchEvent(new Event('input', { bubbles: true }));
+	};
+
+	const stepUp = (event: React.MouseEvent) => {
+		event.preventDefault();
+
+		if (!disabled) {
+			stepBy(innerRef.current, 'up');
+		}
+	};
+
+	const stepDown = (event: React.MouseEvent) => {
+		event.preventDefault();
+
+		if (!disabled) {
+			stepBy(innerRef.current, 'down');
+		}
+	};
+
+	return (
+		<FieldShell htmlFor={ id } label={ label } error={ error } hint={ hint } size={ size } disabled={ disabled }>
+			<input
+				id={ id }
+				ref={ setRef }
+				disabled={ disabled }
+				aria-invalid={ error ? true : undefined }
+				{ ...rest }
+				className={ cn(
+					'peer',
+					fieldControl(size, { hasError: Boolean(error), disabled }),
+					icon && fieldControlWithLeftIcon[size],
+					isNumber && (size === 'sm' ? 'pr-7' : 'pr-8'),
+					className,
+				) }
+			/>
+
+			{ icon && (
+				<div className={ fieldLeftIcon(size, { hasError: Boolean(error) }) }>
+					{ icon }
+				</div>
+			) }
+
+			{ isNumber && (
+				<div className={ cn(fieldRightAdornment(size), 'flex-col gap-0') }>
+					<button
+						type="button"
+						tabIndex={ -1 }
+						aria-hidden
+						onMouseDown={ stepUp }
 						className={ cn(
-							'mb-1.5 block px-1 text-sm font-medium tracking-wide',
-							error ? 'text-os-error' : 'text-os-text',
+							'flex items-center justify-center rounded-t text-os-text transition-colors hover:text-os-primary',
+							size === 'sm' ? 'h-3 w-4' : 'h-5 w-5',
 						) }
 					>
-						{ label }
-					</label>
-				) }
+						<ChevronUp size={ size === 'sm' ? 10 : 12 } strokeWidth={ 2.5 }/>
+					</button>
 
-				<div className="relative">
-					<input
-						id={ id }
-						ref={ setRef }
-						disabled={ disabled }
-						{ ...props }
+					<button
+						type="button"
+						tabIndex={ -1 }
+						aria-hidden
+						onMouseDown={ stepDown }
 						className={ cn(
-							'text-sm peer w-full appearance-none focus:outline-none focus:ring-0 bg-os-surface',
-							'border transition-all text-os-text',
-							size === 'sm' ? 'px-3 py-1.5 rounded-lg' : 'px-2.5 py-2.5 rounded-xl',
-							size === 'sm' ? (icon ? 'pl-8' : '') : icon ? 'pl-12' : 'pl-4',
-							isNumber ? 'pr-7' : '',
-							error
-								? 'border-os-error focus:border-os-error'
-								: 'border-os-border focus:border-os-primary',
-							className,
+							'flex items-center justify-center rounded-b text-os-text transition-colors hover:text-os-primary',
+							size === 'sm' ? 'h-3 w-4' : 'h-5 w-5',
 						) }
-					/>
-
-					{ isNumber && (
-						<div
-							className={ cn(
-								'absolute top-1/2 -translate-y-1/2 flex flex-col',
-								size === 'sm' ? 'right-3' : 'right-4',
-							) }
-						>
-							<button
-								type="button"
-								tabIndex={ -1 }
-								onMouseDown={ (e) => {
-									e.preventDefault();
-									if (disabled) return;
-
-									innerRef.current?.stepUp();
-									innerRef.current?.dispatchEvent(
-										new Event('input', { bubbles: true }),
-									);
-								} }
-								className={ cn(
-									'flex items-center justify-center rounded-t text-os-text hover:text-os-primary transition-colors',
-									size === 'sm' ? 'h-3 w-4' : 'h-5 w-5',
-								) }
-							>
-								<ChevronUp size={ size === 'sm' ? 10 : 12 } strokeWidth={ 2.5 }/>
-							</button>
-							<button
-								type="button"
-								tabIndex={ -1 }
-								onMouseDown={ (e) => {
-									e.preventDefault();
-									if (disabled) return;
-
-									innerRef.current?.stepDown();
-									innerRef.current?.dispatchEvent(
-										new Event('input', { bubbles: true }),
-									);
-								} }
-								className={ cn(
-									'flex items-center justify-center rounded-b text-os-text hover:text-os-primary transition-colors',
-									size === 'sm' ? 'h-3 w-4' : 'h-5 w-5',
-								) }
-							>
-								<ChevronDown size={ size === 'sm' ? 10 : 12 } strokeWidth={ 2.5 }/>
-							</button>
-						</div>
-					) }
-
-					{ icon && (
-						<div
-							className={ cn(
-								'absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200',
-								error ? 'text-os-error' : 'text-os-text peer-focus:text-os-primary',
-							) }
-						>
-							{ icon }
-						</div>
-					) }
+					>
+						<ChevronDown size={ size === 'sm' ? 10 : 12 } strokeWidth={ 2.5 }/>
+					</button>
 				</div>
-
-				{ error && (
-					<p className="mt-2 flex items-center gap-1.5 pl-2 text-sm font-medium text-os-error">
-						<AlertCircle size={ 16 } className="shrink-0"/> { error }
-					</p>
-				) }
-			</div>
-		);
-	},
-);
+			) }
+		</FieldShell>
+	);
+};

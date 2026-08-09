@@ -10,3 +10,8 @@ export const LOCALE = 'pl-PL';
 
 /** Monday, as every Polish calendar starts. 0 = Sunday, per `Date.prototype.getDay`. */
 export const FIRST_DAY_OF_WEEK = 1;
+
+/**
+ * The zone the business runs in, matching the backend's `app.time-zone`.
+ */
+export const TIME_ZONE = 'Europe/Warsaw';

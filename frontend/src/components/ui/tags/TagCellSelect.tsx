@@ -5,9 +5,12 @@ import { TagBadge } from './TagBadge';
 import { buildTagPanelOptions } from './tagPanelOptions';
 import type { TagOption } from './tagTypes';
 
+
 interface TagCellSelectOwnProps {
 	options: TagOption[];
 	onBlur?: () => void;
+	/** Told when the panel opens and closes, so the row around the cell can show it as being edited. */
+	onOpenChange?: (open: boolean) => void;
 	/** The panel's width. A badge is far too narrow to size it from. */
 	popoverWidth?: string;
 	searchable?: boolean;
@@ -31,6 +34,7 @@ export const TagCellSelect = (props: TagCellSelectProps) => {
 	const {
 		options,
 		onBlur,
+		onOpenChange,
 		popoverWidth = '16rem',
 		searchable = false,
 		clearable = false,
@@ -42,7 +46,7 @@ export const TagCellSelect = (props: TagCellSelectProps) => {
 		className,
 	} = props;
 
-	const popover = useSelectPopover({ onBlur, width: popoverWidth, addModeWidth: '22rem' });
+	const popover = useSelectPopover({ onBlur, onOpenChange, width: popoverWidth, addModeWidth: '22rem' });
 	const value = bindSelectValue(props);
 
 	const panel = buildTagPanelOptions(options);
