@@ -79,7 +79,7 @@ export const TagSelect = (props: TagSelectProps) => {
 			renderValue={ () => (
 				<span className="flex min-w-0 flex-nowrap items-center gap-1 overflow-hidden">
 					{ selectedTags.map((tag) => (
-						<TagBadge key={ tag.id } label={ tag.name } color={ tag.color }/>
+						<TagBadge key={ tag.id } label={ tag.name } color={ tag.color } size={ size }/>
 					)) }
 				</span>
 			) }

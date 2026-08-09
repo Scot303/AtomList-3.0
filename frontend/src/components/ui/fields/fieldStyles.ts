@@ -58,10 +58,10 @@ export const fieldControl = (size: FieldSize, state: FieldStateOptions = {}) =>
 /**
  * Vertical padding for a control whose value is drawn as a badge rather than as bare text.
  *
- * A badge is 4px taller than the `text-sm` line box the other fields are sized around, so the box gives that 4px back, and the control keeps the kit's height.
+ * A `default` badge is 4px taller than the `text-sm` line box the fields are sized around, so the box gives that 4px back and the control keeps the kit's height.
  */
 export const fieldControlBadgeValue: Record<FieldSize, string> = {
-	sm: 'py-1',
+	sm: 'py-1.5',
 	default: 'py-2',
 };
 
