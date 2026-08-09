@@ -10,7 +10,10 @@ export interface SearchField<T> {
 	read: (row: T) => unknown;
 	/** Option id → display name, so a tag or select column matches on its label rather than on the stored id. */
 	names?: Map<string, string>;
-	/** Renders the value the way the cell shows it, so a reformatted date or amount is searchable as it reads. */
+	/**
+	 * Renders a value the way the cell shows it, so a reformatted date or amount is searchable as it reads.
+	 * Called once per value, so a multi-value cell formats each of its members on its own.
+	 */
 	format?: (value: unknown) => ReactNode;
 }
 
@@ -39,29 +42,32 @@ export function applyGlobalSearch<T extends object>(data: T[], query: string, fi
  *
  * A multi-value cell is matched member by member, so a query cannot straddle two of them -
  * "vip par" is not a hit on a row tagged VIP and Partner.
+ */
+function fieldMatches<T>(field: SearchField<T>, row: T, needle: string): boolean {
+	const raw = field.read(row);
+	const values = Array.isArray(raw) ? raw : [raw];
+
+	return values.some((value) => valueMatches(field, value, needle));
+}
+
+
+/**
+ * Whether one of a cell's values contains `needle`, as it is stored or as it reads on screen.
  *
  * The formatted text is searched on top of the stored value rather than instead of it, so a column
  * gaining a formatter can only ever make rows easier to find: a date reads as "2 lutego 2024" and is
  * still found by the "2024-02-02" it is stored as.
  */
-function fieldMatches<T>(field: SearchField<T>, row: T, needle: string): boolean {
-	const raw = field.read(row);
+function valueMatches<T>(field: SearchField<T>, value: unknown, needle: string): boolean {
+	if (value != null) {
+		const text = String(value);
 
-	if (raw != null) {
-		const values = Array.isArray(raw) ? raw : [raw];
-
-		const hit = values.some((value) => {
-			const text = String(value ?? '');
-
-			return (field.names?.get(text) ?? text).toLowerCase().includes(needle);
-		});
-
-		if (hit) {
+		if ((field.names?.get(text) ?? text).toLowerCase().includes(needle)) {
 			return true;
 		}
 	}
 
-	return field.format !== undefined && nodeText(field.format(raw)).toLowerCase().includes(needle);
+	return field.format !== undefined && nodeText(field.format(value)).toLowerCase().includes(needle);
 }
 
 
