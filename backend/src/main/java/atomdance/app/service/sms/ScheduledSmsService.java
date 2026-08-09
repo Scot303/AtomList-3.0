@@ -23,6 +23,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -48,7 +50,7 @@ public class ScheduledSmsService {
         var currentYearMonth = appClock.currentYearMonth();
 
         var owedPayments = getOwedPayments(currentYearMonth);
-        Map<PersonToSend, BigDecimal> combinedOwedPayments = pairPhoneNumbersWithOwedPayments(owedPayments);
+        Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments = pairPhoneNumbersWithOwedPayments(owedPayments);
         List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
 
         var recipients = messagesToSend.stream().map(sms -> new RestRecipient(sms.getSentToPhone(), sms.getMessage())).toList();
@@ -73,15 +75,39 @@ public class ScheduledSmsService {
                 .toList();
     }
 
-    private Map<PersonToSend, BigDecimal> pairPhoneNumbersWithOwedPayments(List<Payment> owedPayments) {
-        Map<PersonToSend, BigDecimal> combinedOwedPayments = new HashMap<>();
-        owedPayments.forEach(payment -> combinedOwedPayments.merge(PersonToSend.of(payment), payment.getAmountToPay(), BigDecimal::add));
-        return combinedOwedPayments;
+    /**
+     * <p>Pair Persons with outstanding payment and its amount with the phone number where alert should be sent (key).
+     * </p>
+     * One phone number may lead to a group of Persons (Family) ({@link SumOfOwedPaymentsInFamily}) with shared debt,
+     * of which the family phone number will be notified.
+     */
+    private Map<String, SumOfOwedPaymentsInFamily> pairPhoneNumbersWithOwedPayments(List<Payment> owedPayments) {
+        Map<String, SumOfOwedPaymentsInFamily> map = new HashMap<>();
+        owedPayments.forEach(
+                payment -> map.merge(
+                        payment.getPerson().getEffectivePhone(),
+                        new SumOfOwedPaymentsInFamily(new ArrayList<>(Arrays.asList(payment.getPerson())), payment.getAmountToPay()),
+                        (currentSumInFamily, newMember) -> {
+                            List<Person> currentList = currentSumInFamily.persons;
+                            currentList.add(newMember.persons.getFirst());
+
+                            BigDecimal currentOwnedSum = currentSumInFamily.owedPayment;
+                            BigDecimal increasedSum = currentOwnedSum.add(newMember.owedPayment);
+                            return new SumOfOwedPaymentsInFamily(currentList, increasedSum);
+                        }));
+        return map;
     }
 
-    private List<Sms> createMessagesToDebtors(Map<PersonToSend, BigDecimal> combinedOwedPayments) {
-        return new ArrayList<>(combinedOwedPayments.entrySet().stream()
-                .map(entry -> new Sms(entry.getKey().person, STANDARD_TEMPLATE.formatted(entry.getValue().toString())))
+    private List<Sms> createMessagesToDebtors(Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments) {
+        return new ArrayList<>(combinedOwedPayments.values().stream()
+                .map(sumOfOwedPaymentsInFamily -> {
+                    List<Person> persons = sumOfOwedPaymentsInFamily.persons;
+                    if (persons.size() == 1) {
+                        return new Sms(persons.getFirst(), formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment));
+                    } else {
+                        return new Sms(persons.getFirst().getFamily(), formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment));
+                    }
+                })
                 .toList());
     }
 
@@ -89,11 +115,10 @@ public class ScheduledSmsService {
         return paymentListRepository.findByYearAndMonthAndType(yearMonth.getYear(), yearMonth.getMonthValue(), type);
     }
 
-    protected record PersonToSend(Person person, String effectivePhoneNumber) {
-        static PersonToSend of(Payment payment){
-            return new PersonToSend(payment.getPerson(), payment.getPerson().getEffectivePhone());
-        }
-    }
+    /**
+     * List of {@link Person} objects and their collective debt from unpaid Payments.
+     */
+    protected record SumOfOwedPaymentsInFamily(List<Person> persons, BigDecimal owedPayment) {}
 
     private BulkSendRequest getBulkSendRequest() {
         return new BulkSendRequest()
@@ -102,6 +127,15 @@ public class ScheduledSmsService {
                 .withBulkVariant(BulkSendRequest.BulkVariant.PRO)
                 .withSender("Atom Dance")
                 .withSendDate(appClock.nowOffset().plusMinutes(10L));
+    }
+
+    private String formatSmsMessage(BigDecimal owedAmount) {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setDecimalSeparator(',');
+
+        DecimalFormat formatter = new DecimalFormat("0.00", symbols);
+
+        return STANDARD_TEMPLATE.formatted(formatter.format(owedAmount));
     }
 
 }

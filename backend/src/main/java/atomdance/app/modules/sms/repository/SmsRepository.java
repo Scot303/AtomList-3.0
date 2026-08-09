@@ -11,11 +11,10 @@ import java.util.UUID;
 
 @Repository
 public interface SmsRepository extends JpaRepository<Sms, UUID> {
-    //TODO change to page/pageable?
     List<Sms> findByPersonId(UUID personId);
 
     List<Sms> findBySentToPhone(String phoneNumber);
 
-    @Query("SELECT s FROM Sms s JOIN FETCH s.person WHERE s.id = :personId")
+    @Query("SELECT s FROM Sms s JOIN FETCH s.person p WHERE p.id = :personId")
     List<Sms> findByPersonIdWithPerson(@Param("personId") UUID personId);
 }

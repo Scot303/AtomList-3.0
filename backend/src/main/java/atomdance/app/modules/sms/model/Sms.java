@@ -1,6 +1,7 @@
 package atomdance.app.modules.sms.model;
 
 
+import atomdance.app.modules.person.model.Family;
 import atomdance.app.modules.person.model.Person;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,11 @@ import java.util.UUID;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-@Table(name = "sms")
+@Table(name = "sms",
+        indexes = {
+            @Index(name = "idx_persons_id", columnList = "person_id"),
+            @Index(name = "idx_familys_id", columnList = "family_id")
+        })
 public class Sms {
 
     @Id
@@ -28,7 +33,10 @@ public class Sms {
     @JoinColumn(name = "person_id")
     private Person person;
 
-    //TODO Keep phone number where msg was sent?
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "family_id")
+    private Family family;
+
     @Column(length = 9, nullable = false)
     private String sentToPhone;
 
@@ -45,6 +53,11 @@ public class Sms {
     public Sms(Person person, String message) {
         this.person = person;
         this.sentToPhone = person.getEffectivePhone();
+        this.message = message;
+    }
+
+    public Sms(Family family, String message) {
+        this.setSentToPhone(family.getPhone());
         this.message = message;
     }
 

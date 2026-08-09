@@ -1,107 +1,93 @@
 package service.sms;
 
-import atomdance.app.BackendApplication;
 import atomdance.app.common.utils.AppClock;
-import atomdance.app.config.SmsRestApiClientTestConfig;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.finance.model.ListType;
+import atomdance.app.modules.finance.model.Payment;
+import atomdance.app.modules.finance.model.PaymentList;
 import atomdance.app.modules.finance.repository.PaymentListRepository;
 import atomdance.app.modules.finance.repository.PaymentRepository;
+import atomdance.app.modules.person.model.Family;
+import atomdance.app.modules.person.model.Person;
+import atomdance.app.modules.sms.model.Sms;
 import atomdance.app.modules.sms.service.SmsService;
 import atomdance.app.service.sms.ScheduledSmsService;
 import atomdance.app.service.sms.rest.SmsRestApiClient;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.support.RestClientAdapter;
-import org.springframework.web.service.invoker.HttpServiceProxyFactory;
+import org.mockito.ArgumentCaptor;
+import org.mockito.stubbing.Answer;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-@SpringBootTest(classes = {
-        BackendApplication.class
-})
-@ActiveProfiles("test")
-@Import({SmsRestApiClientTestConfig.class, ScheduledSmsServiceTest.LoggerConfig.class})
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 class ScheduledSmsServiceTest {
-    @Value("${app.sms.rest.justSend.apiKey}")
-    private String justSendApiKey;
 
-    @Value("${app.sms.rest.justSend.url}")
-    private String justSendUrl;
-
-    @Autowired private AppClock appClock;
-    @Autowired private SmsService smsService;
-    @Autowired private PaymentListRepository paymentListRepository;
-    @Autowired private PaymentRepository paymentRepository;
-    @Autowired private AuditLogger auditLogger;
-    @Autowired private ListAppender<ILoggingEvent> listAppender;
-
-    private ScheduledSmsService scheduledSmsService;
-
-    @Autowired
-    RestClient.Builder smsRestApiClientBuilder;
-
-    @Autowired
-    private MockRestServiceServer mockRestServiceServer;
+    private AppClock appClock = new AppClock("Europe/Warsaw");
+    private SmsService smsService = mock(SmsService.class);
+    private PaymentListRepository paymentListRepository = mock(PaymentListRepository.class);
+    private PaymentRepository paymentRepository = mock(PaymentRepository.class);
+    private SmsRestApiClient smsRestApiClient = mock(SmsRestApiClient.class);
+    private AuditLogger auditLogger = mock(AuditLogger.class);
+    private static ScheduledSmsService scheduledSmsService;
 
     @BeforeEach
-    void setup() {
-        var serviceProxy = HttpServiceProxyFactory.
-                builderFor(RestClientAdapter.create(smsRestApiClientBuilder.build()))
-                .build();
-
-        SmsRestApiClient testJustSendSmsRestApi = serviceProxy.createClient(SmsRestApiClient.class);
-        scheduledSmsService = new ScheduledSmsService(appClock, smsService, paymentListRepository, paymentRepository, testJustSendSmsRestApi, auditLogger);
+    void setupScheduledService() {
+        scheduledSmsService = new ScheduledSmsService(appClock, smsService, paymentListRepository, paymentRepository, smsRestApiClient, auditLogger);
     }
+
 
     @Test
-    void shouldRunScheduledMethod() {
+    void shouldProduceSingleSmsForMembersOfOneFamily() {
+        // given
+        var familyPhoneNumber = RandomStringUtils.secure().nextNumeric(9);
+
+        // when
+        when(paymentListRepository.findByYearAndMonthAndType(anyInt(), anyInt(), any(ListType.class)))
+                .thenAnswer((Answer<Optional<PaymentList>>) invocation -> mockPaymentList());
+
+        when(paymentRepository.findUnpaidByListId(any(UUID.class)))
+                .thenAnswer((Answer<List<Payment>>) invocation -> mockUnpaidPayment(invocation.getArgument(0), familyPhoneNumber));
+
         scheduledSmsService.scheduleSms();
-        assertTrue(
-                listAppender.list.stream()
-                        .map(ILoggingEvent::getFormattedMessage)
-                        .anyMatch(m -> m.contains("Running scheduled sms service for owed payments")));
+
+        // then
+        var smsServiceArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(smsService).saveSentScheduledSms((List<Sms>) smsServiceArgumentCaptor.capture());
+        assertEquals(1, smsServiceArgumentCaptor.getValue().size());
+
+        Sms combinedSms = (Sms) smsServiceArgumentCaptor.getValue().getFirst();
+        assertEquals("Przypominamy o uregulowaniu płatności za zajęcia: 101,00 zł.", combinedSms.getMessage());
+        assertEquals(familyPhoneNumber, combinedSms.getSentToPhone());
     }
 
-    @Test
-    void scheduledServiceShouldSendRequest() {
-        scheduledSmsService.scheduleSms();
-        mockRestServiceServer.verify();
+    private static Optional<PaymentList> mockPaymentList() {
+        return Optional.of(PaymentList.builder()
+                .id(UUID.randomUUID()).build());
     }
 
-    @TestConfiguration
-    static class LoggerConfig {
-
-        @Bean
-        public ListAppender<ILoggingEvent> listAppender() {
-            ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-            listAppender.start();
-
-            return listAppender;
-        }
-
-        @Bean
-        static BeanFactoryPostProcessor setupLogger(ListAppender<ILoggingEvent> listAppender) {
-            return beanFactory -> {
-
-                Logger logger = (Logger) LoggerFactory.getLogger(ScheduledSmsService.class);
-                logger.setLevel(Level.DEBUG);
-                logger.addAppender(listAppender);
-            };
-        }
+    private static List<Payment> mockUnpaidPayment(UUID uuid, String familyNumber) {
+        return List.of(Payment.builder()
+                .amountToPay(BigDecimal.valueOf(50.50))
+                .person(Person.builder()
+                        .id(uuid)
+                        .phone(null)
+                        .family(Family.builder()
+                                .phone(familyNumber)
+                                .build())
+                        .build())
+                .build());
     }
+
+
 }
