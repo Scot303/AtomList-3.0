@@ -33,6 +33,7 @@ export const NO_TOKEN_RENEWAL_PATHS: readonly string[] = [
 	AUTH_ENDPOINTS.resendVerification,
 ];
 
+
 /**
  * Account administration. Every one of these needs the `MANAGE_USERS` authority.
  */
@@ -42,4 +43,41 @@ export const ADMIN_USER_ENDPOINTS = {
 	unlock: (id: string) => `/api/admin/users/${ id }/unlock`,
 	resendVerification: (id: string) => `/api/admin/users/${ id }/resend-verification`,
 	forceLogout: (id: string) => `/api/admin/users/${ id }/force-logout`,
+} as const;
+
+
+/**
+ * `READ_PERSONS` / `MODIFY_PERSONS`.
+ */
+export const PERSON_ENDPOINTS = {
+	base: '/api/persons',
+	byId: (id: string) => `/api/persons/${ id }`,
+	memberships: (personId: string) => `/api/persons/${ personId }/memberships`,
+} as const;
+
+
+/**
+ * `READ_GROUPS` / `MODIFY_GROUPS`.
+ */
+export const GROUP_ENDPOINTS = {
+	base: '/api/groups',
+	byId: (id: string) => `/api/groups/${ id }`,
+} as const;
+
+
+/**
+ * Memberships are managed under the person who holds them, so these need `MODIFY_PERSONS` rather than
+ * anything group-related. Creating one lives on {@link PERSON_ENDPOINTS.memberships}.
+ */
+export const MEMBERSHIP_ENDPOINTS = {
+	byId: (id: string) => `/api/memberships/${ id }`,
+	/** Ends a membership by dating it, leaving the row for past lists to explain themselves with. */
+	leave: (id: string) => `/api/memberships/${ id }/leave`,
+} as const;
+
+
+/** `READ_FAMILIES` / `MODIFY_FAMILIES`. */
+export const FAMILY_ENDPOINTS = {
+	base: '/api/families',
+	byId: (id: string) => `/api/families/${ id }`,
 } as const;

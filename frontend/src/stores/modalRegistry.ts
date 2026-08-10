@@ -48,6 +48,18 @@ export const MODAL_REGISTRY = {
 		title: 'Edytuj konto',
 		size: 'md',
 	}),
+
+	'persons.details': defineModal({
+		load: () => import('@/modules/persons/modals/PersonDetailsModal.tsx'),
+		title: 'Szczegóły osoby',
+		size: 'xl',
+	}),
+
+	'persons.groups': defineModal({
+		load: () => import('@/modules/persons/modals/PersonGroupsModal.tsx'),
+		title: 'Grupy osoby',
+		size: 'xl',
+	}),
 };
 
 
