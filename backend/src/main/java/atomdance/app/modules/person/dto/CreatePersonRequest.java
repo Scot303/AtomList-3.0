@@ -30,8 +30,6 @@ public record CreatePersonRequest(
 
 		LocalDate joinedStudioAt,
 
-		Boolean active,
-
 		Boolean contractSigned,
 
 		UUID familyId,

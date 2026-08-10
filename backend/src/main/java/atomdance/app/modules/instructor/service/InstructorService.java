@@ -1,7 +1,6 @@
 package atomdance.app.modules.instructor.service;
 
 import atomdance.app.common.exception.NotFoundException;
-import atomdance.app.common.utils.SearchPatterns;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
@@ -13,8 +12,6 @@ import atomdance.app.modules.instructor.repository.InstructorRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,9 +36,9 @@ public class InstructorService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<InstructorView> getAll(String search, boolean activeOnly, Pageable pageable) {
+	public List<InstructorView> getAll() {
 		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.INSTRUCTOR_PREVIEW, AuditOutcome.SUCCESS, "Previewed all instructors.");
-		return instructorRepository.search(SearchPatterns.contains(search), activeOnly, pageable).map(InstructorView::from);
+		return instructorRepository.findAll(BY_NAME).stream().map(InstructorView::from).toList();
 	}
 
 	@Transactional(readOnly = true)

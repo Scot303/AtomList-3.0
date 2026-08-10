@@ -50,6 +50,24 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 			""")
 	List<Membership> findByPersonId(@Param("personId") UUID personId);
 
+	@Query("""
+			SELECT m.person.id AS personId, g.id AS groupId FROM Membership m
+			JOIN m.group g
+			WHERE m.person.id IN :personIds
+			  AND m.leftAt IS NULL
+			ORDER BY g.name
+			""")
+	List<PersonGroupId> findActiveGroupIdsForPersons(@Param("personIds") Collection<UUID> personIds);
+
+	/**
+	 * One person-to-group pairing of {@link #findActiveGroupIdsForPersons}.
+	 */
+	interface PersonGroupId {
+		UUID getPersonId();
+
+		UUID getGroupId();
+	}
+
 	@Query("SELECT m FROM Membership m JOIN FETCH m.group JOIN FETCH m.person LEFT JOIN FETCH m.person.family WHERE m.id = :id")
 	Optional<Membership> findByIdWithRelations(@Param("id") UUID id);
 

@@ -15,13 +15,12 @@ import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -43,10 +42,10 @@ public class PaymentService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<PaymentView> getForList(UUID listId, Pageable pageable) {
+	public List<PaymentView> getForList(UUID listId) {
 		paymentListService.getOrThrow(listId);
 
-		return paymentRepository.findByListId(listId, pageable).map(PaymentView::withoutLines);
+		return paymentRepository.findByListId(listId).stream().map(PaymentView::withoutLines).toList();
 	}
 
 	@Transactional(readOnly = true)

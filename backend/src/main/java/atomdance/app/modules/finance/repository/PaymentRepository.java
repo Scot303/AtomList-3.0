@@ -1,8 +1,6 @@
 package atomdance.app.modules.finance.repository;
 
 import atomdance.app.modules.finance.model.Payment;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,14 +13,14 @@ import java.util.UUID;
 
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
-	@Query(value = """
+	@Query("""
 			SELECT p FROM Payment p
 			JOIN FETCH p.person person
 			LEFT JOIN FETCH person.family
 			WHERE p.list.id = :listId
-			""",
-			countQuery = "SELECT COUNT(p) FROM Payment p WHERE p.list.id = :listId")
-	Page<Payment> findByListId(@Param("listId") UUID listId, Pageable pageable);
+			ORDER BY person.lastName ASC, person.name ASC
+			""")
+	List<Payment> findByListId(@Param("listId") UUID listId);
 
 	@Query("""
 			SELECT DISTINCT p FROM Payment p

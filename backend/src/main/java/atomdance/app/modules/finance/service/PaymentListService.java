@@ -25,8 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +38,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class PaymentListService {
+
+	private static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "createdAt");
 
 	private final PaymentListRepository paymentListRepository;
 	private final PaymentRepository paymentRepository;
@@ -60,9 +61,12 @@ public class PaymentListService {
 				.orElseThrow(() -> new NotFoundException("entity.list"));
 	}
 
+	/**
+	 * Every list, newest first. Narrowing them by type or year is the client's business.
+	 */
 	@Transactional(readOnly = true)
-	public Page<PaymentListView> list(ListType type, Integer year, Pageable pageable) {
-		return paymentListRepository.search(type, year, pageable).map(PaymentListView::from);
+	public List<PaymentListView> getAll() {
+		return paymentListRepository.findAll(NEWEST_FIRST).stream().map(PaymentListView::from).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -226,6 +230,30 @@ public class PaymentListService {
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s has been recalculated.", describe(list)));
 
 		return PaymentListView.from(list);
+	}
+
+	/**
+	 * Rebuilds every open monthly list, for when something a list reads but does not own has changed - a family
+	 * gaining or losing a member, a membership cost being edited.
+	 * <p>
+	 * Only standard lists are touched. A custom list's charges are put there by hand rather than derived from
+	 * memberships, so nothing outside it can make them wrong.
+	 *
+	 * @return how many lists were rebuilt
+	 */
+	@Transactional
+	public int recalculateOpenStandardLists() {
+		List<PaymentList> open = paymentListRepository.findOpenStandard();
+
+		for (PaymentList list : open) {
+			syncStandardPayments(list);
+		}
+
+		if (!open.isEmpty()) {
+			log.info("Rebuilt {} open standard list(s): {}", open.size(), open.stream().map(PaymentListService::describe).toList());
+		}
+
+		return open.size();
 	}
 
 	// ---------------------------------------------------------------- closing

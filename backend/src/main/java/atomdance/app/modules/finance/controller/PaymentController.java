@@ -5,14 +5,11 @@ import atomdance.app.modules.finance.service.OverpaymentService;
 import atomdance.app.modules.finance.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,8 +25,8 @@ public class PaymentController {
 	 */
 	@GetMapping("/lists/{listId}/payments")
 	@PreAuthorize("hasAuthority('READ_PAYMENTS')")
-	public PagedModel<PaymentView> listForList(@PathVariable UUID listId, @PageableDefault(size = 500, sort = {"person.lastName", "person.name"}, direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(paymentService.getForList(listId, pageable));
+	public List<PaymentView> listForList(@PathVariable UUID listId) {
+		return paymentService.getForList(listId);
 	}
 
 	@GetMapping("/payments/{id}")

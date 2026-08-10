@@ -3,6 +3,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { BrowserRouter } from 'react-router';
 import { ToastContainer } from 'react-toastify';
 
+import { GlobalContextMenu } from '@/components/ui/modals/GlobalContextMenu';
 import { GlobalDialog } from '@/components/ui/modals/GlobalDialog';
 import { GlobalModal } from '@/components/ui/modals/GlobalModal';
 import { queryClient } from '@/lib/queryClient';
@@ -17,6 +18,7 @@ export default function App() {
 					<AppRoutes/>
 					<GlobalModal/>
 					<GlobalDialog/>
+					<GlobalContextMenu/>
 				</AuthProvider>
 			</BrowserRouter>
 

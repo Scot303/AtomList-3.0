@@ -3,6 +3,7 @@ package atomdance.app.modules.group.dto;
 import atomdance.app.modules.group.model.GroupBillingType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -21,6 +22,9 @@ public record UpdateGroupRequest(
 		GroupBillingType billingType,
 
 		Boolean active,
+
+		@Pattern(regexp = "^[0-9A-Fa-f]{6}$", message = "Color must be six hex digits without a leading #")
+		String color,
 
 		@Size(max = 512, message = "Note is too long")
 		String note
