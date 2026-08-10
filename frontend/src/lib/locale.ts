@@ -15,3 +15,18 @@ export const FIRST_DAY_OF_WEEK = 1;
  * The zone the business runs in, matching the backend's `app.time-zone`.
  */
 export const TIME_ZONE = 'Europe/Warsaw';
+
+/** The one currency the studio bills in. */
+export const CURRENCY = 'PLN';
+
+const currencyFormat = new Intl.NumberFormat(LOCALE, { style: 'currency', currency: CURRENCY });
+
+export function formatCurrency(amount: number | string | null | undefined): string {
+	if (amount === null || amount === undefined || amount === '') {
+		return '';
+	}
+
+	const value = typeof amount === 'number' ? amount : Number(amount);
+
+	return Number.isNaN(value) ? '' : currencyFormat.format(value);
+}
