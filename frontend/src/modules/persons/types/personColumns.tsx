@@ -64,7 +64,7 @@ export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<Pers
 			accessorKey: 'groupKinds',
 			header: 'Rodzaj grup',
 			fieldType: 'tag',
-			size: 150,
+			size: 220,
 			/** What the OPEN and TURNIEJOWI buttons filter on. */
 			meta: { multiTag: true, tagOptions: GROUP_KIND_OPTIONS, globalSearch: true },
 			cell: ({ getValue }) => <TagBadgeList ids={ getValue<string[]>() } options={ GROUP_KIND_OPTIONS }/>,
