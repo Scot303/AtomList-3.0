@@ -26,9 +26,6 @@ public class Family {
 	@Column(length = 9)
 	private String phone;
 
-	@Column(length = 255)
-	private String email;
-
 	@Column(length = 512)
 	private String note;
 
@@ -44,5 +41,15 @@ public class Family {
 		if (createdAt == null) {
 			createdAt = Instant.now();
 		}
+	}
+
+	public void addPerson(Person person) {
+		persons.add(person);
+		person.setFamily(this);
+	}
+
+	public void removePerson(Person person) {
+		persons.remove(person);
+		person.setFamily(null);
 	}
 }

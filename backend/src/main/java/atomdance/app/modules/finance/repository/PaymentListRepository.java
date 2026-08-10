@@ -20,6 +20,17 @@ public interface PaymentListRepository extends JpaRepository<PaymentList, UUID> 
 	Optional<PaymentList> findByIdWithSource(@Param("id") UUID id);
 
 	/**
+	 * The monthly sheets still being worked on, oldest first.
+	 */
+	@Query("""
+			SELECT l FROM PaymentList l
+			WHERE l.status = ListStatus.OPEN
+			  AND l.type IN (ListType.STANDARD, ListType.STANDARD_TOURNAMENT)
+			ORDER BY l.year ASC, l.month ASC, l.type ASC
+			""")
+	List<PaymentList> findOpenStandard();
+
+	/**
 	 * Standard lists a person still owes money on, oldest first.
 	 * Rows already marked as fake are excluded: a month settled out of another month's overpayment is
 	 * dealt with, and offering it again would let the same debt be covered twice.

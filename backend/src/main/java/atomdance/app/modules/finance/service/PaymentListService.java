@@ -232,6 +232,30 @@ public class PaymentListService {
 		return PaymentListView.from(list);
 	}
 
+	/**
+	 * Rebuilds every open monthly list, for when something a list reads but does not own has changed - a family
+	 * gaining or losing a member, a membership cost being edited.
+	 * <p>
+	 * Only standard lists are touched. A custom list's charges are put there by hand rather than derived from
+	 * memberships, so nothing outside it can make them wrong.
+	 *
+	 * @return how many lists were rebuilt
+	 */
+	@Transactional
+	public int recalculateOpenStandardLists() {
+		List<PaymentList> open = paymentListRepository.findOpenStandard();
+
+		for (PaymentList list : open) {
+			syncStandardPayments(list);
+		}
+
+		if (!open.isEmpty()) {
+			log.info("Rebuilt {} open standard list(s): {}", open.size(), open.stream().map(PaymentListService::describe).toList());
+		}
+
+		return open.size();
+	}
+
 	// ---------------------------------------------------------------- closing
 
 	/**
