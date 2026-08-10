@@ -150,7 +150,7 @@ public class PersonService {
 	/**
 	 * The groups each of these people is currently attending, in one query.
 	 */
-	private Map<UUID, Set<UUID>> activeGroupIdsOf(Collection<UUID> personIds) {
+	public Map<UUID, Set<UUID>> activeGroupIdsOf(Collection<UUID> personIds) {
 		if (personIds.isEmpty()) {
 			return Map.of();
 		}
