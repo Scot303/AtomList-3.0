@@ -1,6 +1,5 @@
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
-import type { PagedResponse } from '@/types/api.ts';
 import { createUser, forceLogout, resendVerification, unlockUser, updateUser } from '../api/adminUsersApi';
 import { adminUserKeys } from '../api/userKeys';
 import type { AdminUserView, UpdateUserPayload } from '../types/types.ts';
@@ -12,10 +11,8 @@ export interface UpdateUserVariables {
 
 /** Drops the authoritative version of a row the backend just handed back into the cached list. */
 function replaceUser(queryClient: QueryClient, updated: AdminUserView): void {
-	queryClient.setQueryData<PagedResponse<AdminUserView>>(adminUserKeys.list(), (page) =>
-		page === undefined
-			? page
-			: { ...page, content: page.content.map((user) => (user.id === updated.id ? updated : user)) },
+	queryClient.setQueryData<AdminUserView[]>(adminUserKeys.list(), (users) =>
+		users?.map((user) => (user.id === updated.id ? updated : user)),
 	);
 }
 
@@ -73,15 +70,10 @@ export function useUpdateUser() {
 			// An in-flight refetch landing later would undo the change we are about to show.
 			await queryClient.cancelQueries({ queryKey: adminUserKeys.list() });
 
-			const previous = queryClient.getQueryData<PagedResponse<AdminUserView>>(adminUserKeys.list());
+			const previous = queryClient.getQueryData<AdminUserView[]>(adminUserKeys.list());
 
-			queryClient.setQueryData<PagedResponse<AdminUserView>>(adminUserKeys.list(), (page) =>
-				page === undefined
-					? page
-					: {
-						...page,
-						content: page.content.map((user) => (user.id === id ? applyPayload(user, payload) : user)),
-					},
+			queryClient.setQueryData<AdminUserView[]>(adminUserKeys.list(), (users) =>
+				users?.map((user) => (user.id === id ? applyPayload(user, payload) : user)),
 			);
 
 			return { previous };
