@@ -1,4 +1,6 @@
 export { DataTable } from './DataTable';
+export { useTableFilterTags } from './useTableFilterTags';
+export type { TableFilterTagsBinding } from './useTableFilterTags';
 export { dataTableFeatures } from './tableFeatures';
 export type { DataTableFeatures } from './tableFeatures';
 export type { AppColumnDef, AppColumnMeta, DataTableProps, FieldType } from './types/dataTableTypes';
