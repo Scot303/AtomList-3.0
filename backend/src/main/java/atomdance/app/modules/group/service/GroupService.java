@@ -63,6 +63,7 @@ public class GroupService {
 				.costForAttending(request.costForAttending())
 				.billingType(request.billingType() != null ? request.billingType() : GroupBillingType.MONTHLY)
 				.isActive(request.active() == null || request.active())
+				.color(request.color())
 				.note(request.note())
 				.build());
 
@@ -113,6 +114,10 @@ public class GroupService {
 					group.getName(), group.isActive(), request.active()));
 
 			group.setActive(request.active());
+		}
+
+		if (request.color() != null) {
+			group.setColor(request.color());
 		}
 
 		if (request.note() != null) {
