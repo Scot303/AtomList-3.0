@@ -61,16 +61,16 @@ class AdminUserManagementIntegrationTest extends AuthIntegrationTestBase {
 	}
 
 	@Test
-	void theUserListIsPagedAndCarriesTheDiagnosticsAnAdminNeeds() throws Exception {
+	void theUserListCarriesTheDiagnosticsAnAdminNeeds() throws Exception {
 		givenUser("admin", Role.ADMIN);
 		givenUser("locked-out", Role.EMPLOYEE);
 
 		mockMvc.perform(get("/api/admin/users").header(HttpHeaders.AUTHORIZATION, "Bearer " + signInAndGetToken("admin")))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.content").isArray())
-				.andExpect(jsonPath("$.content[0].locked").exists())
-				.andExpect(jsonPath("$.content[0].emailVerified").exists())
-				.andExpect(jsonPath("$.page.totalElements").value(2));
+				.andExpect(jsonPath("$").isArray())
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].locked").exists())
+				.andExpect(jsonPath("$[0].emailVerified").exists());
 	}
 
 	@Test

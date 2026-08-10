@@ -15,16 +15,12 @@ import atomdance.app.modules.user.model.User;
 import atomdance.app.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Account administration. Everything here is reachable only with {@code MANAGE_USERS}.
@@ -41,6 +37,8 @@ public class AdminUserService {
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
+	private static final Sort BY_USERNAME = Sort.by("username");
+
 
 	private User getUserOrThrow(UUID id) {
 		return userRepository.findByIdWithPermissions(id)
@@ -48,10 +46,10 @@ public class AdminUserService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<AdminUserView> getAll(Pageable pageable) {
+	public List<AdminUserView> getAll() {
 		Instant now = Instant.now();
 
-		return userRepository.findAll(pageable).map(user -> AdminUserView.from(user, now));
+		return userRepository.findAll(BY_USERNAME).stream().map(user -> AdminUserView.from(user, now)).toList();
 	}
 
 	@Transactional(readOnly = true)

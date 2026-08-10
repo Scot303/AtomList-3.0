@@ -7,10 +7,6 @@ import atomdance.app.modules.person.service.FamilyService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +23,8 @@ public class FamilyController {
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_FAMILIES')")
-	public PagedModel<FamilyView> getAll(@RequestParam(required = false) String search, @PageableDefault(size = 250, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(familyService.getAll(search, pageable));
+	public List<FamilyView> getAll() {
+		return familyService.getAll();
 	}
 
 	@GetMapping("/{id}")

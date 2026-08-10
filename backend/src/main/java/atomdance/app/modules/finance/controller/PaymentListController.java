@@ -2,15 +2,10 @@ package atomdance.app.modules.finance.controller;
 
 import atomdance.app.modules.finance.dto.CreateCustomListRequest;
 import atomdance.app.modules.finance.dto.PaymentListView;
-import atomdance.app.modules.finance.model.ListType;
 import atomdance.app.modules.finance.service.PaymentListService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +22,8 @@ public class PaymentListController {
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_LISTS')")
-	public PagedModel<PaymentListView> list(@RequestParam(required = false) ListType type, @RequestParam(required = false) Integer year, @PageableDefault(size = 100, sort = {"createdAt"}, direction = Sort.Direction.DESC) Pageable pageable) {
-		return new PagedModel<>(paymentListService.list(type, year, pageable));
+	public List<PaymentListView> getAll() {
+		return paymentListService.getAll();
 	}
 
 	@GetMapping("/{id}")

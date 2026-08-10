@@ -25,8 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +38,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class PaymentListService {
+
+	private static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "createdAt");
 
 	private final PaymentListRepository paymentListRepository;
 	private final PaymentRepository paymentRepository;
@@ -60,9 +61,12 @@ public class PaymentListService {
 				.orElseThrow(() -> new NotFoundException("entity.list"));
 	}
 
+	/**
+	 * Every list, newest first. Narrowing them by type or year is the client's business.
+	 */
 	@Transactional(readOnly = true)
-	public Page<PaymentListView> list(ListType type, Integer year, Pageable pageable) {
-		return paymentListRepository.search(type, year, pageable).map(PaymentListView::from);
+	public List<PaymentListView> getAll() {
+		return paymentListRepository.findAll(NEWEST_FIRST).stream().map(PaymentListView::from).toList();
 	}
 
 	@Transactional(readOnly = true)

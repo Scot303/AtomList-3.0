@@ -6,14 +6,11 @@ import atomdance.app.modules.person.dto.UpdatePersonRequest;
 import atomdance.app.modules.person.service.PersonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,9 +22,8 @@ public class PersonController {
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
-	public PagedModel<PersonView> getAll(@RequestParam(required = false) String search, @RequestParam(defaultValue = "false") boolean activeOnly,
-	                                     @PageableDefault(size = 500, sort = {"lastName", "name"}, direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(personService.getAll(search, activeOnly, pageable));
+	public List<PersonView> getAll() {
+		return personService.getAll();
 	}
 
 	@GetMapping("/{id}")

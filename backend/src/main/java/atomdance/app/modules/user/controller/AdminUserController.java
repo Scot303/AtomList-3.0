@@ -6,14 +6,11 @@ import atomdance.app.modules.user.dto.UpdateUserRequest;
 import atomdance.app.modules.user.service.AdminUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -28,8 +25,8 @@ public class AdminUserController {
 	private final AdminUserService adminUserService;
 
 	@GetMapping
-	public PagedModel<AdminUserView> getAll(@PageableDefault(size = 50, sort = "username", direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(adminUserService.getAll(pageable));
+	public List<AdminUserView> getAll() {
+		return adminUserService.getAll();
 	}
 
 	@GetMapping("/{id}")

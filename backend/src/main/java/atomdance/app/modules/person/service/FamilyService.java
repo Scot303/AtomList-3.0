@@ -2,7 +2,6 @@ package atomdance.app.modules.person.service;
 
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NotFoundException;
-import atomdance.app.common.utils.SearchPatterns;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
@@ -16,8 +15,6 @@ import atomdance.app.modules.person.repository.PersonRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,9 +39,9 @@ public class FamilyService {
 
 
 	@Transactional(readOnly = true)
-	public Page<FamilyView> getAll(String search, Pageable pageable) {
+	public List<FamilyView> getAll() {
 		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.FAMILY_PREVIEW, AuditOutcome.SUCCESS, "Previewed all families.");
-		return familyRepository.search(SearchPatterns.contains(search), pageable).map(FamilyView::from);
+		return familyRepository.findAllWithPersons().stream().map(FamilyView::from).toList();
 	}
 
 

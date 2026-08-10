@@ -2,10 +2,10 @@ package atomdance.app.modules.person.service;
 
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.AppClock;
-import atomdance.app.common.utils.SearchPatterns;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.person.dto.CreatePersonRequest;
 import atomdance.app.modules.person.dto.PersonView;
 import atomdance.app.modules.person.dto.UpdatePersonRequest;
@@ -16,12 +16,11 @@ import atomdance.app.modules.person.repository.PersonRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -30,6 +29,7 @@ public class PersonService {
 
 	private final PersonRepository personRepository;
 	private final FamilyRepository familyRepository;
+	private final MembershipRepository membershipRepository;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 	private final AppClock clock;
@@ -40,15 +40,22 @@ public class PersonService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<PersonView> getAll(String search, boolean activeOnly, Pageable pageable) {
+	public List<PersonView> getAll() {
 		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all persons.");
-		return personRepository.search(SearchPatterns.contains(search), activeOnly, pageable).map(PersonView::from);
+
+		List<Person> persons = personRepository.findAllWithFamily();
+
+		Map<UUID, Set<UUID>> groupIds = activeGroupIdsOf(persons.stream().map(Person::getId).toList());
+
+		return persons.stream()
+				.map(person -> PersonView.from(person, groupIds.getOrDefault(person.getId(), Set.of())))
+				.toList();
 	}
 
 	@Transactional(readOnly = true)
 	public PersonView get(UUID id) {
 		auditLogger.record(securityService.getCurrentUserId(), id, AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all data of a person.");
-		return PersonView.from(getOrThrow(id));
+		return toView(getOrThrow(id));
 	}
 
 	@Transactional
@@ -73,6 +80,7 @@ public class PersonService {
 				String.format("Person %s has been created.", person.getFullName())
 		);
 
+		// Nobody has had a chance to join a group yet, so there is nothing to look up.
 		return PersonView.from(person);
 	}
 
@@ -123,7 +131,7 @@ public class PersonService {
 			person.setNote(request.note());
 		}
 
-		return PersonView.from(person);
+		return toView(person);
 	}
 
 	@Transactional
@@ -136,6 +144,28 @@ public class PersonService {
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Person %s has been deleted.", person.getFullName()));
 	}
 
+
+	private PersonView toView(Person person) {
+		return PersonView.from(person, activeGroupIdsOf(List.of(person.getId())).getOrDefault(person.getId(), Set.of()));
+	}
+
+	/**
+	 * The groups each of these people is currently attending, in one query.
+	 * <p>
+	 * A {@link LinkedHashSet} rather than any set: the query orders by group name, and that order is
+	 * what the client draws the badges in.
+	 */
+	private Map<UUID, Set<UUID>> activeGroupIdsOf(Collection<UUID> personIds) {
+		if (personIds.isEmpty()) {
+			return Map.of();
+		}
+
+		return membershipRepository.findActiveGroupIdsForPersons(personIds).stream()
+				.collect(Collectors.groupingBy(
+						MembershipRepository.PersonGroupId::getPersonId,
+						Collectors.mapping(MembershipRepository.PersonGroupId::getGroupId, Collectors.toCollection(LinkedHashSet::new))
+				));
+	}
 
 	private void applyFamilyChange(Person person, UpdatePersonRequest request) {
 		if (Boolean.TRUE.equals(request.clearFamily())) {
