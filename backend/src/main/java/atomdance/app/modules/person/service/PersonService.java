@@ -5,6 +5,7 @@ import atomdance.app.common.utils.AppClock;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.finance.service.PaymentListService;
 import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.person.dto.CreatePersonRequest;
 import atomdance.app.modules.person.dto.PersonView;
@@ -30,6 +31,7 @@ public class PersonService {
 	private final PersonRepository personRepository;
 	private final FamilyRepository familyRepository;
 	private final MembershipRepository membershipRepository;
+	private final PaymentListService paymentListService;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 	private final AppClock clock;
@@ -41,9 +43,9 @@ public class PersonService {
 
 	@Transactional(readOnly = true)
 	public List<PersonView> getAll() {
-		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all persons.");
-
 		List<Person> persons = personRepository.findAllWithFamily();
+
+		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all persons.");
 
 		Map<UUID, Set<UUID>> groupIds = activeGroupIdsOf(persons.stream().map(Person::getId).toList());
 
@@ -67,10 +69,10 @@ public class PersonService {
 				.email(Person.normalizeEmail(request.email()))
 				.dateOfBirth(request.dateOfBirth())
 				.joinedStudioAt(request.joinedStudioAt() != null ? request.joinedStudioAt() : clock.today())
-				.isActive(request.active() == null || request.active())
 				.isContractSigned(request.contractSigned() != null && request.contractSigned())
-				.family(request.familyId() == null ? null : familyOrThrow(request.familyId()))
+				.family(request.familyId() == null ? null : getFamilyOrThrow(request.familyId()))
 				.note(request.note())
+				.isActive(true)
 				.build();
 
 		person = personRepository.saveAndFlush(person);
@@ -80,13 +82,13 @@ public class PersonService {
 				String.format("Person %s has been created.", person.getFullName())
 		);
 
-		// Nobody has had a chance to join a group yet, so there is nothing to look up.
 		return PersonView.from(person);
 	}
 
 	@Transactional
 	public PersonView update(UUID id, UpdatePersonRequest request) {
 		Person person = getOrThrow(id);
+		boolean repricesOthers = false;
 
 		if (request.name() != null) {
 			person.setName(request.name().trim());
@@ -108,8 +110,9 @@ public class PersonService {
 			person.setDateOfBirth(request.dateOfBirth());
 		}
 
-		if (request.joinedStudioAt() != null) {
+		if (request.joinedStudioAt() != null && !request.joinedStudioAt().equals(person.getJoinedStudioAt())) {
 			person.setJoinedStudioAt(request.joinedStudioAt());
+			repricesOthers = true;
 		}
 
 		if (request.contractSigned() != null) {
@@ -121,9 +124,10 @@ public class PersonService {
 			auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Status of %s has been changed.", person.getFullName()));
 
 			person.setActive(request.active());
+			repricesOthers = true;
 		}
 
-		applyFamilyChange(person, request);
+		repricesOthers |= applyFamilyChange(person, request);
 
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Person %s has been updated.", person.getFullName()));
 
@@ -131,17 +135,11 @@ public class PersonService {
 			person.setNote(request.note());
 		}
 
+		if (repricesOthers) {
+			paymentListService.recalculateOpenStandardLists();
+		}
+
 		return toView(person);
-	}
-
-	@Transactional
-	public void delete(UUID id) {
-		Person person = getOrThrow(id);
-
-		personRepository.delete(person);
-
-		log.info("Deleted person {} ({})", person.getId(), person.getFullName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Person %s has been deleted.", person.getFullName()));
 	}
 
 
@@ -151,9 +149,6 @@ public class PersonService {
 
 	/**
 	 * The groups each of these people is currently attending, in one query.
-	 * <p>
-	 * A {@link LinkedHashSet} rather than any set: the query orders by group name, and that order is
-	 * what the client draws the badges in.
 	 */
 	private Map<UUID, Set<UUID>> activeGroupIdsOf(Collection<UUID> personIds) {
 		if (personIds.isEmpty()) {
@@ -167,19 +162,34 @@ public class PersonService {
 				));
 	}
 
-	private void applyFamilyChange(Person person, UpdatePersonRequest request) {
+	/**
+	 * @return whether the person actually changed household, rather than merely being sent the one they were already in.
+	 */
+	private boolean applyFamilyChange(Person person, UpdatePersonRequest request) {
 		if (Boolean.TRUE.equals(request.clearFamily())) {
+			if (person.getFamily() == null) {
+				return false;
+			}
+
 			person.setFamily(null);
 
-			return;
+			return true;
 		}
 
-		if (request.familyId() != null) {
-			person.setFamily(familyOrThrow(request.familyId()));
+		if (request.familyId() == null || isAlreadyIn(person, request.familyId())) {
+			return false;
 		}
+
+		person.setFamily(getFamilyOrThrow(request.familyId()));
+
+		return true;
 	}
 
-	private Family familyOrThrow(UUID familyId) {
+	private static boolean isAlreadyIn(Person person, UUID familyId) {
+		return person.getFamily() != null && familyId.equals(person.getFamily().getId());
+	}
+
+	private Family getFamilyOrThrow(UUID familyId) {
 		return familyRepository.findById(familyId)
 				.orElseThrow(() -> new NotFoundException("entity.family"));
 	}

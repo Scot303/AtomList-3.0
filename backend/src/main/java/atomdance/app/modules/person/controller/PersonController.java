@@ -45,10 +45,4 @@ public class PersonController {
 		return personService.update(id, request);
 	}
 
-	@DeleteMapping("/{id}")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@PreAuthorize("hasAuthority('MODIFY_PERSONS')")
-	public void delete(@PathVariable UUID id) {
-		personService.delete(id);
-	}
 }

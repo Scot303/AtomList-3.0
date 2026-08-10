@@ -15,7 +15,7 @@ public interface PersonRepository extends JpaRepository<Person, UUID> {
 	@Query("SELECT p FROM Person p LEFT JOIN FETCH p.family WHERE p.id = :id")
 	Optional<Person> findByIdWithFamily(@Param("id") UUID id);
 
-	@Query("SELECT p FROM Person p LEFT JOIN FETCH p.family ORDER BY p.lastName ASC, p.name ASC")
+	@Query("SELECT p FROM Person p LEFT JOIN FETCH p.family ORDER BY p.isActive DESC, p.lastName ASC, p.name ASC")
 	List<Person> findAllWithFamily();
 
 	@Query("SELECT p FROM Person p LEFT JOIN FETCH p.family WHERE p.id IN :ids")
