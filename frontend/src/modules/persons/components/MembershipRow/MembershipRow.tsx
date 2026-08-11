@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle, CalendarOff } from 'lucide-react';
-import { DateCellPicker } from '@/components/ui/fields/DateCellPicker';
-import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils';
+import { DateCellPicker } from '@/components/ui/fields/DateCellPicker.tsx';
+import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils.ts';
 import { TagBadge } from '@/components/ui/tags';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
-import { cn } from '@/lib/cn';
-import { useMembershipActions } from '../hooks/useMembershipActions';
-import { resolveGroupColor } from '../types/personRows.ts';
-import type { GroupView, MembershipView } from '../types/types.ts';
-import { formatShortDate } from '../utils/personFormat';
-import { MembershipCostControl } from './MembershipCostControl';
+import { cn } from '@/lib/cn.ts';
+import { useMembershipActions } from './useMembershipActions.ts';
+import { resolveGroupColor } from '../../types/personRows.ts';
+import type { GroupView, MembershipView } from '../../types/types.ts';
+import { formatShortDate } from '../../utils/personFormat.ts';
+import { MembershipCostControl } from '../MembershipCostControl.tsx';
 
 
 interface MembershipRowProps {

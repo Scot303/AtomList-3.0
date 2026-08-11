@@ -3,7 +3,7 @@ import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { AddMembershipForm } from '../components/AddMembershipForm';
-import { MembershipRow } from '../components/MembershipRow';
+import { MembershipRow } from '../components/MembershipRow/MembershipRow.tsx';
 import { useGroups } from '../hooks/useGroups';
 import { useMemberships } from '../hooks/useMemberships';
 import { indexGroups } from '../types/personRows.ts';
