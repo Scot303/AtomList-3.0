@@ -1,10 +1,16 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { PERSON_ENDPOINTS } from '@/api/endpoints';
-import type { PersonView, UpdatePersonPayload } from '../types/types.ts';
+import type { CreatePersonPayload, PersonView, UpdatePersonPayload } from '../types/types.ts';
 
 
 export async function fetchPersons(): Promise<PersonView[]> {
 	const { data } = await axiosInstance.get<PersonView[]>(PERSON_ENDPOINTS.base);
+
+	return data;
+}
+
+export async function createPerson(payload: CreatePersonPayload): Promise<PersonView> {
+	const { data } = await axiosInstance.post<PersonView>(PERSON_ENDPOINTS.base, payload);
 
 	return data;
 }

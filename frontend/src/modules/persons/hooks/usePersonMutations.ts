@@ -1,13 +1,59 @@
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
-import { updatePerson } from '../api/personsApi';
+import { createPerson, updatePerson } from '../api/personsApi';
 import { personKeys } from '../api/personKeys';
-import type { PersonView, UpdatePersonPayload } from '../types/types.ts';
+import type { CreatePersonPayload, PersonView, UpdatePersonPayload } from '../types/types.ts';
+
+
+/**
+ * Adds one person. The list is refetched rather than appended to.
+ */
+export function useCreatePerson() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (payload: CreatePersonPayload) => createPerson(payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: personKeys.list() }),
+	});
+}
 
 
 export interface UpdatePersonVariables {
 	id: string;
 	payload: UpdatePersonPayload;
 }
+
+/**
+ * Partial update of one person. Applies the change immediately and puts the row back as it was if the backend refuses it.
+ */
+export function useUpdatePerson() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, payload }: UpdatePersonVariables) => updatePerson(id, payload),
+
+		onMutate: async ({ id, payload }) => {
+			// An in-flight refetch landing later would undo the change we are about to show.
+			await queryClient.cancelQueries({ queryKey: personKeys.list() });
+
+			const previous = queryClient.getQueryData<PersonView[]>(personKeys.list());
+
+			queryClient.setQueryData<PersonView[]>(personKeys.list(), (persons) =>
+				persons?.map((person) => (person.id === id ? applyPayload(person, payload) : person)),
+			);
+
+			return { previous };
+		},
+
+		onSuccess: (updated) => replacePerson(queryClient, updated),
+
+		onError: (_error, _variables, context) => {
+			if (context?.previous !== undefined) {
+				queryClient.setQueryData(personKeys.list(), context.previous);
+			}
+		},
+	});
+}
+
 
 /** Drops the authoritative version of a row the backend just handed back into the cached list. */
 function replacePerson(queryClient: QueryClient, updated: PersonView): void {
@@ -67,36 +113,4 @@ function applyPayload(person: PersonView, payload: UpdatePersonPayload): PersonV
 	// so the family is left as it was until the response lands and corrects it.
 
 	return next;
-}
-
-/**
- * Partial update of one person. Applies the change immediately and puts the row back as it was if the backend refuses it.
- */
-export function useUpdatePerson() {
-	const queryClient = useQueryClient();
-
-	return useMutation({
-		mutationFn: ({ id, payload }: UpdatePersonVariables) => updatePerson(id, payload),
-
-		onMutate: async ({ id, payload }) => {
-			// An in-flight refetch landing later would undo the change we are about to show.
-			await queryClient.cancelQueries({ queryKey: personKeys.list() });
-
-			const previous = queryClient.getQueryData<PersonView[]>(personKeys.list());
-
-			queryClient.setQueryData<PersonView[]>(personKeys.list(), (persons) =>
-				persons?.map((person) => (person.id === id ? applyPayload(person, payload) : person)),
-			);
-
-			return { previous };
-		},
-
-		onSuccess: (updated) => replacePerson(queryClient, updated),
-
-		onError: (_error, _variables, context) => {
-			if (context?.previous !== undefined) {
-				queryClient.setQueryData(personKeys.list(), context.previous);
-			}
-		},
-	});
 }

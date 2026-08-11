@@ -1,9 +1,11 @@
 import { type MouseEvent, useCallback, useMemo } from 'react';
-import { Info, Users } from 'lucide-react';
+import { Info, Plus, Users } from 'lucide-react';
 import { DataTable, useTableFilterTags } from '@/components/dataTable';
+import { Button } from '@/components/ui/buttons/Button';
 import { notifyApiError } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useContextMenu } from '@/stores/menuStore.ts';
+import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { QuickGroupFilters } from './components/QuickGroupFilters';
 import { useFamilies } from './hooks/useFamilies';
@@ -83,7 +85,7 @@ export function PersonsPage() {
 					id: 'details',
 					label: 'Szczegóły',
 					icon: Info,
-					onSelect: () => void openModal('persons.details', { personId: row.id }),
+					onSelect: () => void openModal('persons.form', { personId: row.id }),
 				},
 				{
 					id: 'groups',
@@ -99,6 +101,27 @@ export function PersonsPage() {
 		[openContextMenu, openModal, prefetchMemberships],
 	);
 
+	const toolbar = (
+		<div className="flex items-center">
+			<div className="ml-5 mr-10 flex items-center gap-2">
+				<QuickGroupFilters tags={ filterTags }/>
+			</div>
+
+			{ canModify && (
+				<Button
+					size="md"
+					className="shrink-0 py-1.5"
+					leftIcon={ <Plus size={ 14 }/> }
+					onMouseEnter={ () => preloadModal('persons.form') }
+					onFocus={ () => preloadModal('persons.form') }
+					onClick={ () => void openModal('persons.form') }
+				>
+					Dodaj
+				</Button>
+			) }
+		</div>
+	);
+
 	return (
 		<div className={ `styled-card overflow-hidden rounded-2xl ${ PAGE_HEIGHT }` }>
 			<DataTable
@@ -111,7 +134,7 @@ export function PersonsPage() {
 				emptyMessage="Brak osób do wyświetlenia"
 				onCellEdit={ canModify ? handleCellEdit : undefined }
 				onRowContextMenu={ handleRowContextMenu }
-				toolbar={ <QuickGroupFilters tags={ filterTags }/> }
+				toolbar={ toolbar }
 			/>
 		</div>
 	);

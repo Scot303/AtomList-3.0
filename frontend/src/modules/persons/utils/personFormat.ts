@@ -24,6 +24,14 @@ export function calculateAge(dateOfBirth: string | null | undefined): number | n
 	const today = todayInTimeZone();
 	let age = today.getFullYear() - born.getFullYear();
 
+	// Completed years, so a birthday still ahead this year has not been lived through yet.
+	const beforeBirthday = today.getMonth() < born.getMonth()
+		|| (today.getMonth() === born.getMonth() && today.getDate() < born.getDate());
+
+	if (beforeBirthday) {
+		age -= 1;
+	}
+
 	return age < 0 ? null : age;
 }
 
