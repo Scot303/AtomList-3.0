@@ -117,7 +117,7 @@ input[type='number'] {
 }
 
 .contexify {
-    z-index: 1000 !important;
+    z-index: 2000 !important;
     --contexify-menu-bgColor: var(--color-os-surface) !important;
     --contexify-separator-color: var(--color-os-border) !important;
     --contexify-item-color: var(--color-os-text) !important;
