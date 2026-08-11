@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Alert } from '@/components/feedback/Alert';
-import { Button } from '@/components/ui/buttons/Button';
+import { Alert } from '@/components/feedback/Alert.tsx';
+import { Button } from '@/components/ui/buttons/Button.tsx';
 import { ExtendedSelect } from '@/components/ui/extendedSelect';
 import { DatePicker, Input } from '@/components/ui/fields';
-import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils';
-import { formatCurrency } from '@/lib/locale';
-import { notifySuccess } from '@/lib/toast';
-import { useCreateMembership } from '../hooks/useMemberships';
-import type { GroupView, MembershipView } from '../types/types.ts';
+import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils.ts';
+import { formatCurrency } from '@/lib/locale.ts';
+import { notifySuccess } from '@/lib/toast.ts';
+import { useCreateMembership } from '../../hooks/useMemberships.ts';
+import type { GroupView, MembershipView } from '../../types/types.ts';
+
 
 interface AddMembershipFormProps {
 	personId: string;

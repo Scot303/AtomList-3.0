@@ -1,11 +1,11 @@
 import { type ReactNode, useState } from 'react';
 import { Lock, RotateCcw } from 'lucide-react';
-import { Tooltip } from '@/components/ui/tooltip/Tooltip';
-import { cn } from '@/lib/cn';
-import { formatCurrency } from '@/lib/locale';
-import { notifyApiError } from '@/lib/toast';
-import { useUpdateMembership } from '../hooks/useMemberships';
-import type { MembershipView } from '../types/types.ts';
+import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
+import { cn } from '@/lib/cn.ts';
+import { formatCurrency } from '@/lib/locale.ts';
+import { notifyApiError } from '@/lib/toast.ts';
+import { useUpdateMembership } from '../../hooks/useMemberships.ts';
+import type { MembershipView } from '../../types/types.ts';
 
 
 interface MembershipCostControlProps {

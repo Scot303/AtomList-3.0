@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Mirrors `UpdatePersonRequest`'s rules.
+ * Mirrors the rules `CreatePersonRequest` and `UpdatePersonRequest` share.
  */
 
 const nameValue = z
@@ -37,21 +37,26 @@ const emailValue = z
 
 const noteValue = z.string().trim().max(512, 'Notatka może mieć najwyżej 512 znaków.');
 
-export interface PersonDetailsFormValues {
+/**
+ * What the person form holds, whether it is filling in a new person or editing one.
+ */
+export interface PersonFormValues {
 	name: string;
 	lastName: string;
 	/** `YYYY-MM-DD`, or `''`. */
 	dateOfBirth: string;
 	phone: string;
 	email: string;
+	/** A family's id, or `''` for no household. */
 	familyId: string;
 	joinedStudioAt: string;
+	/** Editing only - a new person is always created active. */
 	active: boolean;
 	contractSigned: boolean;
 	note: string;
 }
 
-export const personDetailsSchema: z.ZodType<PersonDetailsFormValues, PersonDetailsFormValues> = z.object({
+export const personFormSchema: z.ZodType<PersonFormValues, PersonFormValues> = z.object({
 	name: nameValue,
 	lastName: lastNameValue,
 	dateOfBirth: z.string(),

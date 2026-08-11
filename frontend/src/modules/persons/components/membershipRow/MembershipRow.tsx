@@ -9,7 +9,7 @@ import { useMembershipActions } from './useMembershipActions.ts';
 import { resolveGroupColor } from '../../types/personRows.ts';
 import type { GroupView, MembershipView } from '../../types/types.ts';
 import { formatShortDate } from '../../utils/personFormat.ts';
-import { MembershipCostControl } from '../MembershipCostControl.tsx';
+import { MembershipCostControl } from './MembershipCostControl.tsx';
 
 
 interface MembershipRowProps {

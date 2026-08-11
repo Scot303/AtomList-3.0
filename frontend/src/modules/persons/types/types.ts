@@ -18,6 +18,7 @@ export interface GroupView {
 	note: string | null;
 }
 
+
 /** Mirror of the backend's `PersonView`. */
 export interface PersonView {
 	id: string;
@@ -39,6 +40,21 @@ export interface PersonView {
 	note: string | null;
 }
 
+/**
+ * Mirror of the backend's `CreatePersonRequest`.
+ */
+export interface CreatePersonPayload {
+	name: string;
+	lastName: string;
+	phone?: string;
+	email?: string;
+	dateOfBirth?: string;
+	joinedStudioAt?: string;
+	contractSigned?: boolean;
+	familyId?: string;
+	note?: string;
+}
+
 /** Every field optional: the backend leaves a missing one alone. */
 export interface UpdatePersonPayload {
 	name?: string;
@@ -54,6 +70,7 @@ export interface UpdatePersonPayload {
 	clearFamily?: boolean;
 	note?: string;
 }
+
 
 /** Mirror of the backend's `MembershipView`. */
 export interface MembershipView {
@@ -90,6 +107,7 @@ export interface UpdateMembershipPayload {
 	clearCustomMonthlyCost?: boolean;
 	note?: string;
 }
+
 
 /**
  * Mirror of the backend's `FamilyMemberView` - one household member, with the discount they currently attract.
