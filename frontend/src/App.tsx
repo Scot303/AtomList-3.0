@@ -26,7 +26,8 @@ export default function App() {
 				position="bottom-right"
 				theme="dark"
 				autoClose={ 10000 }
-				newestOnTop
+				stacked
+				draggable
 				closeOnClick
 				pauseOnFocusLoss={ false }
 			/>
