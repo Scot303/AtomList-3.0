@@ -1,10 +1,21 @@
 import type { ComponentType } from 'react';
 
+
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'custom';
+
+
+/**
+ * A fixed heading, or one built from the props the modal was opened with - for a modal titled after the record it is showing.
+ *
+ * Only for what the caller already knows. A title that arrives with a query belongs in `setModalTitle`,
+ * since there is nothing to build it from at the moment of opening.
+ */
+export type ModalTitle<P> = string | ((props: NoInfer<P>) => string);
+
 
 export interface ModalDefinition<P> {
 	load: () => Promise<{ default: ComponentType<P> }>;
-	title: string;
+	title: ModalTitle<P>;
 	size?: ModalSize;
 	/** False stops escape and the backdrop from closing it, and hides the close button. */
 	dismissible?: boolean;
@@ -49,15 +60,15 @@ export const MODAL_REGISTRY = {
 		size: 'md',
 	}),
 
-	'persons.details': defineModal({
-		load: () => import('@/modules/persons/modals/PersonDetailsModal.tsx'),
-		title: 'Szczegóły osoby',
+	'persons.form': defineModal({
+		load: () => import('@/modules/persons/modals/PersonFormModal.tsx'),
+		title: ({ personId }) => (personId === undefined ? 'Nowa osoba' : 'Szczegóły osoby'),
 		size: 'xl',
 	}),
 
 	'persons.groups': defineModal({
 		load: () => import('@/modules/persons/modals/PersonGroupsModal.tsx'),
-		title: 'Grupy osoby',
+		title: ({ personName }) => `Grupy osoby - ${ personName }`,
 		size: 'xl',
 	}),
 };
@@ -67,6 +78,14 @@ export type ModalKey = keyof typeof MODAL_REGISTRY;
 
 /** The props of the component behind a key, which is what `openModal` demands at that key. */
 export type ModalProps<K extends ModalKey> = (typeof MODAL_REGISTRY)[K] extends ModalDefinition<infer P> ? P : never;
+
+
+export function resolveModalTitle(key: ModalKey, props: Record<string, unknown>): string {
+	const { title } = MODAL_REGISTRY[key];
+
+	return typeof title === 'function' ? (title as (props: Record<string, unknown>) => string)(props) : title;
+}
+
 
 /** Loaded on the way to being opened, never during.  */
 type LoadedModal = ComponentType<Record<string, unknown>>;
@@ -84,6 +103,7 @@ export async function loadModal(key: ModalKey): Promise<void> {
 
 	loadedModals[key] = module.default as LoadedModal;
 }
+
 
 /**
  * Fetches a modal's chunk ahead of time, so opening it is instant rather than a network round trip.

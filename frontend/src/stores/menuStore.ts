@@ -46,11 +46,13 @@ export const useContextMenuStore = create<ContextMenuState>((set) => ({
 }));
 
 /**
- * Closes the menu and forgets what was in it.
+ * Closes the menu.
+ *
+ * The items outlive the call by one closing animation: dropping them here would empty the menu while it is
+ * still on screen shrinking away. `GlobalContextMenu` clears them once that animation is over.
  */
 export function dismissContextMenu(): void {
 	contextMenu.hideAll();
-	useContextMenuStore.getState().clear();
 }
 
 /**
