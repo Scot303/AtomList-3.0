@@ -16,7 +16,9 @@ const lastNameValue = z
 	.min(1, 'Podaj nazwisko.')
 	.max(64, 'Nazwisko może mieć najwyżej 64 znaki.');
 
-/** Nine digits after the separators the backend strips. */
+
+const phoneSeparators = /[\s()\-.]/g;
+
 const phoneValue = z
 	.string()
 	.trim()
@@ -25,9 +27,10 @@ const phoneValue = z
 		'Numer może zawierać tylko cyfry, spacje i znaki - ( ) .',
 	)
 	.refine(
-		(value) => value === '' || value.replace(/[\s()\-.]/g, '').length <= 9,
+		(value) => value === '' || value.replace(phoneSeparators, '').length <= 9,
 		'Numer telefonu może mieć najwyżej 9 cyfr.',
-	);
+	)
+	.transform((value) => value.replace(phoneSeparators, ''));
 
 const emailValue = z
 	.string()
