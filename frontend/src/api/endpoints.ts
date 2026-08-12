@@ -53,6 +53,7 @@ export const PERSON_ENDPOINTS = {
 	base: '/api/persons',
 	byId: (id: string) => `/api/persons/${ id }`,
 	memberships: (personId: string) => `/api/persons/${ personId }/memberships`,
+	discounts: (personId: string) => `/api/persons/${ personId }/discounts`,
 } as const;
 
 
@@ -66,12 +67,10 @@ export const GROUP_ENDPOINTS = {
 
 
 /**
- * Memberships are managed under the person who holds them, so these need `MODIFY_PERSONS` rather than
- * anything group-related. Creating one lives on {@link PERSON_ENDPOINTS.memberships}.
+ * `MODIFY_PERSONS`.
  */
 export const MEMBERSHIP_ENDPOINTS = {
 	byId: (id: string) => `/api/memberships/${ id }`,
-	/** Ends a membership by dating it, leaving the row for past lists to explain themselves with. */
 	leave: (id: string) => `/api/memberships/${ id }/leave`,
 } as const;
 

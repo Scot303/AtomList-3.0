@@ -30,3 +30,19 @@ export function formatCurrency(amount: number | string | null | undefined): stri
 
 	return Number.isNaN(value) ? '' : currencyFormat.format(value);
 }
+
+/**
+ * A whole-number percentage as the backend sends them - 10 means 10%.
+ * Trailing zeros are dropped, so a `BigDecimal` serialised as `10.00` reads as `10%` rather than `10,00%`.
+ */
+const percentFormat = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 2 });
+
+export function formatPercent(percent: number | string | null | undefined): string {
+	if (percent === null || percent === undefined || percent === '') {
+		return '';
+	}
+
+	const value = typeof percent === 'number' ? percent : Number(percent);
+
+	return Number.isNaN(value) ? '' : `${ percentFormat.format(value) }%`;
+}
