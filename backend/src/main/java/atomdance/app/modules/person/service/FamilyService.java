@@ -2,16 +2,10 @@ package atomdance.app.modules.person.service;
 
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NotFoundException;
-import atomdance.app.common.utils.AppClock;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.discount.service.DiscountRules;
-import atomdance.app.modules.discount.service.DiscountService;
-import atomdance.app.modules.discount.service.FamilyPositions;
 import atomdance.app.modules.finance.service.PaymentListService;
-import atomdance.app.modules.group.model.Membership;
-import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.person.dto.CreateUpdateFamilyRequest;
 import atomdance.app.modules.person.dto.FamilyMemberView;
 import atomdance.app.modules.person.dto.FamilyView;
@@ -25,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,13 +29,10 @@ public class FamilyService {
 
 	private final FamilyRepository familyRepository;
 	private final PersonRepository personRepository;
-	private final MembershipRepository membershipRepository;
 	private final PaymentListService paymentListService;
 	private final PersonService personService;
-	private final DiscountService discountService;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
-	private final AppClock clock;
 
 
 	public Family getOrThrow(UUID id) {
@@ -156,49 +146,15 @@ public class FamilyService {
 	}
 
 	private List<FamilyView> toViews(List<Family> families) {
-		Map<UUID, FamilyMemberView> members = memberViewsOf(families.stream().flatMap(family -> family.getPersons().stream()).toList());
+		List<UUID> personIds = families.stream()
+				.flatMap(family -> family.getPersons().stream())
+				.map(Person::getId)
+				.toList();
+
+		Map<UUID, Set<UUID>> groupIds = personService.activeGroupIdsOf(personIds);
 
 		return families.stream()
-				.map(family -> FamilyView.of(family, person -> members.get(person.getId())))
+				.map(family -> FamilyView.of(family, person -> FamilyMemberView.of(person, groupIds.getOrDefault(person.getId(), Set.of()))))
 				.toList();
-	}
-
-	/**
-	 * Builds each member's row, keyed by person.
-	 */
-	private Map<UUID, FamilyMemberView> memberViewsOf(List<Person> persons) {
-		if (persons.isEmpty()) {
-			return Map.of();
-		}
-
-		List<UUID> personIds = persons.stream().map(Person::getId).toList();
-		YearMonth month = clock.currentYearMonth();
-
-		Map<UUID, List<Membership>> monthByPerson = FamilyPositions.byPerson(
-				membershipRepository.findActiveDuringForPersons(personIds, month.atDay(1), month.atEndOfMonth())
-		);
-
-		List<Person> billed = persons.stream()
-				.filter(Person::isActive)
-				.filter(person -> monthByPerson.containsKey(person.getId()))
-				.toList();
-
-		Map<UUID, Integer> positions = FamilyPositions.resolve(billed, monthByPerson);
-		Map<UUID, Set<UUID>> groupIds = personService.activeGroupIdsOf(personIds);
-		DiscountRules rules = discountService.currentRules();
-
-		Map<UUID, FamilyMemberView> views = new HashMap<>();
-
-		for (Person person : persons) {
-			views.put(person.getId(), FamilyMemberView.of(
-					person,
-					groupIds.getOrDefault(person.getId(), Set.of()),
-					positions.get(person.getId()),
-					monthByPerson.getOrDefault(person.getId(), List.of()).size(),
-					rules
-			));
-		}
-
-		return views;
 	}
 }

@@ -75,7 +75,7 @@ public final class FamilyPositions {
 	/**
 	 * The recurring monthly charge, which is what the family order is decided on.
 	 */
-	private static BigDecimal monthlyBase(List<Membership> memberships) {
+	public static BigDecimal monthlyBase(List<Membership> memberships) {
 		if (memberships == null) {
 			return Money.ZERO;
 		}
