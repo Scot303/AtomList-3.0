@@ -17,6 +17,7 @@ import { useUpdatePerson } from './hooks/usePersonMutations';
 import { buildPersonColumns } from './types/personColumns.tsx';
 import { ACTIVE_ID, buildGroupOptions, indexGroups, type PersonRow, toPersonRow, } from './types/personRows.ts';
 import type { UpdatePersonPayload } from './types/types.ts';
+import type { ColumnVisibilityState } from "@tanstack/react-table";
 
 
 /**
@@ -56,6 +57,10 @@ export function PersonsPage() {
 	);
 
 	const columns = useMemo(() => buildPersonColumns(buildGroupOptions(groupList)), [groupList]);
+
+	const HIDDEN_COLS: ColumnVisibilityState = {
+		groupKinds: false
+	};
 
 	const isLoading = persons.isPending || groups.isLoading;
 
@@ -148,6 +153,7 @@ export function PersonsPage() {
 				onCellEdit={ canModify ? handleCellEdit : undefined }
 				onRowContextMenu={ handleRowContextMenu }
 				toolbar={ toolbar }
+				initialColumnVisibility={ HIDDEN_COLS }
 			/>
 		</div>
 	);
