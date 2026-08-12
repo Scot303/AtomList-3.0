@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import type { Placement } from '@floating-ui/react';
 import { autoUpdate, flip, FloatingFocusManager, FloatingPortal, shift, useDismiss, useFloating, useInteractions, useListNavigation, useRole, useTransitionStyles, } from '@floating-ui/react';
 import { useCloseOnNavigate } from '@/hooks/useCloseOnNavigate';
+import { useScrollLock } from '@/hooks/useScrollLock';
 import { cn } from '@/lib/cn';
 import { type ContextMenuItem, dismissContextMenu, useContextMenuStore } from '@/stores/menuStore.ts';
 
@@ -79,6 +80,9 @@ export const GlobalContextMenu = () => {
 	});
 
 	const { setFloating, setPositionReference, floating: floatingRef } = refs;
+
+	/* The menu is pinned to where the cursor was. */
+	useScrollLock(open, floatingRef);
 
 	/**
 	 * The menu hangs off the cursor, so the reference is a zero-sized point rather than an element.

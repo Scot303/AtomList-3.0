@@ -19,6 +19,8 @@ interface DataTableBodyProps<T extends object> {
 	onCellEdit?: (rowId: string, columnId: string, value: unknown) => void;
 	onRowClick?: (row: T) => void;
 	onRowContextMenu?: (event: MouseEvent, row: T) => void;
+	contextRowId: string | null;
+	onContextRowChange: (rowId: string) => void;
 }
 
 
@@ -27,6 +29,7 @@ export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) =>
 		rows, virtualRows, paddingTop, paddingBottom, measureRow,
 		visibleColumnCount, isLoading, emptyMessage,
 		onCellEdit, onRowClick, onRowContextMenu,
+		contextRowId, onContextRowChange,
 	} = props;
 
 	if (rows.length === 0) {
@@ -68,6 +71,8 @@ export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) =>
 							onCellEdit={ onCellEdit }
 							onRowClick={ onRowClick }
 							onRowContextMenu={ onRowContextMenu }
+							isContextTarget={ row.id === contextRowId }
+							onContextRowChange={ onContextRowChange }
 						/>
 					);
 			}) }
