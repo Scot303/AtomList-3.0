@@ -5,10 +5,7 @@ import atomdance.app.modules.discount.model.FamilySizeDiscount;
 import atomdance.app.modules.discount.model.GroupCountDiscount;
 
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * An immutable snapshot of the discount configuration, read once per calculation.
@@ -73,6 +70,28 @@ public final class DiscountRules {
 	}
 
 	/**
+	 * The configured family-position rungs, lowest position first.
+	 */
+	public NavigableMap<Integer, BigDecimal> familyLadder() {
+		return Collections.unmodifiableNavigableMap(byFamilyPosition);
+	}
+
+	/**
+	 * The configured group-count rungs, lowest count first.
+	 */
+	public NavigableMap<Integer, BigDecimal> groupCountLadder() {
+		return Collections.unmodifiableNavigableMap(byGroupCount);
+	}
+
+	public Integer familyThreshold(int position) {
+		return floorThreshold(byFamilyPosition, position);
+	}
+
+	public Integer groupCountThreshold(int groupCount) {
+		return floorThreshold(byGroupCount, groupCount);
+	}
+
+	/**
 	 * Looks up the highest configured threshold at or below the given value, so a value past the end of
 	 * the ladder keeps the deepest configured discount instead of falling back to none.
 	 */
@@ -80,5 +99,12 @@ public final class DiscountRules {
 		Map.Entry<Integer, BigDecimal> entry = rules.floorEntry(value);
 
 		return entry == null ? Money.ZERO : entry.getValue();
+	}
+
+	/**
+	 * The key {@link #floorPercent} would have matched.
+	 */
+	private static Integer floorThreshold(NavigableMap<Integer, BigDecimal> rules, int value) {
+		return rules.floorKey(value);
 	}
 }

@@ -1,8 +1,10 @@
 package atomdance.app.modules.person.controller;
 
 import atomdance.app.modules.person.dto.CreatePersonRequest;
+import atomdance.app.modules.person.dto.PersonDiscountView;
 import atomdance.app.modules.person.dto.PersonView;
 import atomdance.app.modules.person.dto.UpdatePersonRequest;
+import atomdance.app.modules.person.service.PersonDiscountService;
 import atomdance.app.modules.person.service.PersonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.UUID;
 public class PersonController {
 
 	private final PersonService personService;
+	private final PersonDiscountService personDiscountService;
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
@@ -30,6 +33,15 @@ public class PersonController {
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
 	public PersonView get(@PathVariable UUID id) {
 		return personService.get(id);
+	}
+
+	/**
+	 * This month's discount for one person, with the inputs it was worked out from.
+	 */
+	@GetMapping("/{id}/discounts")
+	@PreAuthorize("hasAuthority('READ_PERSONS')")
+	public PersonDiscountView getDiscounts(@PathVariable UUID id) {
+		return personDiscountService.preview(id);
 	}
 
 	@PostMapping

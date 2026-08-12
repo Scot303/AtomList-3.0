@@ -8,6 +8,7 @@ export { DatePicker } from './DatePicker';
 export { DateCellPicker } from './DateCellPicker';
 export { Calendar } from './Calendar';
 export { FieldShell } from './FieldShell';
+export { FormSection } from './FormSection';
 export type { FieldSize, FieldStateOptions } from './fieldStyles';
 export {
 	fieldControl,

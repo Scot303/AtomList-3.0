@@ -23,10 +23,11 @@ export default function App() {
 			</BrowserRouter>
 
 			<ToastContainer
-				position="top-right"
+				position="bottom-right"
 				theme="dark"
 				autoClose={ 10000 }
-				newestOnTop
+				stacked
+				draggable
 				closeOnClick
 				pauseOnFocusLoss={ false }
 			/>

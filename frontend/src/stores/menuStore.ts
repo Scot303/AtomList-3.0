@@ -1,9 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
-import { contextMenu, type TriggerEvent } from 'react-contexify';
 import { create } from 'zustand';
 
-/** Identifies the one menu mounted at the root. */
-export const CONTEXT_MENU_ID = 'app-context-menu';
 
 /**
  * One option of a context menu.
@@ -14,43 +11,63 @@ export interface ContextMenuItem {
 	icon?: LucideIcon;
 	onSelect: () => void;
 	disabled?: boolean;
-	/** Drawn in the error color, through the `menu-item-destructive` class the theme defines. */
+	/** Drawn in the error color. */
 	danger?: boolean;
 	/** Draws a divider above this item. */
 	separatorBefore?: boolean;
 }
 
+/** The viewport point the menu hangs off - where the pointer was when it was summoned. */
+export interface ContextMenuAnchor {
+	x: number;
+	y: number;
+}
+
+/** Whatever a `onContextMenu` handler was handed. */
+export interface ContextMenuTrigger {
+	clientX: number;
+	clientY: number;
+	preventDefault: () => void;
+}
+
 interface ContextMenuState {
 	items: ContextMenuItem[];
-	/**
-	 * Puts these items in the menu and opens it at the cursor.
-	 * Suppresses the browser's own menu itself, so no caller has to remember to.
-	 */
-	open: (event: TriggerEvent, items: ContextMenuItem[]) => void;
+	/** Null while the menu is closed. */
+	anchor: ContextMenuAnchor | null;
+	/** Whether the menu is closing without its animation, which is what picking something does. */
+	instantClose: boolean;
+	/** Puts these items in the menu and opens it at the cursor. */
+	open: (event: ContextMenuTrigger, items: ContextMenuItem[]) => void;
+	/** Closes the menu, leaving the items be so the closing animation still has something to draw. */
+	close: (options?: { instant?: boolean }) => void;
 	/** Drops the items, so their handlers cannot outlive the screen they were built on. */
 	clear: () => void;
 }
 
 export const useContextMenuStore = create<ContextMenuState>((set) => ({
 	items: [],
+	anchor: null,
+	instantClose: false,
 
 	open: (event, items) => {
 		event.preventDefault();
 
-		set({ items });
-
-		contextMenu.show({ id: CONTEXT_MENU_ID, event });
+		set({ items, anchor: { x: event.clientX, y: event.clientY }, instantClose: false });
 	},
+
+	close: (options) => set({ anchor: null, instantClose: options?.instant === true }),
 
 	clear: () => set({ items: [] }),
 }));
 
 /**
- * Closes the menu and forgets what was in it.
+ * Closes the menu.
+ *
+ * The items outlive the call by one closing animation: dropping them here would empty the menu while it is
+ * still on screen shrinking away. `GlobalContextMenu` clears them once that animation is over.
  */
 export function dismissContextMenu(): void {
-	contextMenu.hideAll();
-	useContextMenuStore.getState().clear();
+	useContextMenuStore.getState().close();
 }
 
 /**

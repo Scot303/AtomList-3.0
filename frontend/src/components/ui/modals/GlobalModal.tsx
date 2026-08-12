@@ -3,7 +3,7 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Transition, Transitio
 import { X } from 'lucide-react';
 import { useCloseOnNavigate } from '@/hooks/useCloseOnNavigate';
 import { cn } from '@/lib/cn';
-import { loadedModals, MODAL_REGISTRY, type ModalSize, preloadAllModals } from '@/stores/modalRegistry.ts';
+import { loadedModals, MODAL_REGISTRY, type ModalSize, preloadAllModals, resolveModalTitle } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore';
 
 
@@ -30,7 +30,8 @@ export function GlobalModal() {
 	useEffect(preloadAllModals, []);
 
 	const definition = current === null ? null : MODAL_REGISTRY[current.key];
-	const title = current?.options.title ?? definition?.title ?? '';
+	// `options.title` first, so a `setModalTitle` from inside the modal wins over the registry's.
+	const title = current === null ? '' : current.options.title ?? resolveModalTitle(current.key, current.props);
 	const size = current?.options.size ?? definition?.size ?? 'md';
 	const dismissible = current?.options.dismissible ?? definition?.dismissible ?? true;
 

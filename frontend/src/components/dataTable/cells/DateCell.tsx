@@ -32,7 +32,9 @@ export const DateCell = ({ value, rowId, columnId, meta, onCommit, onEditingChan
 			} }
 			onOpenChange={ onEditingChange }
 		>
-			{ display === '' || display == null ? <CellPlaceholder/> : display }
+			<span className="truncate">
+				{ display === '' || display == null ? <CellPlaceholder/> : display }
+			</span>
 		</DateCellPicker>
 	);
 };

@@ -29,14 +29,14 @@ export const Button = (props: ButtonProps) => {
 	const isGhost = variant === 'ghost' || variant === 'ghost_primary';
 
 	const baseStyles = cn(
-		'relative inline-flex items-center justify-center font-bold transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none overflow-hidden',
+		'relative inline-flex items-center justify-center font-bold transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none overflow-hidden will-change-transform',
 		!isGhost && 'border',
 	);
 
 	const variants = {
-		primary: 'border-os-primary/50 text-os-primary bg-os-primary/5 hover:bg-os-primary/10 hover:text-os-primary shadow-os-primary/10',
+		primary: 'border-os-primary/50 text-os-primary bg-os-primary/5 hover:bg-os-primary/12 hover:text-os-primary shadow-os-primary/10',
 		secondary: 'border-os-border-highlight text-os-text-muted bg-os-surface/25 hover:bg-os-border/15 hover:text-os-text shadow-black/5',
-		secondary_muted: 'border-os-border-highlight text-os-text-muted bg-os-surface/25 hover:bg-os-border/20 hover:text-os-text-muted shadow-black/5',
+		secondary_muted: 'border-os-border-highlight text-os-text-muted bg-os-surface/25 hover:bg-os-border/25 hover:text-os-text-muted shadow-black/5',
 		danger: 'border-os-error/50 text-os-error bg-os-error/5 hover:bg-os-error/10 hover:text-os-error shadow-os-error/10',
 		warning: 'border-orange-500/50 text-orange-500 bg-orange-500/5 hover:bg-orange-500/10 hover:text-orange-500 shadow-orange-500/10',
 		ghost: 'text-os-text-muted hover:text-os-text hover:bg-white/3 rounded-md',

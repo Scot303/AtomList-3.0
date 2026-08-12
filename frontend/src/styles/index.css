@@ -1,6 +1,5 @@
 @import '@fontsource-variable/inter';
 @import 'tailwindcss';
-@import 'react-contexify/ReactContexify.css';
 
 @import './theme.css';
 @import './toast.css';

@@ -28,8 +28,7 @@ interface ModalState {
 	current: OpenModal | null;
 	/** Opens once the modal's code is in hand, so the panel never appears as a bare header with the body arriving a moment later. */
 	openModal: <K extends ModalKey>(key: K, ...args: OpenArgs<K>) => Promise<void>;
-	/** Lets an open modal retitle itself once it knows what it is showing. */
-	setModalTitle: (title: string) => void;
+	setModalTitle: (title: string, key: ModalKey) => void;
 	closeModal: () => void;
 	resetModal: () => void;
 }
@@ -61,10 +60,10 @@ export const useModalStore = create<ModalState>((set, get) => ({
 		});
 	},
 
-	setModalTitle: (title) => {
+	setModalTitle: (title, key) => {
 		const { current } = get();
 
-		if (current === null) {
+		if (current === null || current.key !== key) {
 			return;
 		}
 
