@@ -94,7 +94,7 @@ function Total({ percent, month, billed }: TotalProps) {
 		<div className="styled-card flex items-center shrink-0 flex-col gap-1 rounded-2xl px-5 py-4">
 			<p className="text-lg font-semibold tracking-wide text-os-text-muted uppercase">Zniżka na { month }</p>
 
-			<p className={ cn('text-4xl font-bold', billed ? 'text-os-green' : 'text-os-text-muted') }>
+			<p className={ cn('text-3xl font-bold', billed ? 'text-os-green' : 'text-os-text-muted') }>
 				{ formatPercent(percent) }
 			</p>
 		</div>
