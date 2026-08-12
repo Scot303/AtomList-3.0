@@ -1,14 +1,10 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { ADMIN_USER_ENDPOINTS } from '@/api/endpoints';
-import type { PagedResponse } from '@/types/api.ts';
 import type { AdminUserView, CreateUserPayload, UpdateUserPayload } from '../types/types.ts';
 
-const PAGE_SIZE = 200;
-
-export async function fetchUsers(): Promise<PagedResponse<AdminUserView>> {
-	const { data } = await axiosInstance.get<PagedResponse<AdminUserView>>(ADMIN_USER_ENDPOINTS.base, {
-		params: { size: PAGE_SIZE, sort: 'username,asc' },
-	});
+/** Every account in one response, already sorted by username. */
+export async function fetchUsers(): Promise<AdminUserView[]> {
+	const { data } = await axiosInstance.get<AdminUserView[]>(ADMIN_USER_ENDPOINTS.base);
 
 	return data;
 }

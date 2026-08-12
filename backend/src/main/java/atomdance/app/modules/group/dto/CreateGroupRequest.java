@@ -22,6 +22,9 @@ public record CreateGroupRequest(
 
 		Boolean active,
 
+		@Pattern(regexp = "^[0-9A-Fa-f]{6}$", message = "Color must be six hex digits without a leading #")
+		String color,
+
 		@Size(max = 512, message = "Note is too long")
 		String note
 ) {}

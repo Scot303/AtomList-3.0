@@ -38,6 +38,10 @@ public class Group {
 	@Builder.Default
 	private boolean isActive = true;
 
+	/** The color frontend draws this group's badge in, as six hex digits with no leading {@code #}. */
+	@Column(length = 6)
+	private String color;
+
 	@Column(length = 512)
 	private String note;
 

@@ -13,6 +13,7 @@ public record GroupView(
 		BigDecimal costForAttending,
 		GroupBillingType billingType,
 		boolean active,
+		String color,
 		String note
 ) {
 
@@ -24,6 +25,7 @@ public record GroupView(
 				group.getCostForAttending(),
 				group.getBillingType(),
 				group.isActive(),
+				group.getColor(),
 				group.getNote()
 		);
 	}

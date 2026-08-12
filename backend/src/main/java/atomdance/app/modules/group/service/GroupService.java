@@ -3,7 +3,6 @@ package atomdance.app.modules.group.service;
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NameTakenException;
 import atomdance.app.common.exception.NotFoundException;
-import atomdance.app.common.utils.SearchPatterns;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
@@ -17,17 +16,19 @@ import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GroupService {
+
+	private static final Sort BY_NAME = Sort.by("name");
 
 	private final GroupRepository groupRepository;
 	private final MembershipRepository membershipRepository;
@@ -40,8 +41,8 @@ public class GroupService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<GroupView> getAll(String search, boolean activeOnly, Pageable pageable) {
-		return groupRepository.search(SearchPatterns.contains(search), activeOnly, pageable).map(GroupView::from);
+	public List<GroupView> getAll() {
+		return groupRepository.findAll(BY_NAME).stream().map(GroupView::from).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -63,6 +64,7 @@ public class GroupService {
 				.costForAttending(request.costForAttending())
 				.billingType(request.billingType() != null ? request.billingType() : GroupBillingType.MONTHLY)
 				.isActive(request.active() == null || request.active())
+				.color(request.color())
 				.note(request.note())
 				.build());
 
@@ -113,6 +115,10 @@ public class GroupService {
 					group.getName(), group.isActive(), request.active()));
 
 			group.setActive(request.active());
+		}
+
+		if (request.color() != null) {
+			group.setColor(request.color());
 		}
 
 		if (request.note() != null) {

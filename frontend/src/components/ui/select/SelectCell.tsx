@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn';
 import type { SelectPopoverState } from '@/hooks/useSelectPopover';
 import { SelectPopover } from './SelectPopover';
 
+
 interface SelectCellProps {
 	popover: SelectPopoverState;
 	/** The panel to show when it opens. */
@@ -36,7 +37,7 @@ export const SelectCell = (props: SelectCellProps) => {
 				title={ title }
 				{ ...getReferenceProps() }
 				className={ cn(
-					'inline-flex min-h-6 max-w-full items-center gap-0.5 rounded-full text-left focus:outline-none',
+					'inline-flex min-h-6 max-w-full items-center gap-1 rounded-full text-left focus:outline-none',
 					disabled ? 'cursor-default' : 'cursor-pointer',
 					className,
 				) }
@@ -48,7 +49,7 @@ export const SelectCell = (props: SelectCellProps) => {
 						size={ 14 }
 						aria-hidden
 						className={ cn(
-							'shrink-0 transition-all duration-200 ml-0.5 text-os-text-muted',
+							'ml-auto shrink-0 transition-all duration-200 text-os-text-muted',
 							open ? 'rotate-180' : '',
 						) }
 					/>

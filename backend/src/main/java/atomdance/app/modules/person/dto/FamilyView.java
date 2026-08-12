@@ -6,41 +6,31 @@ import atomdance.app.modules.person.model.Person;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 public record FamilyView(
 		UUID id,
 		String name,
 		String phone,
-		String email,
 		String note,
-		String displayName,
-		int memberCount,
-		List<PersonView> members
+		List<FamilyMemberView> members
 ) {
 
-	public static FamilyView from(Family family) {
-		List<Person> ordered = family.getPersons().stream()
-				.sorted(Comparator.comparing(Person::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(Person::getLastName, String.CASE_INSENSITIVE_ORDER))
-				.toList();
+	private static final Comparator<Person> BY_NAME = Comparator
+			.comparing(Person::getName, String.CASE_INSENSITIVE_ORDER)
+			.thenComparing(Person::getLastName, String.CASE_INSENSITIVE_ORDER);
 
+
+	public static FamilyView of(Family family, Function<Person, FamilyMemberView> toMember) {
 		return new FamilyView(
 				family.getId(),
 				family.getName(),
 				family.getPhone(),
-				family.getEmail(),
 				family.getNote(),
-				displayName(family.getName(), ordered),
-				ordered.size(),
-				ordered.stream().map(PersonView::from).toList()
+				family.getPersons().stream()
+						.sorted(BY_NAME)
+						.map(toMember)
+						.toList()
 		);
-	}
-
-	static String displayName(String familyName, List<Person> members) {
-		if (members.isEmpty()) {
-			return familyName;
-		}
-
-		return familyName + " (" + members.stream().map(Person::getName).collect(Collectors.joining(", ")) + ")";
 	}
 }

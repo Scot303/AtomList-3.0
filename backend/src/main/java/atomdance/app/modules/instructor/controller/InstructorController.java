@@ -6,14 +6,11 @@ import atomdance.app.modules.instructor.dto.UpdateInstructorRequest;
 import atomdance.app.modules.instructor.service.InstructorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,9 +22,8 @@ public class InstructorController {
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_INSTRUCTORS')")
-	public PagedModel<InstructorView> list(@RequestParam(required = false) String search, @RequestParam(defaultValue = "false") boolean activeOnly,
-	                                       @PageableDefault(size = 100, sort = {"lastName", "name"}, direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(instructorService.getAll(search, activeOnly, pageable));
+	public List<InstructorView> getAll() {
+		return instructorService.getAll();
 	}
 
 	@GetMapping("/{id}")

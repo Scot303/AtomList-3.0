@@ -1,0 +1,72 @@
+import { useMemo } from 'react';
+import { Alert } from '@/components/feedback/Alert';
+import { Spinner } from '@/components/feedback/Spinner';
+import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { AddMembershipForm } from '@/modules/persons/components/membershipRow/AddMembershipForm.tsx';
+import { MembershipRow } from '@/modules/persons/components/membershipRow/MembershipRow.tsx';
+import { useGroups } from '../hooks/useGroups';
+import { useMemberships } from '../hooks/useMemberships';
+import { indexGroups } from '../types/personRows.ts';
+
+
+interface PersonGroupsModalProps {
+	personId: string;
+	personName: string;
+}
+
+/**
+ * Every group one person has ever attended.
+ */
+export default function PersonGroupsModal({ personId, personName }: PersonGroupsModalProps) {
+	const { hasPermission } = useAuth();
+	const canModify = hasPermission('MODIFY_PERSONS');
+
+	const memberships = useMemberships(personId);
+	const groups = useGroups();
+
+	const rows = useMemo(() => memberships.data ?? [], [memberships.data]);
+	const groupList = useMemo(() => groups.data ?? [], [groups.data]);
+	const groupsById = useMemo(() => indexGroups(groupList), [groupList]);
+
+	if (memberships.isPending) {
+		return (
+			<div className="flex justify-center py-10">
+				<Spinner/>
+			</div>
+		);
+	}
+
+	if (memberships.isError) {
+		return <Alert tone="danger">{ memberships.error.message }</Alert>;
+	}
+
+	return (
+		<div className="mt-2 space-y-8">
+			{ canModify && (
+				<AddMembershipForm
+					personId={ personId }
+					groups={ groupList }
+					memberships={ rows }
+					groupsUnavailable={ !hasPermission('READ_GROUPS') || groups.isError }
+				/>
+			) }
+
+			{ rows.length === 0 ? (
+				<Alert tone="info">Ta osoba nie należy jeszcze do żadnej grupy.</Alert>
+			) : (
+				<ul className="space-y-2">
+					{ rows.map((membership) => (
+						<MembershipRow
+							key={ membership.id }
+							membership={ membership }
+							group={ groupsById.get(membership.groupId) }
+							personId={ personId }
+							personName={ personName }
+							canModify={ canModify }
+						/>
+					)) }
+				</ul>
+			) }
+		</div>
+	);
+}

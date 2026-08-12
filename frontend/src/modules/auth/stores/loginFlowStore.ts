@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { storageKey } from '@/stores/storageKeys';
 
 export type LoginStep = 'identifier' | 'code';
 
@@ -13,6 +14,8 @@ interface LoginFlowState {
 	markCodeRequested: () => void;
 	reset: () => void;
 }
+
+const STORAGE_KEY = storageKey('login-flow');
 
 /**
  * The half-finished sign-in, kept across a reload so refreshing the page mid-flow does not throw
@@ -32,7 +35,7 @@ export const useLoginFlowStore = create<LoginFlowState>()(
 			reset: () => set({ step: 'identifier', identifier: '', codeRequestedAt: null }),
 		}),
 		{
-			name: 'atomlist.login-flow',
+			name: STORAGE_KEY,
 			storage: createJSONStorage(() => sessionStorage),
 		},
 	),

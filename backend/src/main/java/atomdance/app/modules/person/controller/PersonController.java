@@ -1,19 +1,18 @@
 package atomdance.app.modules.person.controller;
 
 import atomdance.app.modules.person.dto.CreatePersonRequest;
+import atomdance.app.modules.person.dto.PersonDiscountView;
 import atomdance.app.modules.person.dto.PersonView;
 import atomdance.app.modules.person.dto.UpdatePersonRequest;
+import atomdance.app.modules.person.service.PersonDiscountService;
 import atomdance.app.modules.person.service.PersonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -22,18 +21,27 @@ import java.util.UUID;
 public class PersonController {
 
 	private final PersonService personService;
+	private final PersonDiscountService personDiscountService;
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
-	public PagedModel<PersonView> getAll(@RequestParam(required = false) String search, @RequestParam(defaultValue = "false") boolean activeOnly,
-	                                     @PageableDefault(size = 500, sort = {"lastName", "name"}, direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(personService.getAll(search, activeOnly, pageable));
+	public List<PersonView> getAll() {
+		return personService.getAll();
 	}
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
 	public PersonView get(@PathVariable UUID id) {
 		return personService.get(id);
+	}
+
+	/**
+	 * This month's discount for one person, with the inputs it was worked out from.
+	 */
+	@GetMapping("/{id}/discounts")
+	@PreAuthorize("hasAuthority('READ_PERSONS')")
+	public PersonDiscountView getDiscounts(@PathVariable UUID id) {
+		return personDiscountService.preview(id);
 	}
 
 	@PostMapping
@@ -49,10 +57,4 @@ public class PersonController {
 		return personService.update(id, request);
 	}
 
-	@DeleteMapping("/{id}")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	@PreAuthorize("hasAuthority('MODIFY_PERSONS')")
-	public void delete(@PathVariable UUID id) {
-		personService.delete(id);
-	}
 }

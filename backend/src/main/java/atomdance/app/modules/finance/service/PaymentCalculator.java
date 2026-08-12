@@ -2,6 +2,7 @@ package atomdance.app.modules.finance.service;
 
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.discount.service.DiscountRules;
+import atomdance.app.modules.discount.service.FamilyPositions;
 import atomdance.app.modules.finance.model.Payment;
 import atomdance.app.modules.finance.model.PaymentLine;
 import atomdance.app.modules.finance.model.PaymentLineKind;
@@ -11,8 +12,6 @@ import atomdance.app.modules.person.model.Person;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -30,8 +29,8 @@ public class PaymentCalculator {
 	 */
 	public void recalculate(Collection<Payment> payments, Collection<Membership> billableMemberships, Collection<Membership> monthMemberships, DiscountRules rules) {
 
-		Map<UUID, List<Membership>> billableByPerson = groupByPerson(billableMemberships);
-		Map<UUID, List<Membership>> monthByPerson = groupByPerson(monthMemberships);
+		Map<UUID, List<Membership>> billableByPerson = FamilyPositions.byPerson(billableMemberships);
+		Map<UUID, List<Membership>> monthByPerson = FamilyPositions.byPerson(monthMemberships);
 		Map<UUID, List<PaymentLine>> chargesByPerson = new HashMap<>();
 
 		for (Payment payment : payments) {
@@ -41,7 +40,7 @@ public class PaymentCalculator {
 			chargesByPerson.put(personId, refreshMembershipLines(payment, personMemberships));
 		}
 
-		Map<UUID, Integer> familyPositions = resolveFamilyPositions(payments, monthByPerson);
+		Map<UUID, Integer> familyPositions = FamilyPositions.resolve(orderedForPositioning(payments, monthByPerson), monthByPerson);
 
 		for (Payment payment : payments) {
 			UUID personId = payment.getPerson().getId();
@@ -111,34 +110,6 @@ public class PaymentCalculator {
 	}
 
 	/**
-	 * Works out where each person sits in their household's discount ladder.
-	 */
-	private Map<UUID, Integer> resolveFamilyPositions(Collection<Payment> payments, Map<UUID, List<Membership>> monthByPerson) {
-		Map<UUID, List<Person>> byFamily = new HashMap<>();
-		Map<UUID, Integer> positions = new HashMap<>();
-
-		for (Person person : orderedForPositioning(payments, monthByPerson)) {
-			if (person.getFamily() == null) {
-				positions.put(person.getId(), 1);
-
-				continue;
-			}
-
-			byFamily.computeIfAbsent(person.getFamily().getId(), key -> new ArrayList<>()).add(person);
-		}
-
-		for (List<Person> members : byFamily.values()) {
-			members.sort(byDiscountPriority(monthByPerson));
-
-			for (int index = 0; index < members.size(); index++) {
-				positions.put(members.get(index).getId(), index + 1);
-			}
-		}
-
-		return positions;
-	}
-
-	/**
 	 * Everybody the month's discount ladders have to account for, each appearing once.
 	 */
 	private static Collection<Person> orderedForPositioning(Collection<Payment> payments, Map<UUID, List<Membership>> monthByPerson) {
@@ -160,36 +131,6 @@ public class PaymentCalculator {
 	}
 
 	/**
-	 * Highest recurring charge first, then the longest-standing member.
-	 */
-	private Comparator<Person> byDiscountPriority(Map<UUID, List<Membership>> monthByPerson) {
-		return Comparator
-				.comparing((Person person) -> monthlyBase(monthByPerson.get(person.getId())), Comparator.reverseOrder())
-				.thenComparing(Person::getJoinedStudioAt, Comparator.nullsLast(LocalDate::compareTo))
-				.thenComparing(Person::getCreatedAt, Comparator.nullsLast(Instant::compareTo))
-				.thenComparing(person -> String.valueOf(person.getId()));
-	}
-
-	/**
-	 * The recurring monthly charge, which is what the family order is decided on.
-	 */
-	private static BigDecimal monthlyBase(List<Membership> memberships) {
-		if (memberships == null) {
-			return Money.ZERO;
-		}
-
-		BigDecimal total = Money.ZERO;
-
-		for (Membership membership : memberships) {
-			if (!membership.getGroup().isPerClass()) {
-				total = Money.add(total, Money.normalize(membership.resolveUnitCost()));
-			}
-		}
-
-		return total;
-	}
-
-	/**
 	 * Fixes the order lines are created in, so two runs produce identical output rather than output that merely adds up the same.
 	 */
 	private static List<Membership> sortedForStableOutput(List<Membership> memberships) {
@@ -197,15 +138,5 @@ public class PaymentCalculator {
 				.sorted(Comparator.comparing((Membership membership) -> membership.getGroup().getName(), String.CASE_INSENSITIVE_ORDER)
 						.thenComparing(membership -> String.valueOf(membership.getId())))
 				.toList();
-	}
-
-	private static Map<UUID, List<Membership>> groupByPerson(Collection<Membership> memberships) {
-		Map<UUID, List<Membership>> byPerson = new HashMap<>();
-
-		for (Membership membership : memberships) {
-			byPerson.computeIfAbsent(membership.getPerson().getId(), key -> new ArrayList<>()).add(membership);
-		}
-
-		return byPerson;
 	}
 }

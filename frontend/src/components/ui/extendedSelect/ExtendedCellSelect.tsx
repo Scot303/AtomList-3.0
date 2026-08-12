@@ -4,9 +4,12 @@ import { bindSelectValue, SelectCell, SelectPanel } from '@/components/ui/select
 import { ExtendedSelectValue } from './ExtendedSelectValue';
 import type { ExtendedSelectAddNew, ExtendedSelectOption } from './extendedSelectTypes';
 
+
 interface ExtendedCellSelectOwnProps {
 	options: ExtendedSelectOption[];
 	onBlur?: () => void;
+	/** Told when the panel opens and closes, so the row around the cell can show it as being edited. */
+	onOpenChange?: (open: boolean) => void;
 	/** The panel's width. The trigger is usually far too narrow to size it from. */
 	popoverWidth?: string;
 	searchable?: boolean;
@@ -30,6 +33,7 @@ export const ExtendedCellSelect = (props: ExtendedCellSelectProps) => {
 	const {
 		options,
 		onBlur,
+		onOpenChange,
 		popoverWidth = '18rem',
 		searchable = true,
 		addNew,
@@ -41,7 +45,7 @@ export const ExtendedCellSelect = (props: ExtendedCellSelectProps) => {
 		className,
 	} = props;
 
-	const popover = useSelectPopover({ onBlur, width: popoverWidth, addModeWidth: '22rem' });
+	const popover = useSelectPopover({ onBlur, onOpenChange, width: popoverWidth, addModeWidth: '22rem' });
 	const value = bindSelectValue(props);
 
 	const selectedOptions = options.filter((option) => value.selectedIds.includes(option.id));

@@ -17,7 +17,7 @@
     --color-os-bg-highlight: rgba(255, 255, 255, 0.05);
 
     --color-os-primary: #007ba7;
-    --color-os-text: #f0f0f0;
+    --color-os-text: #E0E0E0;
     --color-os-text-muted: #9e9e9e;
 
     --color-os-error: #ef4444;
@@ -28,6 +28,8 @@
 @layer base {
     :root {
         color-scheme: dark;
+
+        color: var(--color-os-text);
 
         font-family: 'Inter Variable', sans-serif;
         line-height: 1.5;
@@ -114,47 +116,4 @@ input[type='number'] {
             scrollbar-color: rgba(255, 255, 255, 0.18) rgba(255, 255, 255, 0.18) !important;
         }
     }
-}
-
-.contexify {
-    z-index: 1000 !important;
-    --contexify-menu-bgColor: var(--color-os-surface) !important;
-    --contexify-separator-color: var(--color-os-border) !important;
-    --contexify-item-color: var(--color-os-text) !important;
-    /*--contexify-activeItem-bgColor: rgba(59, 130, 246, 0.5) !important;*/
-    --contexify-activeItem-bgColor: rgba(255, 255, 255, 0.07) !important;
-    --contexify-activeItem-radius: 6px !important;
-
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid var(--color-os-border) !important;
-    border-radius: 12px !important;
-    padding: 6px !important;
-    --contexify-menu-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4) !important;
-    font-weight: 400 !important;
-}
-
-.contexify-submenu {
-    backdrop-filter: blur(12px) !important;
-}
-
-.contexify_item {
-    margin-bottom: 2px !important;
-}
-
-.contexify_item:last-child {
-    margin-bottom: 0 !important;
-}
-
-.menu-item-destructive {
-    /*--contexify-activeItem-bgColor: rgba(239, 68, 68, 0.8) !important;*/
-    --contexify-item-color: var(--color-os-error) !important;
-    --contexify-activeItem-color: var(--color-os-error) !important;
-    font-weight: 400 !important;
-}
-
-.contexify_separator {
-    background-color: var(--color-os-border) !important;
-    height: 1px !important;
-    margin: 4px 0 !important;
-    opacity: 0.5;
 }

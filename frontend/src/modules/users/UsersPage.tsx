@@ -28,7 +28,7 @@ export function UsersPage() {
 		return <Alert tone="danger">{ error.message }</Alert>;
 	}
 
-	const groups = groupUsersByRole(data.content);
+	const groups = groupUsersByRole(data);
 
 	return (
 		<div className="space-y-6">

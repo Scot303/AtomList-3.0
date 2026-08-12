@@ -29,10 +29,11 @@ interface AlertProps {
 	children: ReactNode;
 	action?: ReactNode;
 	className?: string;
+	contentClassName?: string;
 }
 
 
-export function Alert({ tone = 'info', title, children, action, className }: AlertProps) {
+export function Alert({ tone = 'info', title, children, action, className, contentClassName }: AlertProps) {
 	const { box, icon } = TONES[tone];
 
 	return (
@@ -44,7 +45,7 @@ export function Alert({ tone = 'info', title, children, action, className }: Ale
 
 			<div className="min-w-0 flex-1">
 				{ title ? <p className="font-semibold">{ title }</p> : null }
-				<div className={ cn(title && 'mt-0.5', 'text-[13px] leading-relaxed opacity-90') }>
+				<div className={ cn(title && 'mt-0.5', 'text-[13px] leading-relaxed opacity-90', contentClassName) }>
 					{ children }
 				</div>
 				{ action ? <div className="mt-2.5">{ action }</div> : null }
