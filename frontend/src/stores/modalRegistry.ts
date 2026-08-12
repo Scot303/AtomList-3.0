@@ -77,6 +77,18 @@ export const MODAL_REGISTRY = {
 		title: ({ personName }) => `Zniżki osoby - ${ personName }`,
 		size: 'xl',
 	}),
+
+	'groups.form': defineModal({
+		load: () => import('@/modules/groups/modals/GroupFormModal.tsx'),
+		title: ({ groupId }) => (groupId === undefined ? 'Nowa grupa' : 'Szczegóły grupy'),
+		size: 'xl',
+	}),
+
+	'groups.members': defineModal({
+		load: () => import('@/modules/groups/modals/GroupMembersModal.tsx'),
+		title: ({ groupName }) => `Członkowie grupy - ${ groupName }`,
+		size: 'xl',
+	}),
 };
 
 

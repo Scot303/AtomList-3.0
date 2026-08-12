@@ -1,15 +1,24 @@
 import type React from 'react';
-import { type Ref, useId, useState } from 'react';
+import { type Ref, useId, useMemo, useState } from 'react';
 import { Pipette } from 'lucide-react';
 import { HexColorPicker } from 'react-colorful';
 import { cn } from '@/lib/cn';
+import { buildColorRamp } from '@/lib/color';
+import { MAX_RECENT_COLORS, useRecentColorsStore } from '@/stores/recentColorsStore';
 import { useSelectPopover } from '@/hooks/useSelectPopover';
 import { SelectPopover } from '@/components/ui/select';
+import { ColorSwatchRow } from './ColorSwatchRow';
 import { FieldShell } from './FieldShell';
 import { fieldControl, fieldControlWithLeftIcon, fieldLeftIcon, fieldRightAdornment, type FieldSize } from './fieldStyles';
 
 
 const HEX_LENGTH = 6;
+
+/** Tall enough for the picker on its own. */
+const PANEL_HEIGHT = 400;
+
+/** And what each swatch strip switched on under it adds to that. */
+const SWATCH_ROW_HEIGHT = 80;
 
 /** The transparency check pattern, for a value that is not yet a complete color. */
 const NO_COLOUR = 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px)';
@@ -19,11 +28,15 @@ interface ColorPickerProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
 	error?: string;
 	hint?: string;
 	leftIcon?: React.ReactNode;
-	/** Six hex digits, no leading `#`. Empty until a colour is chosen. */
+	/** Six hex digits, no leading `#`. */
 	value?: string;
 	onChange?: (value: string) => void;
 	size?: FieldSize;
 	ref?: Ref<HTMLInputElement>;
+	/** Adds a tint and shade ramp of whatever color the field currently holds under the picker. */
+	shades?: boolean;
+	/** Adds 10 most recently piked colors under the picker, and records what this field settles on among them. */
+	recent?: boolean;
 }
 
 declare global {
@@ -38,17 +51,38 @@ declare global {
  * A hex color field with a picker panel and, where the browser has one, an eyedropper.
  */
 export const ColorPicker = (props: ColorPickerProps) => {
-	const { className, label, error, hint, leftIcon, value = '', onChange, size = 'default', disabled, ref, ...rest } = props;
+	const { className, label, error, hint, leftIcon, value = '', onChange, size = 'default', disabled, ref, shades, recent, onBlur, ...rest } = props;
 
 	const id = useId();
 
 	const [supportsEyeDropper] = useState(() => 'EyeDropper' in window);
 
-	const popover = useSelectPopover({ width: '16rem', maxHeight: 400, align: 'end' });
+	const recentColors = useRecentColorsStore((state) => state.colors);
+	const rememberColor = useRecentColorsStore((state) => state.remember);
+
+	/**
+	 * What the field settled on is what gets remembered, not every color the pointer crossed on its way there -
+	 * so the panel closing, rather than each `onChange` is what records one.
+	 */
+	const remember = () => {
+		if (recent) {
+			rememberColor(value);
+		}
+	};
+
+	const popover = useSelectPopover({
+		width: '16rem',
+		maxHeight: PANEL_HEIGHT + (shades ? SWATCH_ROW_HEIGHT : 0) + (recent ? SWATCH_ROW_HEIGHT : 0),
+		align: 'end',
+		onBlur: remember,
+	});
+
 	const { open, setReference, getReferenceProps, close } = popover;
 
 	const isComplete = value.length === HEX_LENGTH;
 	const hex = isComplete ? `#${ value }` : '#000000';
+
+	const ramp = useMemo(() => (shades && isComplete ? buildColorRamp(value) : []), [shades, isComplete, value]);
 
 	const emit = (next: string) => onChange?.(next.replace('#', '').toUpperCase());
 
@@ -84,6 +118,10 @@ export const ColorPicker = (props: ColorPickerProps) => {
 				value={ value }
 				aria-invalid={ error ? true : undefined }
 				onChange={ handleInputChange }
+				onBlur={ (event) => {
+					remember();
+					onBlur?.(event);
+				} }
 				{ ...rest }
 				className={ cn(
 					'peer block uppercase tracking-wider placeholder:normal-case placeholder:tracking-normal',
@@ -122,10 +160,35 @@ export const ColorPicker = (props: ColorPickerProps) => {
 				<div
 					role="dialog"
 					aria-label={ label }
-					className="popover-surface w-full rounded-xl p-4"
+					className="popover-surface themed-scrollbar w-full overflow-y-auto rounded-xl p-4"
 					onMouseDown={ (event) => event.stopPropagation() }
 				>
 					<HexColorPicker color={ hex } onChange={ emit } className="!w-full"/>
+
+					{ (shades || recent) && (
+						<div className="mt-3 space-y-3">
+							{ shades && (
+								<ColorSwatchRow
+									nowrap
+									title="Odcienie"
+									colors={ ramp }
+									current={ value }
+									onPick={ emit }
+								/>
+							) }
+
+							{ recent && (
+								<ColorSwatchRow
+									nowrap
+									title="Ostatnio wybrane"
+									colors={ recentColors }
+									current={ value }
+									onPick={ emit }
+									slots={ MAX_RECENT_COLORS }
+								/>
+							) }
+						</div>
+					) }
 
 					{ supportsEyeDropper && (
 						<button

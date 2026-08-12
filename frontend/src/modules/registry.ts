@@ -1,9 +1,10 @@
 import type { ComponentType } from 'react';
-import { ListChecks, type LucideIcon, UserRound, Users } from 'lucide-react';
+import { ListChecks, type LucideIcon, UserRound, UserShield, UsersRound } from 'lucide-react';
 
 import { paths } from '@/routes/paths';
 import type { Permission } from '@/types/auth';
 
+import { GroupsPage } from './groups/GroupsPage.tsx';
 import { PaymentListsPage } from './paymentLists/PaymentListsPage.tsx';
 import { PersonsPage } from './persons/PersonsPage.tsx';
 import { UsersPage } from './users/UsersPage.tsx';
@@ -44,10 +45,18 @@ export const MODULES: readonly AppModule[] = [
 		Component: PersonsPage,
 	},
 	{
+		id: 'groups',
+		label: 'Grupy',
+		path: paths.groups,
+		icon: UsersRound,
+		permissions: ['READ_GROUPS'],
+		Component: GroupsPage,
+	},
+	{
 		id: 'users',
 		label: 'Zarządzanie użytkownikami',
 		path: paths.users,
-		icon: Users,
+		icon: UserShield,
 		permissions: ['MANAGE_USERS'],
 		Component: UsersPage,
 	},
