@@ -1,3 +1,6 @@
+import { pluralise } from '@/lib/locale';
+
+
 /**
  * Every piece of text the data table renders, in one place.
  */
@@ -99,25 +102,3 @@ export const operatorStrings = {
 	tag_is_any_of: { select: 'jest jednym z', badge: 'jest jednym z' },
 	tag_is_none_of: { select: 'nie jest żadnym z', badge: 'nie jest żadnym z' },
 } as const;
-
-
-/**
- * Polish needs three forms, chosen by the last digit and the teens exception:
- * 1 wiersz, 2-4 wiersze, 5-21 wierszy, 22-24 wiersze.
- */
-function pluralise(count: number, one: string, few: string, many: string): string {
-	const abs = Math.abs(count);
-
-	if (abs === 1) {
-		return one;
-	}
-
-	const lastTwo = abs % 100;
-	const last = abs % 10;
-
-	if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) {
-		return few;
-	}
-
-	return many;
-}
