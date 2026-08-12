@@ -12,7 +12,7 @@ import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.sms.model.Sms;
 import atomdance.app.modules.sms.service.SmsService;
 import atomdance.app.service.sms.ScheduledSmsService;
-import atomdance.app.service.sms.rest.SmsRestApiClient;
+import atomdance.app.common.sms.SmsApiClient;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,13 +38,14 @@ class ScheduledSmsServiceTest {
     private SmsService smsService = mock(SmsService.class);
     private PaymentListRepository paymentListRepository = mock(PaymentListRepository.class);
     private PaymentRepository paymentRepository = mock(PaymentRepository.class);
-    private SmsRestApiClient smsRestApiClient = mock(SmsRestApiClient.class);
+    private SmsApiClient smsApiClient = mock(SmsApiClient.class);
     private AuditLogger auditLogger = mock(AuditLogger.class);
+    private List<String> phoneWhitelist = new ArrayList<>();
     private static ScheduledSmsService scheduledSmsService;
 
     @BeforeEach
     void setupScheduledService() {
-        scheduledSmsService = new ScheduledSmsService(appClock, smsService, paymentListRepository, paymentRepository, smsRestApiClient, auditLogger);
+        scheduledSmsService = new ScheduledSmsService(appClock, smsService, paymentListRepository, paymentRepository, smsApiClient, auditLogger, phoneWhitelist);
     }
 
 

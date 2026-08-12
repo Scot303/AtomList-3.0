@@ -8,7 +8,7 @@ import atomdance.app.modules.finance.repository.PaymentListRepository;
 import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.sms.service.SmsService;
 import atomdance.app.service.sms.ScheduledSmsService;
-import atomdance.app.service.sms.rest.SmsRestApiClient;
+import atomdance.app.common.sms.SmsApiClient;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -29,6 +28,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = {
@@ -37,17 +38,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ActiveProfiles("test")
 @Import({SmsRestApiClientTestConfig.class, ScheduledSmsServiceSpringTest.LoggerConfig.class})
 class ScheduledSmsServiceSpringTest {
-    @Value("${app.sms.rest.justSend.apiKey}")
-    private String justSendApiKey;
-
-    @Value("${app.sms.rest.justSend.url}")
-    private String justSendUrl;
 
     @Autowired private AppClock appClock;
     @Autowired private SmsService smsService;
     @Autowired private PaymentListRepository paymentListRepository;
     @Autowired private PaymentRepository paymentRepository;
     @Autowired private AuditLogger auditLogger;
+    @Autowired private List<String> phoneWhitelist;
     @Autowired private ListAppender<ILoggingEvent> listAppender;
 
     private ScheduledSmsService scheduledSmsService;
@@ -64,8 +61,8 @@ class ScheduledSmsServiceSpringTest {
                 builderFor(RestClientAdapter.create(smsRestApiClientBuilder.build()))
                 .build();
 
-        SmsRestApiClient testJustSendSmsRestApi = serviceProxy.createClient(SmsRestApiClient.class);
-        scheduledSmsService = new ScheduledSmsService(appClock, smsService, paymentListRepository, paymentRepository, testJustSendSmsRestApi, auditLogger);
+        SmsApiClient testJustSendSmsRestApi = serviceProxy.createClient(SmsApiClient.class);
+        scheduledSmsService = new ScheduledSmsService(appClock, smsService, paymentListRepository, paymentRepository, testJustSendSmsRestApi, auditLogger, phoneWhitelist);
     }
 
     @Test

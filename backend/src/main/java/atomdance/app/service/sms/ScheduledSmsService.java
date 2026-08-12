@@ -1,7 +1,7 @@
 package atomdance.app.service.sms;
 
 import atomdance.app.common.utils.AppClock;
-import atomdance.app.service.sms.rest.SmsRestApiClient;
+import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
@@ -13,6 +13,7 @@ import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.sms.model.Sms;
 import atomdance.app.modules.sms.service.SmsService;
+import atomdance.app.common.sms.SmsApiClient;
 import atomdance.json.justsend.BulkSendRequest;
 import atomdance.json.justsend.RestRecipient;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -38,8 +37,9 @@ public class ScheduledSmsService {
     private final SmsService smsService;
     private final PaymentListRepository paymentListRepository;
     private final PaymentRepository paymentRepository;
-    private final SmsRestApiClient smsRestApiClient;
+    private final SmsApiClient smsApiClient;
     private final AuditLogger auditLogger;
+    private final List<String> phoneWhitelist;
 
     // TODO templates in English?
     private static final String STANDARD_TEMPLATE = "Przypominamy o uregulowaniu płatności za zajęcia: %s zł.";
@@ -51,13 +51,14 @@ public class ScheduledSmsService {
 
         var owedPayments = getOwedPayments(currentYearMonth);
         Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments = pairPhoneNumbersWithOwedPayments(owedPayments);
+        leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
         List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
 
         var recipients = messagesToSend.stream().map(sms -> new RestRecipient(sms.getSentToPhone(), sms.getMessage())).toList();
         var bulkSendRequest = getBulkSendRequest().withRecipients(recipients);
 
         try {
-            smsRestApiClient.bulkSendMessage(bulkSendRequest);
+            smsApiClient.bulkSendMessage(bulkSendRequest);
         } catch (HttpStatusCodeException e) {
             String errorMsg = "JustSend API returned %s: %s".formatted(e.getStatusCode(), e.getMessage());
             log.error(errorMsg);
@@ -98,6 +99,18 @@ public class ScheduledSmsService {
         return map;
     }
 
+    /**
+     * Adjust recipients of alerts.
+     * Messages will be sent only to phone numbers present in the whitelist in application property {@code app.sms.phoneWhitelist}
+     */
+
+    private void leaveOnlyWhitelistedPhoneNumber(Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments) {
+        if (phoneWhitelist.isEmpty()) {
+            return;
+        }
+        combinedOwedPayments.keySet().retainAll(phoneWhitelist);
+    }
+
     private List<Sms> createMessagesToDebtors(Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments) {
         return new ArrayList<>(combinedOwedPayments.values().stream()
                 .map(sumOfOwedPaymentsInFamily -> {
@@ -130,12 +143,7 @@ public class ScheduledSmsService {
     }
 
     private String formatSmsMessage(BigDecimal owedAmount) {
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setDecimalSeparator(',');
-
-        DecimalFormat formatter = new DecimalFormat("0.00", symbols);
-
-        return STANDARD_TEMPLATE.formatted(formatter.format(owedAmount));
+        return STANDARD_TEMPLATE.formatted(Money.format(owedAmount));
     }
 
 }

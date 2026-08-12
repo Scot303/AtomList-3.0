@@ -115,8 +115,11 @@ app:
   sms:
     schedule.reminder:
       enabled: true
-      cron: 0 0 13 15 * *
+      cron: ${SMS_SCHEDULE_REMINDER}:"0 0 13 15 * *"}
     rest:
       justSend:
         url: ${JUSTSEND_API_KEY}:"https://justsend.io/api/"}
         apiKey: ${JUSTSEND_API_KEY:}
+
+    # represent as numbers with ',' delimiter, ex.: "48123456789, 48987654321"
+    phoneWhitelist: ${PHONE_WHITELIST:}
