@@ -26,6 +26,7 @@ export const DataTable = <T extends object>(props: DataTableProps<T>) => {
 		filterableColumns, visibilityColumns, groupableColumns,
 		enableGrouping, toolbarStart, toolbar,
 		onCellEdit, onRowClick, onRowContextMenu,
+		contextRowId, setContextRowId,
 		emptyMessage, isLoading,
 		sensors, handleDragEnd, orderedColumnIds, headerGroups,
 		totalWidth, bodyRows,
@@ -112,6 +113,8 @@ export const DataTable = <T extends object>(props: DataTableProps<T>) => {
 								onCellEdit={ onCellEdit }
 								onRowClick={ onRowClick }
 								onRowContextMenu={ onRowContextMenu }
+								contextRowId={ contextRowId }
+								onContextRowChange={ setContextRowId }
 							/>
 							</tbody>
 						</table>

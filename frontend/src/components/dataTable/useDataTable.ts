@@ -16,6 +16,7 @@ import { type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-ki
 import { arrayMove } from '@dnd-kit/sortable';
 import { formatLongDate } from '@/components/ui/fields/dateUtils';
 import type { PopoverClip } from '@/hooks/usePopoverClip';
+import { useContextMenuStore } from '@/stores/menuStore';
 import type { FilterableColumn } from './types/filterTypes';
 import type { AppColumnDef, DataTableProps } from './types/dataTableTypes';
 import { dataTableFeatures, type DataTableFeatures } from './tableFeatures';
@@ -123,6 +124,22 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [globalFilter, setGlobalFilter] = useState('');
 	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+
+	/* ── Context-menu target ──────────────────────────────────────────────── */
+
+	/**
+	 * The row whose context menu is open, so it can stay marked while the menu hangs off it.
+	 */
+	const [contextRowId, setContextRowId] = useState<string | null>(null);
+
+	const contextMenuOpen = useContextMenuStore((state) => state.anchor !== null);
+
+	useEffect(() => {
+		if (!contextMenuOpen) {
+			setContextRowId(null);
+		}
+	}, [contextMenuOpen]);
 
 
 	/* ── Pre-processing ───────────────────────────────────────────────────── */
@@ -394,6 +411,7 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 		filterableColumns, visibilityColumns, groupableColumns,
 		enableGrouping, toolbarStart, toolbar,
 		onCellEdit, onRowClick, onRowContextMenu,
+		contextRowId, setContextRowId,
 		emptyMessage, isLoading,
 		sensors, handleDragEnd, orderedColumnIds,
 		headerGroups: table.getHeaderGroups(),

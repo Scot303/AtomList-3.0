@@ -1,5 +1,5 @@
 import { type MouseEvent, useCallback, useMemo } from 'react';
-import { Info, Plus, Users } from 'lucide-react';
+import { Info, Percent, Plus, Users } from 'lucide-react';
 import { DataTable, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { notifyApiError } from '@/lib/toast';
@@ -11,6 +11,7 @@ import { QuickGroupFilters } from './components/QuickGroupFilters';
 import { useFamilies } from './hooks/useFamilies';
 import { useGroups } from './hooks/useGroups';
 import { usePrefetchMemberships } from './hooks/useMemberships';
+import { usePrefetchPersonDiscounts } from './hooks/usePersonDiscounts';
 import { usePersons } from './hooks/usePersons';
 import { useUpdatePerson } from './hooks/usePersonMutations';
 import { buildPersonColumns } from './types/personColumns.tsx';
@@ -36,6 +37,7 @@ export function PersonsPage() {
 	useFamilies();
 
 	const prefetchMemberships = usePrefetchMemberships();
+	const prefetchDiscounts = usePrefetchPersonDiscounts();
 	const updatePerson = useUpdatePerson();
 
 	const openModal = useModalStore((state) => state.openModal);
@@ -79,6 +81,7 @@ export function PersonsPage() {
 	const handleRowContextMenu = useCallback(
 		(event: MouseEvent, row: PersonRow) => {
 			prefetchMemberships(row.id);
+			prefetchDiscounts(row.id);
 
 			openContextMenu(event, [
 				{
@@ -88,9 +91,19 @@ export function PersonsPage() {
 					onSelect: () => void openModal('persons.form', { personId: row.id }),
 				},
 				{
+					id: 'discounts',
+					label: 'Zobacz zniżki',
+					icon: Percent,
+					onSelect: () => void openModal('persons.discounts', {
+						personId: row.id,
+						personName: row.person.fullName,
+					}),
+				},
+				{
 					id: 'groups',
 					label: 'Zobacz grupy',
 					icon: Users,
+					separatorBefore: true,
 					onSelect: () => void openModal('persons.groups', {
 						personId: row.id,
 						personName: row.person.fullName,
@@ -98,7 +111,7 @@ export function PersonsPage() {
 				},
 			]);
 		},
-		[openContextMenu, openModal, prefetchMemberships],
+		[openContextMenu, openModal, prefetchMemberships, prefetchDiscounts],
 	);
 
 	const toolbar = (

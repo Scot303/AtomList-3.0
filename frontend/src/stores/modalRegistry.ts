@@ -71,6 +71,12 @@ export const MODAL_REGISTRY = {
 		title: ({ personName }) => `Grupy osoby - ${ personName }`,
 		size: 'xl',
 	}),
+
+	'persons.discounts': defineModal({
+		load: () => import('@/modules/persons/modals/PersonDiscountsModal.tsx'),
+		title: ({ personName }) => `Zniżki osoby - ${ personName }`,
+		size: 'xl',
+	}),
 };
 
 

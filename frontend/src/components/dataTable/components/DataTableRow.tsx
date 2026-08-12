@@ -16,13 +16,16 @@ interface DataTableRowProps<T extends object> {
 	onCellEdit?: (rowId: string, columnId: string, value: unknown) => void;
 	onRowClick?: (row: T) => void;
 	onRowContextMenu?: (event: MouseEvent, row: T) => void;
+	/** Whether this is the row the open context menu acts on. */
+	isContextTarget?: boolean;
+	onContextRowChange?: (rowId: string) => void;
 }
 
 /**
  * One data row.
  */
 const DataTableRowInner = <T extends object>(props: DataTableRowProps<T>) => {
-	const { row, virtualIndex, measureRow, onCellEdit, onRowClick, onRowContextMenu } = props;
+	const { row, virtualIndex, measureRow, onCellEdit, onRowClick, onRowContextMenu, isContextTarget, onContextRowChange } = props;
 
 	const [editingCellId, setEditingCellId] = useState<string | null>(null);
 
@@ -32,11 +35,15 @@ const DataTableRowInner = <T extends object>(props: DataTableRowProps<T>) => {
 			data-index={ virtualIndex }
 			// The real position in the full dataset, which the row's position in the DOM no longer gives away because only a window of rows is mounted.
 			aria-rowindex={ virtualIndex + 2 }
-			className="border-b border-os-border/40 transition-colors hover:bg-os-bg-highlight"
+			className={ cn(
+				'border-b border-os-border/40 transition-colors hover:bg-os-bg-highlight',
+				isContextTarget && 'bg-os-bg-highlight',
+			) }
 			onClick={ onRowClick ? () => onRowClick(row.original) : undefined }
 			onContextMenu={ onRowContextMenu
 				? (event) => {
 					event.stopPropagation();
+					onContextRowChange?.(row.id);
 					onRowContextMenu(event, row.original);
 				}
 				: undefined

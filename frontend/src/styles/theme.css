@@ -29,6 +29,8 @@
     :root {
         color-scheme: dark;
 
+        color: var(--color-os-text);
+
         font-family: 'Inter Variable', sans-serif;
         line-height: 1.5;
         background: radial-gradient(circle at 15% 10%, rgb(59 130 246 / 0.12) 0%, transparent 35%),
