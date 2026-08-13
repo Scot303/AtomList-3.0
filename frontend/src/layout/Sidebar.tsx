@@ -13,6 +13,9 @@ import { MODULES } from '@/modules/registry';
 import { useUiStore } from '@/stores/uiStore';
 
 
+const ACTIVE_MARK_TRANSITION = { type: 'spring', stiffness: 380, damping: 32 } as const;
+
+
 export function Sidebar() {
 	const isDesktop = useIsDesktop();
 	const sidebarOpen = useUiStore((state) => state.sidebarOpen);
@@ -114,25 +117,37 @@ export function Sidebar() {
 									'relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
 									'focus-visible:ring-2 focus-visible:ring-os-primary/40 focus-visible:outline-none',
 									isActive
-										? 'bg-os-primary/15 text-os-text'
+										? 'text-os-text'
 										: 'text-os-text-muted hover:bg-white/5 hover:text-os-text',
 								)
 							}
 						>
 							{ ({ isActive }) => (
 								<>
-									{/* Marks the active row without shifting the label, which a left border would. */ }
 									{ isActive ? (
-										<span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-os-primary"/>
+										<>
+											<motion.span
+												layoutId="sidebar-active-module"
+												aria-hidden
+												className="absolute inset-0 rounded-xl bg-os-primary/15"
+												transition={ ACTIVE_MARK_TRANSITION }
+											/>
+											<motion.span
+												layoutId="sidebar-active-marker"
+												aria-hidden
+												className="absolute left-0 top-1/2 -mt-2.5 h-5 w-0.5 rounded-full bg-os-primary"
+												transition={ ACTIVE_MARK_TRANSITION }
+											/>
+										</>
 									) : null }
 
 									<Icon
 										className={ cn(
-											'size-5 shrink-0',
+											'relative size-5 shrink-0',
 											isActive && 'text-os-primary',
 										) }
 									/>
-									<span className="truncate">{ label }</span>
+									<span className="relative truncate">{ label }</span>
 								</>
 							) }
 						</NavLink>
