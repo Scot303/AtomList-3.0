@@ -7,9 +7,6 @@ export type { AppColumnMeta, FieldType } from './columnMeta';
 
 /**
  * A column definition for this table.
- *
- * `fieldType` and `sortValue` sit alongside TanStack's own options rather than inside `meta`,
- * because both are read while building the filter and sort UI, before any column instance exists.
  */
 export type AppColumnDef<T extends object, TValue extends CellData = CellData> =
 	ColumnDef<DataTableFeatures, T, TValue>
@@ -24,10 +21,7 @@ export type AppColumnDef<T extends object, TValue extends CellData = CellData> =
 export interface DataTableProps<T extends object> {
 	data: T[];
 	columns: AppColumnDef<T>[];
-	/**
-	 * Identifies this table's saved layout. Must be stable across releases and unique per table -
-	 * two tables sharing a key share their column order, widths, and filters.
-	 */
+	/** Identifies this table's saved layout. Must be stable across releases and unique per table. */
 	moduleKey: string;
 	/** Enables in-place editing on columns whose `meta.editable` is set. */
 	onCellEdit?: (rowId: string, columnId: string, value: unknown) => void;

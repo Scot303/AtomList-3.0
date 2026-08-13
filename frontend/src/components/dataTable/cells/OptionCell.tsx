@@ -21,6 +21,7 @@ export const OptionCell = ({ value, rowId, columnId, meta, onCommit, onEditingCh
 			} }
 			onOpenChange={ onEditingChange }
 			searchable={ meta.searchable }
+			clearable={ meta.clearable !== false }
 			addNew={ meta.addNewSelectOption }
 			placeholder={ dataTableStrings.cell.empty }
 			className="w-full"
