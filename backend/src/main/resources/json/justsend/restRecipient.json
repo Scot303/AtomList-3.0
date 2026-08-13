@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/product.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+    "required": [
+      "msisdn",
+      "content"
+    ],
+    "properties": {
+      "msisdn": {
+        "pattern": "\\d{9,15}",
+        "type": "string"
+      },
+      "content": {
+        "type": "string"
+      }
+    },
+    "description": "List of recipients."
+}

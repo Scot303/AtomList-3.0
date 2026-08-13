@@ -112,3 +112,14 @@ app:
     #   prod backend -> https://atomlist.pl,https://www.atomlist.pl
     #   dev backend -> https://dev.atomlist.pl,https://www.dev.atomlist.pl,http://localhost:5173,http://127.0.0.1:5173
     allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:5173,http://127.0.0.1:5173}
+  sms:
+    schedule.reminder:
+      enabled: ${SMS_SCHEDULE_REMINDER_ENABLED:false}
+      cron: ${SMS_SCHEDULE_REMINDER_CRON}:"0 0 13 15 * *"}
+    rest:
+      justSend:
+        url: ${JUSTSEND_API_URL}:"https://justsend.io/api/"}
+        apiKey: ${JUSTSEND_API_KEY:}
+
+    # represent as numbers with ',' delimiter, ex.: "48123456789, 48987654321"
+    phoneWhitelist: ${PHONE_WHITELIST:}
