@@ -52,7 +52,7 @@ export function ActionMenu({ state, items, ariaLabel }: ActionMenuProps) {
 							className={ cn(
 								'flex w-full cursor-pointer items-center gap-2 rounded-md p-1.5 text-left text-sm whitespace-nowrap transition-colors outline-none',
 								'mb-0.5 last:mb-0',
-								'hover:bg-white/5 focus-visible:bg-white/5',
+								'hover:bg-white/4 focus-visible:bg-white/4',
 								'disabled:pointer-events-none disabled:cursor-default disabled:opacity-50',
 								item.danger ? 'text-os-error' : 'text-os-text hover:text-white focus-visible:text-white',
 							) }
