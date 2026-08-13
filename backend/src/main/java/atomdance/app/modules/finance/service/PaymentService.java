@@ -11,6 +11,7 @@ import atomdance.app.modules.finance.model.Payment;
 import atomdance.app.modules.finance.model.PaymentCode;
 import atomdance.app.modules.finance.model.PaymentLine;
 import atomdance.app.modules.finance.model.PaymentLineKind;
+import atomdance.app.modules.finance.model.PaymentMethod;
 import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +74,24 @@ public class PaymentService {
 			}
 
 			payment.setContractReturned(request.contractReturned());
+		}
+
+		if (request.paymentMethod() != null) {
+			if (payment.isFakePayment()) {
+				throw new InvalidOperationException("error.payment_is_fake");
+			}
+
+			if (!Money.isPositive(payment.getAmountPaid())) {
+				throw new InvalidOperationException("error.payment_method_without_amount");
+			}
+
+			PaymentMethod previous = payment.getPaymentMethod();
+
+			payment.setPaymentMethod(request.paymentMethod());
+
+			log.info("Payment method on {} [{}] changed from {} to {}", payment.getCode(), id, previous, payment.getPaymentMethod());
+			auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Payment method on %s for %s on list %s changed from %s to %s.",
+					payment.getCode(), payment.getPerson().getFullName(), PaymentListService.describe(payment.getList()), previous, payment.getPaymentMethod()));
 		}
 
 		if (request.note() != null) {

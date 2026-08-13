@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,6 +16,8 @@ public interface PaymentListRepository extends JpaRepository<PaymentList, UUID> 
 	Optional<PaymentList> findByYearAndMonthAndType(Integer year, Integer month, ListType type);
 
 	boolean existsByYearAndMonthAndType(Integer year, Integer month, ListType type);
+
+	List<PaymentList> findByYearAndTypeIn(Integer year, Collection<ListType> types);
 
 	@Query("SELECT l FROM PaymentList l LEFT JOIN FETCH l.sourceList WHERE l.id = :id")
 	Optional<PaymentList> findByIdWithSource(@Param("id") UUID id);

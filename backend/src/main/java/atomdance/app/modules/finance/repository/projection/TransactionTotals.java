@@ -1,0 +1,16 @@
+package atomdance.app.modules.finance.repository.projection;
+
+import atomdance.app.modules.finance.model.TransactionType;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+/**
+ * One list's income or expense side, summed.
+ */
+public record TransactionTotals(
+		UUID listId,
+		TransactionType type,
+		BigDecimal total
+) {
+}

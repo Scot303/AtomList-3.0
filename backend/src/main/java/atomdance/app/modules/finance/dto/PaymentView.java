@@ -12,10 +12,13 @@ import java.util.UUID;
 
 public record PaymentView(
 		UUID id,
+		Long number,
 		String code,
 		UUID listId,
 		UUID personId,
 		String personName,
+		String personFirstName,
+		String personLastName,
 		String personPhone,
 		BigDecimal amountToPay,
 		BigDecimal amountPaid,
@@ -55,10 +58,13 @@ public record PaymentView(
 	private static PaymentView build(Payment payment, List<PaymentLineView> lines) {
 		return new PaymentView(
 				payment.getId(),
+				payment.getNumber(),
 				payment.getCode(),
 				payment.getList().getId(),
 				payment.getPerson().getId(),
 				payment.getPerson().getFullName(),
+				payment.getPerson().getName(),
+				payment.getPerson().getLastName(),
 				payment.getPerson().getEffectivePhone(),
 				payment.getAmountToPay(),
 				payment.getAmountPaid(),

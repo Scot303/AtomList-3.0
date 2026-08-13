@@ -1,6 +1,8 @@
 package atomdance.app.modules.finance.repository;
 
 import atomdance.app.modules.finance.model.Payment;
+import atomdance.app.modules.finance.repository.projection.PaymentCounts;
+import atomdance.app.modules.finance.repository.projection.PaymentOutstanding;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -79,6 +81,35 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 			ORDER BY person.lastName ASC, person.name ASC
 			""")
 	List<Payment> findUnpaidByListId(@Param("listId") UUID listId);
+
+	/**
+	 * How many rows each list holds and how many are dealt with, for the year overview.
+	 */
+	@Query("""
+			SELECT new atomdance.app.modules.finance.repository.projection.PaymentCounts(
+				p.list.id,
+				COUNT(p),
+				COUNT(CASE WHEN p.isFakePayment = TRUE OR p.amountPaid >= p.amountToPay THEN 1 END))
+			FROM Payment p
+			WHERE p.list.id IN :listIds
+			GROUP BY p.list.id
+			""")
+	List<PaymentCounts> countByListIds(@Param("listIds") Collection<UUID> listIds);
+
+	/**
+	 * What each list is still owed, for the year overview.
+	 */
+	@Query("""
+			SELECT new atomdance.app.modules.finance.repository.projection.PaymentOutstanding(
+				p.list.id,
+				SUM(CAST(p.amountToPay - p.amountPaid AS BigDecimal)))
+			FROM Payment p
+			WHERE p.list.id IN :listIds
+			  AND p.isFakePayment = FALSE
+			  AND p.amountToPay > p.amountPaid
+			GROUP BY p.list.id
+			""")
+	List<PaymentOutstanding> sumOutstandingByListIds(@Param("listIds") Collection<UUID> listIds);
 
 	/**
 	 * How much of an overpayment has already been assigned to other months, so the same money cannot be spent twice.

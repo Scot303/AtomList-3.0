@@ -2,6 +2,7 @@ package atomdance.app.modules.finance.repository;
 
 import atomdance.app.modules.finance.model.Transaction;
 import atomdance.app.modules.finance.model.TransactionType;
+import atomdance.app.modules.finance.repository.projection.TransactionTotals;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,6 +30,18 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
 	@Query("SELECT t.instructor.id FROM Transaction t WHERE t.list.id = :listId AND t.instructor IS NOT NULL")
 	List<UUID> findInstructorIdsByListId(@Param("listId") UUID listId);
+
+	/**
+	 * Each list's income and expense sides, summed, for the year overview.
+	 */
+	@Query("""
+			SELECT new atomdance.app.modules.finance.repository.projection.TransactionTotals(
+				t.list.id, t.type, SUM(t.amount * t.quantity))
+			FROM Transaction t
+			WHERE t.list.id IN :listIds AND t.type IN :types
+			GROUP BY t.list.id, t.type
+			""")
+	List<TransactionTotals> sumTotalsByListIds(@Param("listIds") Collection<UUID> listIds, @Param("types") Collection<TransactionType> types);
 
 	void deleteByListId(UUID listId);
 }
