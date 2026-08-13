@@ -87,7 +87,7 @@ export const MODAL_REGISTRY = {
 	'groups.members': defineModal({
 		load: () => import('@/modules/groups/modals/GroupMembersModal.tsx'),
 		title: ({ groupName }) => `Członkowie grupy - ${ groupName }`,
-		size: 'xl',
+		size: 'lg',
 	}),
 };
 
