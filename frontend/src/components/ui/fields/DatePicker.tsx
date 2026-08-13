@@ -1,8 +1,8 @@
 import { useId } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { useSelectPopover } from '@/hooks/useSelectPopover';
-import { SelectPopover } from '@/components/ui/select';
+import { usePopover } from '@/hooks/usePopover';
+import { Popover } from '@/components/ui/popover';
 import { Calendar } from './Calendar';
 import { FieldShell } from './FieldShell';
 import { formatLongDate, parseISODate } from './dateUtils';
@@ -34,7 +34,7 @@ export const DatePicker = (props: DatePickerProps) => {
 
 	const id = useId();
 
-	const popover = useSelectPopover({ width: '17rem', maxHeight: 400, onBlur });
+	const popover = usePopover({ width: '17rem', maxHeight: 400, onBlur });
 	const { open, setReference, getReferenceProps, close } = popover;
 
 	const selected = parseISODate(value);
@@ -74,7 +74,7 @@ export const DatePicker = (props: DatePickerProps) => {
 				<CalendarIcon size={ size === 'sm' ? 14 : 18 }/>
 			</div>
 
-			<SelectPopover popover={ popover }>
+			<Popover state={ popover }>
 				<div role="dialog" aria-label={ label || 'Kalendarz' } className="popover-surface w-full rounded-xl p-3">
 					<Calendar
 						selected={ selected }
@@ -87,7 +87,7 @@ export const DatePicker = (props: DatePickerProps) => {
 						onDismiss={ close }
 					/>
 				</div>
-			</SelectPopover>
+			</Popover>
 		</FieldShell>
 	);
 };

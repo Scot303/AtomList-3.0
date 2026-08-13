@@ -77,6 +77,23 @@ export const MODAL_REGISTRY = {
 		title: ({ personName }) => `Zniżki osoby - ${ personName }`,
 		size: 'xl',
 	}),
+
+	'groups.form': defineModal({
+		load: () => import('@/modules/groups/modals/GroupFormModal.tsx'),
+		title: ({ groupId, groupName }) => {
+			if (groupId === undefined) {
+				return 'Nowa grupa';
+			}
+			return groupName === undefined ? 'Szczegóły grupy' : `Szczegóły grupy - ${ groupName }`;
+		},
+		size: 'xl',
+	}),
+
+	'groups.members': defineModal({
+		load: () => import('@/modules/groups/modals/GroupMembersModal.tsx'),
+		title: ({ groupName }) => `Członkowie grupy - ${ groupName }`,
+		size: 'lg',
+	}),
 };
 
 

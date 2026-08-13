@@ -2,11 +2,12 @@ import { useMemo } from 'react';
 import { Users } from 'lucide-react';
 import { TagBadge } from '@/components/ui/tags';
 import { formatCurrency, pluralise } from '@/lib/locale';
+import { useGroups } from '@/modules/groups/hooks/useGroups';
+import { indexGroups, resolveGroupColor } from '@/modules/groups/types/groupRows.ts';
+import type { GroupView } from '@/modules/groups/types/types.ts';
 import { DiscountLadder } from './DiscountLadder';
 import { DiscountSection } from './DiscountSection';
-import { useGroups } from '../../hooks/useGroups';
-import { indexGroups, resolveGroupColor } from '../../types/personRows.ts';
-import type { CountedMembership, DiscountComponent, GroupView } from '../../types/types.ts';
+import type { CountedMembership, DiscountComponent } from '../../types/types.ts';
 
 
 interface GroupCountDiscountSectionProps {

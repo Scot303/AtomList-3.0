@@ -5,9 +5,10 @@ import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils.ts'
 import { TagBadge } from '@/components/ui/tags';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
+import { resolveGroupColor } from '@/modules/groups/types/groupRows.ts';
+import type { GroupView } from '@/modules/groups/types/types.ts';
 import { useMembershipActions } from './useMembershipActions.ts';
-import { resolveGroupColor } from '../../types/personRows.ts';
-import type { GroupView, MembershipView } from '../../types/types.ts';
+import type { MembershipView } from '../../types/types.ts';
 import { formatShortDate } from '../../utils/personFormat.ts';
 import { MembershipCostControl } from './MembershipCostControl.tsx';
 

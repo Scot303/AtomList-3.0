@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { useSelectPopover } from '@/hooks/useSelectPopover';
-import { SelectPopover } from '@/components/ui/select';
+import { usePopover } from '@/hooks/usePopover';
+import { Popover } from '@/components/ui/popover';
 import { cn } from '@/lib/cn';
 import { Calendar } from './Calendar';
 import { formatLongDate, parseISODate } from './dateUtils';
@@ -24,7 +24,7 @@ interface DateCellPickerProps {
  * {@link DatePicker} with no field around it, for editing a date in place inside a row.
  */
 export const DateCellPicker = ({ value, onChange, onOpenChange, className, showIcon = true, children }: DateCellPickerProps) => {
-	const popover = useSelectPopover({ onOpenChange, width: '17rem', maxHeight: 400 });
+	const popover = usePopover({ onOpenChange, width: '17rem', maxHeight: 400 });
 	const { open, setReference, getReferenceProps, close } = popover;
 
 	return (
@@ -42,7 +42,7 @@ export const DateCellPicker = ({ value, onChange, onOpenChange, className, showI
 				{ showIcon && <CalendarIcon size={ 14 } aria-hidden className="ml-auto shrink-0 text-os-text-muted"/> }
 			</button>
 
-			<SelectPopover popover={ popover }>
+			<Popover state={ popover }>
 				<div role="dialog" aria-label="Kalendarz" className="popover-surface w-full rounded-xl p-3">
 					<Calendar
 						selected={ parseISODate(value) }
@@ -55,7 +55,7 @@ export const DateCellPicker = ({ value, onChange, onOpenChange, className, showI
 						onDismiss={ close }
 					/>
 				</div>
-			</SelectPopover>
+			</Popover>
 		</>
 	);
 };

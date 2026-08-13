@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
-import { useSelectPopover } from '@/hooks/useSelectPopover';
-import { SelectPopover } from '@/components/ui/select';
+import { usePopover } from '@/hooks/usePopover';
+import { Popover } from '@/components/ui/popover';
 import { cn } from '@/lib/cn';
 import { dataTableStrings } from '@/components/dataTable';
 import type { FilterableColumn, SortTag } from '../types/filterTypes';
@@ -15,7 +15,7 @@ interface SortBadgeProps {
 
 
 export const SortBadge = ({ sortTags, filterableColumns, onSortChange }: SortBadgeProps) => {
-	const popover = useSelectPopover({ width: '28rem', maxHeight: 520 });
+	const popover = usePopover({ width: '28rem', maxHeight: 520 });
 	const { open, setReference, getReferenceProps } = popover;
 
 	const isActive = sortTags.length > 0;
@@ -39,9 +39,9 @@ export const SortBadge = ({ sortTags, filterableColumns, onSortChange }: SortBad
 				<BadgeLabel sortTags={ sortTags } filterableColumns={ filterableColumns }/>
 			</button>
 
-			<SelectPopover popover={ popover }>
+			<Popover state={ popover }>
 				<SortPopover sortTags={ sortTags } filterableColumns={ filterableColumns } onSave={ onSortChange }/>
-			</SelectPopover>
+			</Popover>
 		</>
 	);
 };

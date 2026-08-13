@@ -1,22 +1,8 @@
 /**
- * Mirrors of the payloads the persons, groups, and memberships endpoints exchange.
+ * Mirrors of the payloads the persons and memberships endpoints exchange.
  */
 
-export type GroupBillingType = 'MONTHLY' | 'PER_CLASS';
-
-/** Mirror of the backend's `GroupView`. */
-export interface GroupView {
-	id: string;
-	name: string;
-	tournamentGroup: boolean;
-	/** `BigDecimal` on the wire, which serialises to a JSON number. */
-	costForAttending: number;
-	billingType: GroupBillingType;
-	active: boolean;
-	/** Six hex digits, no leading `#`. */
-	color: string | null;
-	note: string | null;
-}
+import type { GroupBillingType } from '@/modules/groups/types/types.ts';
 
 
 /** Mirror of the backend's `PersonView`. */

@@ -1,16 +1,19 @@
 import type { ReactNode } from 'react';
 import { FloatingPortal } from '@floating-ui/react';
-import type { SelectPopoverState } from '@/hooks/useSelectPopover';
+import type { PopoverState } from '@/hooks/usePopover';
 
 
-interface SelectPopoverProps {
-	popover: SelectPopoverState;
+interface PopoverProps {
+	state: PopoverState;
 	children: ReactNode;
 }
 
 
-export function SelectPopover({ popover, children }: SelectPopoverProps) {
-	const { isMounted, isTriggerHidden, setFloating, floatingStyles, transitionStyles, getFloatingProps, maxHeight } = popover;
+/**
+ * The panel half of a popover: portalled out to the body, placed against whatever opened it, and kept there.
+ */
+export function Popover({ state, children }: PopoverProps) {
+	const { isMounted, isTriggerHidden, setFloating, floatingStyles, transitionStyles, getFloatingProps, maxHeight } = state;
 
 	if (!isMounted) {
 		return null;
@@ -24,10 +27,6 @@ export function SelectPopover({ popover, children }: SelectPopoverProps) {
 					...floatingStyles,
 					zIndex: 9999,
 					maxHeight,
-					/*
-					 * Hidden rather than unmounted while the trigger is out of view, so whatever the user had going in
-					 * the panel - a half-typed search, an open add-new form - is still there when they scroll back to it.
-					 */
 					...(isTriggerHidden && { visibility: 'hidden' as const, pointerEvents: 'none' as const }),
 				} }
 				// Nothing invisible should be tabbable or readable.

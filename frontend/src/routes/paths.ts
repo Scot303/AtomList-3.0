@@ -4,6 +4,7 @@ export const paths = {
 	paymentLists: '/listy-platnosci',
 	users: '/uzytkownicy',
 	persons: '/osoby',
+	groups: '/grupy',
 } as const;
 
 /** Where a signed-in user lands when they have not asked for anywhere in particular. */

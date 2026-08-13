@@ -69,6 +69,31 @@ export function formatAge(dateOfBirth: string | null | undefined): string {
 	return age === null ? date : `${ formatYears(age) } · ${ date }`;
 }
 
+
+/** How many digits go in one group of a phone number. */
+const PHONE_GROUP_SIZE = 3;
+
+/** Digits alone - what the backend stores, and what two numbers have to be compared on. */
+export function phoneDigits(value: string | null | undefined): string {
+	return (value ?? '').replace(/\D/g, '');
+}
+
+/**
+ * `'123456789'` → `'123 456 789'`.
+ *
+ * Only the gaps between groups are filled, so a number still being typed never ends on a space the user has to delete.
+ */
+export function formatPhone(value: string | null | undefined): string {
+	const digits = phoneDigits(value);
+	const groups: string[] = [];
+
+	for (let index = 0; index < digits.length; index += PHONE_GROUP_SIZE) {
+		groups.push(digits.slice(index, index + PHONE_GROUP_SIZE));
+	}
+
+	return groups.join(' ');
+}
+
 /**
  * How a household reads where one has to be picked out: its name, with the first names of the members after it.
  */

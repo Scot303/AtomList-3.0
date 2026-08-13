@@ -1,6 +1,6 @@
 import { CellPlaceholder } from '@/components/dataTable/cells/CellPlaceholder.tsx';
-import type { TagOption } from '@/components/ui/tags/index.ts';
-import { TagBadge } from '@/components/ui/tags/index.ts';
+import { TagBadge } from './TagBadge';
+import type { TagOption } from './tagTypes';
 
 /** Badges drawn side by side before the rest are rolled into a `+N`. */
 const MAX_VISIBLE = 3;

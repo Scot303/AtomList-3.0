@@ -1,6 +1,6 @@
-import { useSelectPopover } from '@/hooks/useSelectPopover';
+import { usePopover } from '@/hooks/usePopover';
 import type { SelectAddNew, SelectValueProps } from '@/components/ui/select';
-import { bindSelectValue, SelectCell, SelectPanel } from '@/components/ui/select';
+import { ADD_FORM_WIDTH, bindSelectValue, SelectCell, SelectPanel } from '@/components/ui/select';
 import { TagBadge } from './TagBadge';
 import { buildTagPanelOptions } from './tagPanelOptions';
 import type { TagOption } from './tagTypes';
@@ -46,7 +46,7 @@ export const TagCellSelect = (props: TagCellSelectProps) => {
 		className,
 	} = props;
 
-	const popover = useSelectPopover({ onBlur, onOpenChange, width: popoverWidth, addModeWidth: '22rem' });
+	const popover = usePopover({ onBlur, onOpenChange, width: popoverWidth, expandedWidth: ADD_FORM_WIDTH });
 	const value = bindSelectValue(props);
 
 	const panel = buildTagPanelOptions(options);
@@ -62,7 +62,7 @@ export const TagCellSelect = (props: TagCellSelectProps) => {
 
 	return (
 		<SelectCell
-			popover={ popover }
+			state={ popover }
 			disabled={ disabled }
 			ariaLabel={ ariaLabel }
 			title={ title }
@@ -90,7 +90,7 @@ export const TagCellSelect = (props: TagCellSelectProps) => {
 				multiple={ value.isMultiple }
 				theme="glass"
 				addNew={ addNew }
-				onModeChange={ (mode) => popover.setIsAddMode(mode === 'add') }
+				onModeChange={ (mode) => popover.setExpanded(mode === 'add') }
 			/>
 		</SelectCell>
 	);

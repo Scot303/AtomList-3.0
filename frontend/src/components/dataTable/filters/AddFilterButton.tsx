@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
-import { useSelectPopover } from '@/hooks/useSelectPopover';
-import { SelectPopover } from '@/components/ui/select';
+import { usePopover } from '@/hooks/usePopover';
+import { Popover } from '@/components/ui/popover';
 import { cn } from '@/lib/cn';
 import { dataTableStrings } from '@/components/dataTable';
 import type { FilterableColumn, FilterActiveTag } from '../types/filterTypes';
@@ -18,7 +18,7 @@ interface AddFilterButtonProps {
 export const AddFilterButton = (props: AddFilterButtonProps) => {
 	const { filterableColumns, hasAdvancedFilter, maxAdvancedRules, onAddTag } = props;
 
-	const popover = useSelectPopover({ width: 'auto', maxHeight: 720 });
+	const popover = usePopover({ width: 'auto', maxHeight: 720 });
 	const { open, setReference, getReferenceProps, close } = popover;
 
 	return (
@@ -40,7 +40,7 @@ export const AddFilterButton = (props: AddFilterButtonProps) => {
 				{ dataTableStrings.filter.add }
 			</button>
 
-			<SelectPopover popover={ popover }>
+			<Popover state={ popover }>
 				<FilterTagPopover
 					filterableColumns={ filterableColumns }
 					hasAdvancedFilter={ hasAdvancedFilter }
@@ -48,7 +48,7 @@ export const AddFilterButton = (props: AddFilterButtonProps) => {
 					onSubmit={ onAddTag }
 					onClose={ close }
 				/>
-			</SelectPopover>
+			</Popover>
 		</>
 	);
 };

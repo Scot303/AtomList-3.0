@@ -5,6 +5,8 @@ import { cn } from '@/lib/cn';
 import { useListboxNavigation } from '@/hooks/useListboxNavigation';
 import type { SelectAddNew, SelectOption, SelectPanelMode, SelectPanelTheme } from './selectTypes';
 
+export const ADD_FORM_WIDTH = '22rem';
+
 interface SelectPanelProps {
 	options: SelectOption[];
 	/** Always a list, even for a single-value select, so one code path draws both. */

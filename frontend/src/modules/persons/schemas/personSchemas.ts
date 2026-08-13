@@ -17,20 +17,25 @@ const lastNameValue = z
 	.max(64, 'Nazwisko może mieć najwyżej 64 znaki.');
 
 
-const phoneSeparators = /[\s()\-.]/g;
+/** The field holds the number grouped for reading, so its own spaces are the only separator allowed. */
+const phoneSpaces = /\s/g;
+
+/** A whole number, no shorter. */
+export const PHONE_DIGIT_COUNT = 9;
 
 const phoneValue = z
 	.string()
 	.trim()
 	.refine(
-		(value) => value === '' || /^[0-9\s()\-.+]*$/.test(value),
-		'Numer może zawierać tylko cyfry, spacje i znaki - ( ) .',
+		(value) => value === '' || /^[0-9\s]*$/.test(value),
+		'Numer telefonu może zawierać tylko cyfry.',
 	)
 	.refine(
-		(value) => value === '' || value.replace(phoneSeparators, '').length <= 9,
-		'Numer telefonu może mieć najwyżej 9 cyfr.',
+		// Left empty on purpose is still fine - the family's number then stands in for it.
+		(value) => value === '' || value.replace(phoneSpaces, '').length === PHONE_DIGIT_COUNT,
+		'Numer telefonu musi mieć 9 cyfr.',
 	)
-	.transform((value) => value.replace(phoneSeparators, ''));
+	.transform((value) => value.replace(phoneSpaces, ''));
 
 const emailValue = z
 	.string()
