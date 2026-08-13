@@ -1,15 +1,38 @@
+import { type ChangeEvent, type KeyboardEvent } from 'react';
 import { Controller, type UseFormReturn } from 'react-hook-form';
 import { Info } from 'lucide-react';
 import { ExtendedSelect } from '@/components/ui/extendedSelect';
 import { fieldLabel, FormSection, Input } from '@/components/ui/fields';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { useFamilies } from '../../hooks/useFamilies';
-import type { PersonFormValues } from '../../schemas/personSchemas';
-import { formatFamilyName } from '../../utils/personFormat';
+import { type PersonFormValues, PHONE_DIGIT_COUNT } from '../../schemas/personSchemas';
+import { formatFamilyName, formatPhone, phoneDigits } from '../../utils/personFormat';
 
 
 const PHONE_FALLBACK_HINT = 'Gdy pole telefonu jest puste, do kontaktu używany jest numer rodziny - ' +
 	'dzięki temu rodzeństwo dzieli jeden numer i wystarczy zmienić go w jednym miejscu. Własny numer osoby zawsze ma pierwszeństwo.';
+
+const PHONE_MAX_LENGTH = formatPhone('0'.repeat(PHONE_DIGIT_COUNT)).length;
+
+function caretAfterDigits(formatted: string, digitsBefore: number): number {
+	if (digitsBefore === 0) {
+		return 0;
+	}
+
+	let seen = 0;
+
+	for (let index = 0; index < formatted.length; index += 1) {
+		if (formatted[index] !== ' ') {
+			seen += 1;
+
+			if (seen === digitsBefore) {
+				return index + 1;
+			}
+		}
+	}
+
+	return formatted.length;
+}
 
 
 interface PersonContactSectionProps {
@@ -31,6 +54,31 @@ export const PersonContactSection = ({ form, busy, familyPhone }: PersonContactS
 		name: formatFamilyName(family),
 	}));
 
+	const phone = register('phone');
+
+	const handlePhoneChange = (event: ChangeEvent<HTMLInputElement>) => {
+		const input = event.target;
+		const caret = input.selectionStart ?? input.value.length;
+		const digitsBeforeCaret = phoneDigits(input.value.slice(0, caret)).length;
+
+		input.value = formatPhone(phoneDigits(input.value).slice(0, PHONE_DIGIT_COUNT));
+
+		const nextCaret = caretAfterDigits(input.value, digitsBeforeCaret);
+		input.setSelectionRange(nextCaret, nextCaret);
+
+		void phone.onChange(event);
+	};
+
+	const handlePhoneKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		const input = event.currentTarget;
+		const caret = input.selectionStart ?? 0;
+		const hasSelection = caret !== input.selectionEnd;
+
+		if (event.key === 'Backspace' && !hasSelection && input.value[caret - 1] === ' ') {
+			input.setSelectionRange(caret - 1, caret - 1);
+		}
+	};
+
 	return (
 		<FormSection title="Kontakt">
 			<div className="flex items-start gap-2">
@@ -40,11 +88,13 @@ export const PersonContactSection = ({ form, busy, familyPhone }: PersonContactS
 						type="tel"
 						autoComplete="off"
 						inputMode="numeric"
-						maxLength={ 15 }
+						maxLength={ PHONE_MAX_LENGTH }
 						disabled={ busy }
 						error={ errors.phone?.message }
-						placeholder={ familyPhone === null ? undefined : `Numer rodziny: ${ familyPhone }` }
-						{ ...register('phone') }
+						placeholder={ familyPhone === null ? undefined : `Numer rodziny: ${ formatPhone(familyPhone) }` }
+						{ ...phone }
+						onChange={ handlePhoneChange }
+						onKeyDown={ handlePhoneKeyDown }
 					/>
 				</div>
 

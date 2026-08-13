@@ -1,5 +1,6 @@
 import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils';
 import type { PersonFormValues } from '../schemas/personSchemas';
+import { formatPhone, phoneDigits } from './personFormat';
 import type { CreatePersonPayload, PersonView, UpdatePersonPayload } from '../types/types.ts';
 
 /**
@@ -27,7 +28,7 @@ export function personToForm(person: PersonView): PersonFormValues {
 		name: person.name,
 		lastName: person.lastName,
 		dateOfBirth: person.dateOfBirth ?? '',
-		phone: person.phone ?? '',
+		phone: formatPhone(person.phone),
 		email: person.email ?? '',
 		familyId: person.familyId ?? '',
 		joinedStudioAt: person.joinedStudioAt,
@@ -100,7 +101,7 @@ export function buildUpdatePayload(values: PersonFormValues, person: PersonView)
 		payload.joinedStudioAt = values.joinedStudioAt;
 	}
 
-	if (values.phone !== before.phone) {
+	if (values.phone !== phoneDigits(before.phone)) {
 		payload.phone = values.phone;
 	}
 
