@@ -1,4 +1,6 @@
 export { TagBadge } from './TagBadge';
+export { TagBadgeList } from './TagBadgeList';
+export { TagBadgeSingle } from './TagBadgeSingle';
 export { TagSelect } from './TagSelect';
 export type { TagSelectProps } from './TagSelect';
 export { TagCellSelect } from './TagCellSelect';
