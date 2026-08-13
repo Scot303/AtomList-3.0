@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { NavLink } from 'react-router';
@@ -6,6 +7,8 @@ import logo from '@public/atomlisticon.png';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { groupsQuery } from '@/modules/groups/hooks/useGroups';
+import { personsQuery } from '@/modules/persons/hooks/usePersons';
 import { MODULES } from '@/modules/registry';
 import { useUiStore } from '@/stores/uiStore';
 
@@ -15,7 +18,8 @@ export function Sidebar() {
 	const sidebarOpen = useUiStore((state) => state.sidebarOpen);
 	const mobileNavOpen = useUiStore((state) => state.mobileNavOpen);
 	const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen);
-	const { hasAnyPermission } = useAuth();
+	const { hasAnyPermission, hasPermission } = useAuth();
+	const queryClient = useQueryClient();
 
 	const open = isDesktop ? sidebarOpen : mobileNavOpen;
 
@@ -34,6 +38,22 @@ export function Sidebar() {
 
 		return () => document.removeEventListener('keydown', onKeyDown);
 	}, [isDesktop, mobileNavOpen, setMobileNavOpen]);
+
+	/**
+	 * Starts a module's list on its way while the pointer is still on the link, so the table has rows by the time it mounts.
+	 */
+	const prefetchModule = useCallback(
+		(moduleId: string) => {
+			if (moduleId === 'persons') {
+				void queryClient.prefetchQuery({ ...personsQuery(), meta: { silent: true } });
+			}
+
+			if ((moduleId === 'groups' || moduleId === 'persons') && hasPermission('READ_GROUPS')) {
+				void queryClient.prefetchQuery({ ...groupsQuery(), meta: { silent: true } });
+			}
+		},
+		[queryClient, hasPermission],
+	);
 
 	const visibleModules = MODULES.filter((module) => hasAnyPermission(module.permissions));
 
@@ -86,6 +106,8 @@ export function Sidebar() {
 						<NavLink
 							key={ id }
 							to={ path }
+							onMouseEnter={ () => prefetchModule(id) }
+							onFocus={ () => prefetchModule(id) }
 							onClick={ () => setMobileNavOpen(false) }
 							className={ ({ isActive }) =>
 								cn(

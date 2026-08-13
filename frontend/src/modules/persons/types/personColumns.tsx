@@ -1,6 +1,6 @@
 import type { AppColumnDef } from '@/components/dataTable';
 import type { TagOption } from '@/components/ui/tags';
-import { TagBadgeList } from '@/components/ui/tags/TagBadgeList.tsx';
+import { TagBadgeList } from '@/components/ui/tags';
 import { GROUP_KIND_OPTIONS } from '@/modules/groups/types/groupRows.ts';
 import { formatAge } from '../utils/personFormat';
 import { ACTIVE_TAG_OPTIONS, type PersonRow } from './personRows.ts';
