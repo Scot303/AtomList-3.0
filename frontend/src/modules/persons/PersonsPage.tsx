@@ -94,6 +94,10 @@ export function PersonsPage() {
 
 	const handleRowContextMenu = useCallback(
 		(event: MouseEvent, row: PersonRow) => {
+			preloadModal('persons.form');
+			preloadModal('persons.discounts');
+			preloadModal('persons.groups');
+
 			prefetchMemberships(row.id);
 			prefetchDiscounts(row.id);
 

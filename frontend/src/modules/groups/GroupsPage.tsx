@@ -4,6 +4,7 @@ import { DataTable, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { notifyApiError } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
 import { useContextMenu } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
@@ -34,9 +35,12 @@ const KIND_TITLES = {
 export function GroupsPage() {
 	const { hasPermission } = useAuth();
 	const canModify = hasPermission('MODIFY_GROUPS');
+	const canReadPersons = hasPermission('READ_PERSONS');
 
 	const groups = useGroups();
 	const updateGroup = useUpdateGroup();
+
+	const prefetchPersons = usePrefetchPersons();
 
 	const openModal = useModalStore((state) => state.openModal);
 	const openContextMenu = useContextMenu();
@@ -71,6 +75,11 @@ export function GroupsPage() {
 	const handleRowContextMenu = useCallback(
 		(event: MouseEvent, row: GroupRow) => {
 			preloadModal('groups.form');
+			preloadModal('groups.members');
+
+			if (canReadPersons) {
+				prefetchPersons();
+			}
 
 			openContextMenu(event, [
 				{
@@ -90,7 +99,7 @@ export function GroupsPage() {
 				},
 			]);
 		},
-		[openContextMenu, openModal],
+		[openContextMenu, openModal, prefetchPersons, canReadPersons],
 	);
 
 	const toolbar = (
