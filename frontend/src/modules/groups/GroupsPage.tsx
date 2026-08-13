@@ -86,7 +86,10 @@ export function GroupsPage() {
 					id: 'details',
 					label: 'Szczegóły',
 					icon: Info,
-					onSelect: () => void openModal('groups.form', { groupId: row.id }),
+					onSelect: () => void openModal('groups.form', {
+						groupId: row.id,
+						groupName: row.name,
+					}),
 				},
 				{
 					id: 'members',

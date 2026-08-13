@@ -80,7 +80,12 @@ export const MODAL_REGISTRY = {
 
 	'groups.form': defineModal({
 		load: () => import('@/modules/groups/modals/GroupFormModal.tsx'),
-		title: ({ groupId }) => (groupId === undefined ? 'Nowa grupa' : 'Szczegóły grupy'),
+		title: ({ groupId, groupName }) => {
+			if (groupId === undefined) {
+				return 'Nowa grupa';
+			}
+			return groupName === undefined ? 'Szczegóły grupy' : `Szczegóły grupy - ${ groupName }`;
+		},
 		size: 'xl',
 	}),
 

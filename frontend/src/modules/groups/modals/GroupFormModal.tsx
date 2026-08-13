@@ -6,6 +6,7 @@ import { useGroups } from '../hooks/useGroups';
 interface GroupFormModalProps {
 	/** The group to edit. Leave it out to fill in a new one. */
 	groupId?: string;
+	groupName?: string;
 }
 
 /**
