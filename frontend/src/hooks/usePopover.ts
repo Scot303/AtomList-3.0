@@ -45,15 +45,16 @@ export function usePopover(options: UsePopoverOptions = {}) {
 
 	const targetWidth = isExpanded && expandedWidth !== undefined ? expandedWidth : width;
 
+
 	/** Supplied by whichever scrolling container the trigger sits in, and a no-op outside one. */
 	const clip = usePopoverClip();
 
-	/** The same clip, for the middleware that places the panel rather than the one that hides it. */
 	const placementClip = useCallback(() => {
 		const { boundary, padding } = clip();
 
 		return { boundary, padding: insetBy(padding, VIEWPORT_PADDING) };
 	}, [clip]);
+
 
 	const { refs, floatingStyles, context, placement, middlewareData } = useFloating({
 		open,
@@ -83,6 +84,7 @@ export function usePopover(options: UsePopoverOptions = {}) {
 		],
 	});
 
+
 	const opensAbove = placement.startsWith('top');
 
 	/** The trigger has scrolled out of the container it lives in, or under whatever floats over that container's leading edge. */
@@ -98,6 +100,7 @@ export function usePopover(options: UsePopoverOptions = {}) {
 		initial: { opacity: 0, transform: opensAbove ? 'translateY(0.5rem)' : 'translateY(-0.5rem)' },
 		open: { opacity: 1, transform: 'translateY(0)' },
 	});
+
 
 	/**
 	 * What the caller was last told the panel was doing.
@@ -138,15 +141,7 @@ export function usePopover(options: UsePopoverOptions = {}) {
 
 	const close = useCallback(() => setOpen(false), []);
 
-	/**
-	 * The trigger and the box the panel is measured against.
-	 *
-	 * Two references rather than one because they answer different questions.
-	 * Clicks and outside presses belong to the trigger, so that stays the reference proper.
-	 * Placement belongs to whatever box the trigger was dropped into.
-	 *
-	 * Done here rather than at each call site, so a popover cannot be written without it.
-	 */
+
 	const setReference = useCallback((node: Element | null) => {
 		refs.setReference(node);
 		refs.setPositionReference(node && resolvePopoverAnchor(node));
@@ -175,10 +170,6 @@ export type PopoverState = ReturnType<typeof usePopover>;
 
 /**
  * A clip's padding widened by `extra` on every side.
- *
- * Spelled out per side rather than handed to floating-ui as two separate paddings because there is
- * only one slot for it: a container's inset says what floats over its leading edge, and the panel's
- * own inset says how close to any edge it may sit. Both apply at once, so they add.
  */
 function insetBy(padding: DetectOverflowOptions['padding'], extra: number): SideObject {
 	const sides = typeof padding === 'number'
