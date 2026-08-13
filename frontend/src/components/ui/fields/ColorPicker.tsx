@@ -5,8 +5,8 @@ import { HexColorPicker } from 'react-colorful';
 import { cn } from '@/lib/cn';
 import { buildColorRamp } from '@/lib/color';
 import { MAX_RECENT_COLORS, useRecentColorsStore } from '@/stores/recentColorsStore';
-import { useSelectPopover } from '@/hooks/useSelectPopover';
-import { SelectPopover } from '@/components/ui/select';
+import { usePopover } from '@/hooks/usePopover';
+import { Popover } from '@/components/ui/popover';
 import { ColorSwatchRow } from './ColorSwatchRow';
 import { FieldShell } from './FieldShell';
 import { fieldControl, fieldControlWithLeftIcon, fieldLeftIcon, fieldRightAdornment, type FieldSize } from './fieldStyles';
@@ -70,7 +70,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
 		}
 	};
 
-	const popover = useSelectPopover({
+	const popover = usePopover({
 		width: '16rem',
 		maxHeight: PANEL_HEIGHT + (shades ? SWATCH_ROW_HEIGHT : 0) + (recent ? SWATCH_ROW_HEIGHT : 0),
 		align: 'end',
@@ -156,7 +156,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
 				/>
 			</div>
 
-			<SelectPopover popover={ popover }>
+			<Popover state={ popover }>
 				<div
 					role="dialog"
 					aria-label={ label }
@@ -201,7 +201,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
 						</button>
 					) }
 				</div>
-			</SelectPopover>
+			</Popover>
 		</FieldShell>
 	);
 };

@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react';
 import { ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import type { SelectPopoverState } from '@/hooks/useSelectPopover';
+import type { PopoverState } from '@/hooks/usePopover';
 import { FieldShell } from '@/components/ui/fields/FieldShell';
 import { fieldControl, fieldControlWithLeftIcon, fieldControlWithRightAdornment, fieldLeftIcon, fieldRightAdornment, } from '@/components/ui/fields/fieldStyles';
-import { SelectPopover } from './SelectPopover';
+import { Popover } from '@/components/ui/popover';
 import type { SelectSize } from './selectTypes';
 
 interface SelectFieldProps {
-	popover: SelectPopoverState;
+	state: PopoverState;
 	/** The panel to show when it opens. */
 	children: ReactNode;
 	renderValue: () => ReactNode;
@@ -35,7 +35,7 @@ interface SelectFieldProps {
  */
 export const SelectField = (props: SelectFieldProps) => {
 	const {
-		popover,
+		state: popover,
 		children,
 		renderValue,
 		hasValue,
@@ -124,7 +124,7 @@ export const SelectField = (props: SelectFieldProps) => {
 				</span>
 			</div>
 
-			<SelectPopover popover={ popover }>{ children }</SelectPopover>
+			<Popover state={ popover }>{ children }</Popover>
 		</FieldShell>
 	);
 };

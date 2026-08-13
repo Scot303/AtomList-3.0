@@ -1,7 +1,7 @@
 import type { ElementType } from 'react';
 import { BadgeCheck, Calendar, Filter, Hash, SquareMousePointer, Tag, Type, X } from 'lucide-react';
-import { useSelectPopover } from '@/hooks/useSelectPopover';
-import { SelectPopover } from '@/components/ui/select';
+import { usePopover } from '@/hooks/usePopover';
+import { Popover } from '@/components/ui/popover';
 import { toHexColor, withAlpha } from '../config/tagColors';
 import type { FieldType } from '../types/columnMeta';
 import type { AdvancedFilterTag, FilterableColumn, FilterActiveTag, FilterTag } from '../types/filterTypes';
@@ -30,7 +30,7 @@ interface FilterTagBadgeProps {
 export const FilterTagBadge = (props: FilterTagBadgeProps) => {
 	const { tag, filterableColumns, hasAdvancedFilter, maxAdvancedRules, onRemove, onUpdate } = props;
 
-	const popover = useSelectPopover({ width: 'auto', maxHeight: 720 });
+	const popover = usePopover({ width: 'auto', maxHeight: 720 });
 	const { open, setReference, getReferenceProps, close } = popover;
 
 	const hex = toHexColor(tag.color);
@@ -76,7 +76,7 @@ export const FilterTagBadge = (props: FilterTagBadgeProps) => {
 				</button>
 			</span>
 
-			<SelectPopover popover={ popover }>
+			<Popover state={ popover }>
 				<FilterTagPopover
 					tag={ tag }
 					filterableColumns={ filterableColumns }
@@ -85,7 +85,7 @@ export const FilterTagBadge = (props: FilterTagBadgeProps) => {
 					onSubmit={ onUpdate }
 					onClose={ close }
 				/>
-			</SelectPopover>
+			</Popover>
 		</>
 	);
 };

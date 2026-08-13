@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import type { SelectPopoverState } from '@/hooks/useSelectPopover';
-import { SelectPopover } from './SelectPopover';
+import type { PopoverState } from '@/hooks/usePopover';
+import { Popover } from '@/components/ui/popover';
 
 
 interface SelectCellProps {
-	popover: SelectPopoverState;
+	state: PopoverState;
 	/** The panel to show when it opens. */
 	children: ReactNode;
 	/** Draws the whole trigger - a badge, a row of chips, whatever the cell shows when closed. */
@@ -21,7 +21,7 @@ interface SelectCellProps {
  * A select with no field around it: the value itself is the trigger.
  */
 export const SelectCell = (props: SelectCellProps) => {
-	const { popover, children, renderValue, disabled, ariaLabel, title, className } = props;
+	const { state: popover, children, renderValue, disabled, ariaLabel, title, className } = props;
 
 	const { open, setReference, getReferenceProps } = popover;
 
@@ -56,7 +56,7 @@ export const SelectCell = (props: SelectCellProps) => {
 				) }
 			</button>
 
-			<SelectPopover popover={ popover }>{ children }</SelectPopover>
+			<Popover state={ popover }>{ children }</Popover>
 		</>
 	);
 };

@@ -1,6 +1,6 @@
-import { useSelectPopover } from '@/hooks/useSelectPopover';
+import { usePopover } from '@/hooks/usePopover';
 import type { SelectValueProps } from '@/components/ui/select';
-import { bindSelectValue, SelectCell, SelectPanel } from '@/components/ui/select';
+import { ADD_FORM_WIDTH, bindSelectValue, SelectCell, SelectPanel } from '@/components/ui/select';
 import { ExtendedSelectValue } from './ExtendedSelectValue';
 import type { ExtendedSelectAddNew, ExtendedSelectOption } from './extendedSelectTypes';
 
@@ -45,7 +45,7 @@ export const ExtendedCellSelect = (props: ExtendedCellSelectProps) => {
 		className,
 	} = props;
 
-	const popover = useSelectPopover({ onBlur, onOpenChange, width: popoverWidth, addModeWidth: '22rem' });
+	const popover = usePopover({ onBlur, onOpenChange, width: popoverWidth, expandedWidth: ADD_FORM_WIDTH });
 	const value = bindSelectValue(props);
 
 	const selectedOptions = options.filter((option) => value.selectedIds.includes(option.id));
@@ -60,7 +60,7 @@ export const ExtendedCellSelect = (props: ExtendedCellSelectProps) => {
 
 	return (
 		<SelectCell
-			popover={ popover }
+			state={ popover }
 			disabled={ disabled }
 			ariaLabel={ ariaLabel }
 			title={ title }
@@ -87,7 +87,7 @@ export const ExtendedCellSelect = (props: ExtendedCellSelectProps) => {
 				multiple={ value.isMultiple }
 				theme="glass"
 				addNew={ addNew }
-				onModeChange={ (mode) => popover.setIsAddMode(mode === 'add') }
+				onModeChange={ (mode) => popover.setExpanded(mode === 'add') }
 			/>
 		</SelectCell>
 	);

@@ -10,7 +10,7 @@ const GAP = 6;
 const VIEWPORT_PADDING = 8;
 
 /** The default a list panel never grows past, even with room to spare. */
-export const MAX_PANEL_HEIGHT = 320;
+const MAX_PANEL_HEIGHT = 320;
 
 /**
  * What a panel is allowed to shrink to before staying inside its container stops being worth it.
@@ -18,14 +18,13 @@ export const MAX_PANEL_HEIGHT = 320;
 const MIN_PANEL_HEIGHT = 180;
 const MIN_PANEL_WIDTH = 200;
 
-interface UseSelectPopoverOptions {
+interface UsePopoverOptions {
 	onBlur?: () => void;
 	/** Told when the panel opens and when it closes - a table cell uses it to mark itself as edited. */
 	onOpenChange?: (open: boolean) => void;
 	/** `'trigger'` matches whatever opened the panel - right for a full-width form field. */
 	width?: 'trigger' | string;
-	/** Used instead of `width` while the add-new form is showing, which needs more room than a list. */
-	addModeWidth?: string;
+	expandedWidth?: string;
 	/** Raises the cap for a panel that is more than a list. */
 	maxHeight?: number;
 	/**
@@ -36,15 +35,15 @@ interface UseSelectPopoverOptions {
 }
 
 /**
- * Open state, dismissal, and positioning for a select panel that hangs off a trigger.
+ * Open state, dismissal, and positioning for a panel that hangs off a trigger.
  */
-export function useSelectPopover(options: UseSelectPopoverOptions = {}) {
-	const { onBlur, onOpenChange, width = 'trigger', addModeWidth, maxHeight = MAX_PANEL_HEIGHT, align = 'start' } = options;
+export function usePopover(options: UsePopoverOptions = {}) {
+	const { onBlur, onOpenChange, width = 'trigger', expandedWidth, maxHeight = MAX_PANEL_HEIGHT, align = 'start' } = options;
 
 	const [open, setOpen] = useState(false);
-	const [isAddMode, setIsAddMode] = useState(false);
+	const [isExpanded, setExpanded] = useState(false);
 
-	const targetWidth = isAddMode && addModeWidth !== undefined ? addModeWidth : width;
+	const targetWidth = isExpanded && expandedWidth !== undefined ? expandedWidth : width;
 
 	/** Supplied by whichever scrolling container the trigger sits in, and a no-op outside one. */
 	const clip = usePopoverClip();
@@ -130,7 +129,8 @@ export function useSelectPopover(options: UseSelectPopoverOptions = {}) {
 		}
 
 		hasOpened.current = false;
-		setIsAddMode(false);
+
+		setExpanded(false);
 
 		onBlur?.();
 
@@ -158,8 +158,7 @@ export function useSelectPopover(options: UseSelectPopoverOptions = {}) {
 		setOpen,
 		opensAbove,
 		maxHeight,
-		isAddMode,
-		setIsAddMode,
+		setExpanded,
 		isMounted,
 		isTriggerHidden,
 		setReference,
@@ -172,7 +171,7 @@ export function useSelectPopover(options: UseSelectPopoverOptions = {}) {
 	};
 }
 
-export type SelectPopoverState = ReturnType<typeof useSelectPopover>;
+export type PopoverState = ReturnType<typeof usePopover>;
 
 /**
  * A clip's padding widened by `extra` on every side.

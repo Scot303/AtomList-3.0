@@ -1,5 +1,4 @@
-export { SelectPanel } from './SelectPanel';
-export { SelectPopover } from './SelectPopover';
+export { ADD_FORM_WIDTH, SelectPanel } from './SelectPanel';
 export { SelectField } from './SelectField';
 export { SelectCell } from './SelectCell';
 export { bindSelectValue } from './selectValue';

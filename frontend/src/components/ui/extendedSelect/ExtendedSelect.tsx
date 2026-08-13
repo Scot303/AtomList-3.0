@@ -1,8 +1,8 @@
 import type React from 'react';
 import { useId } from 'react';
-import { useSelectPopover } from '@/hooks/useSelectPopover';
+import { usePopover } from '@/hooks/usePopover';
 import type { SelectSize, SelectValueProps } from '@/components/ui/select';
-import { bindSelectValue, SelectField, SelectPanel } from '@/components/ui/select';
+import { ADD_FORM_WIDTH, bindSelectValue, SelectField, SelectPanel } from '@/components/ui/select';
 import { ExtendedSelectValue } from './ExtendedSelectValue';
 import type { ExtendedSelectAddNew, ExtendedSelectOption } from './extendedSelectTypes';
 
@@ -45,7 +45,7 @@ export const ExtendedSelect = (props: ExtendedSelectProps) => {
 	} = props;
 
 	const id = useId();
-	const popover = useSelectPopover({ onBlur, width: 'trigger', addModeWidth: '22rem' });
+	const popover = usePopover({ onBlur, width: 'trigger', expandedWidth: ADD_FORM_WIDTH });
 	const value = bindSelectValue(props);
 
 	const selectedOptions = options.filter((option) => value.selectedIds.includes(option.id));
@@ -60,7 +60,7 @@ export const ExtendedSelect = (props: ExtendedSelectProps) => {
 
 	return (
 		<SelectField
-			popover={ popover }
+			state={ popover }
 			id={ id }
 			label={ label }
 			error={ error }
@@ -84,7 +84,7 @@ export const ExtendedSelect = (props: ExtendedSelectProps) => {
 				multiple={ value.isMultiple }
 				theme="modal"
 				addNew={ addNew }
-				onModeChange={ (mode) => popover.setIsAddMode(mode === 'add') }
+				onModeChange={ (mode) => popover.setExpanded(mode === 'add') }
 			/>
 		</SelectField>
 	);
