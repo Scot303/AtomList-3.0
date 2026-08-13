@@ -50,6 +50,14 @@
         border: 1px solid var(--color-os-border);
     }
 
+    /* A page that is one full-height table. Pair with .styled-card. */
+    .table-page {
+        /* 7rem = the 4rem Topbar plus the 3rem vertical padding on Dashboard's <main>. */
+        height: calc(100dvh - 7rem);
+        overflow: hidden;
+        border-radius: 1rem;
+    }
+
     .popover-surface {
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
         var(--color-os-surface-dark);

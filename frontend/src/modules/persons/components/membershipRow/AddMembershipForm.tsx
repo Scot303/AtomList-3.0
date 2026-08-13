@@ -7,8 +7,9 @@ import { DatePicker, Input } from '@/components/ui/fields';
 import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { notifySuccess } from '@/lib/toast.ts';
+import type { GroupView } from '@/modules/groups/types/types.ts';
 import { useCreateMembership } from '../../hooks/useMemberships.ts';
-import type { GroupView, MembershipView } from '../../types/types.ts';
+import type { MembershipView } from '../../types/types.ts';
 
 
 interface AddMembershipFormProps {

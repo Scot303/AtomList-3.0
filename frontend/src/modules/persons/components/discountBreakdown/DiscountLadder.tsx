@@ -80,5 +80,5 @@ function ladderNote(component: DiscountComponent, thresholdLabel: (threshold: nu
 		return null;
 	}
 
-	return `Drabinka kończy się wcześniej, więc obowiązuje jej ostatni próg (${ thresholdLabel(component.matchedThreshold) }) zamiast braku zniżki.`;
+	return `Drabinka kończy się wcześniej, więc obowiązuje jej ostatni próg (${ thresholdLabel(component.matchedThreshold) }).`;
 }

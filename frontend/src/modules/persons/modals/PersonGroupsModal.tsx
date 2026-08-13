@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { useGroups } from '@/modules/groups/hooks/useGroups';
+import { indexGroups } from '@/modules/groups/types/groupRows.ts';
 import { AddMembershipForm } from '@/modules/persons/components/membershipRow/AddMembershipForm.tsx';
 import { MembershipRow } from '@/modules/persons/components/membershipRow/MembershipRow.tsx';
-import { useGroups } from '../hooks/useGroups';
 import { useMemberships } from '../hooks/useMemberships';
-import { indexGroups } from '../types/personRows.ts';
 
 
 interface PersonGroupsModalProps {

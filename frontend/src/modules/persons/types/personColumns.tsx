@@ -1,8 +1,9 @@
 import type { AppColumnDef } from '@/components/dataTable';
 import type { TagOption } from '@/components/ui/tags';
 import { TagBadgeList } from '@/components/ui/tags/TagBadgeList.tsx';
+import { GROUP_KIND_OPTIONS } from '@/modules/groups/types/groupRows.ts';
 import { formatAge } from '../utils/personFormat';
-import { ACTIVE_TAG_OPTIONS, GROUP_KIND_OPTIONS, type PersonRow } from './personRows.ts';
+import { ACTIVE_TAG_OPTIONS, type PersonRow } from './personRows.ts';
 
 /**
  * The persons table's columns.
@@ -65,7 +66,6 @@ export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<Pers
 			header: 'Rodzaj grup',
 			fieldType: 'tag',
 			size: 220,
-			/** What the OPEN and TURNIEJOWI buttons filter on. */
 			meta: { multiTag: true, tagOptions: GROUP_KIND_OPTIONS, globalSearch: false },
 			cell: ({ getValue }) => <TagBadgeList ids={ getValue<string[]>() } options={ GROUP_KIND_OPTIONS }/>,
 		},
