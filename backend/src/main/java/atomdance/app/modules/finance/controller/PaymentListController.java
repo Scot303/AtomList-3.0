@@ -1,7 +1,9 @@
 package atomdance.app.modules.finance.controller;
 
 import atomdance.app.modules.finance.dto.CreateCustomListRequest;
+import atomdance.app.modules.finance.dto.MonthSummaryView;
 import atomdance.app.modules.finance.dto.PaymentListView;
+import atomdance.app.modules.finance.service.ListSummaryService;
 import atomdance.app.modules.finance.service.PaymentListService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -19,11 +21,18 @@ import java.util.UUID;
 public class PaymentListController {
 
 	private final PaymentListService paymentListService;
+	private final ListSummaryService listSummaryService;
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_LISTS')")
 	public List<PaymentListView> getAll() {
 		return paymentListService.getAll();
+	}
+
+	@GetMapping("/summary/{year}")
+	@PreAuthorize("hasAuthority('READ_LISTS')")
+	public List<MonthSummaryView> summariseYear(@PathVariable int year) {
+		return listSummaryService.summariseYear(year);
 	}
 
 	@GetMapping("/{id}")
