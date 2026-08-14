@@ -27,6 +27,8 @@
     --color-os-error: #ef4444;
     --color-os-green: #22c55e;
     --color-os-warning: #f97316;
+
+    --breakpoint-3xl: 130rem;
 }
 
 @layer base {
