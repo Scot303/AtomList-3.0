@@ -1,6 +1,7 @@
 package atomdance.app.common.sms;
 
 import atomdance.json.justsend.BulkSendRequest;
+import atomdance.json.justsend.SingleSendRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.event.Level;
 
@@ -9,7 +10,7 @@ public class LoggingSmsApiClient implements SmsApiClient {
 
     @Override
     public void bulkSendMessage(BulkSendRequest bulkSendRequest) {
-        log.warn("Api Key missing - Using fallback console logger instead of calling JustSend API");
+        logWarning();
         log.atLevel(Level.WARN)
             .addKeyValue("bulkType", bulkSendRequest.getBulkType())
             .addKeyValue("bulkVariant", bulkSendRequest.getBulkVariant())
@@ -17,7 +18,26 @@ public class LoggingSmsApiClient implements SmsApiClient {
             .log();
 
         for (var recipient : bulkSendRequest.getRecipients()) {
-            log.warn("recipient number: {}, message content: {}", recipient.getMsisdn(), recipient.getContent());
+            logRecipient(recipient.getMsisdn(), recipient.getContent());
         }
+    }
+
+    @Override
+    public void singleSendMessage(SingleSendRequest singleSendRequest) {
+        logWarning();
+        log.atLevel(Level.WARN)
+            .addKeyValue("bulkVariant", singleSendRequest.getBulkVariant())
+            .addKeyValue("sender", singleSendRequest.getSender())
+            .log();
+
+        logRecipient(singleSendRequest.getMsisdn(), singleSendRequest.getContent());
+    }
+
+    private void logWarning() {
+        log.warn("Api Key missing - Using fallback console logger instead of calling JustSend API");
+    }
+
+    private void logRecipient(String msisdn, String content) {
+        log.warn("recipient number: {}, message content: {}", msisdn, content);
     }
 }

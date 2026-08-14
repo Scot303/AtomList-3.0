@@ -28,6 +28,9 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static atomdance.app.common.utils.StaticValuesUtil.ATOM_DANCE_SENDER;
+import static atomdance.app.common.utils.StaticValuesUtil.PHONE_COUNTRY_CODE;
+
 @Component
 @ConditionalOnProperty(value = "app.sms.schedule.reminder.enabled", havingValue = "true")
 @RequiredArgsConstructor
@@ -54,7 +57,10 @@ public class ScheduledSmsService {
         leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
         List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
 
-        var recipients = messagesToSend.stream().map(sms -> new RestRecipient(sms.getSentToPhone(), sms.getMessage())).toList();
+        var recipients = messagesToSend.stream()
+                .map(sms -> new RestRecipient(PHONE_COUNTRY_CODE + sms.getSentToPhone(), sms.getMessage()))
+                .toList();
+
         var bulkSendRequest = getBulkSendRequest().withRecipients(recipients);
 
         try {
@@ -66,7 +72,7 @@ public class ScheduledSmsService {
             return;
         }
 
-        smsService.saveSentScheduledSms(messagesToSend);
+        smsService.saveSentScheduledBulkSms(messagesToSend);
     }
 
     private List<Payment> getOwedPayments(YearMonth currentYearMonth) {
@@ -138,7 +144,7 @@ public class ScheduledSmsService {
                 .withName("AtomDance:" + appClock.today().format(DateTimeFormatter.BASIC_ISO_DATE))
                 .withBulkType(BulkSendRequest.BulkType.PERSONALIZED)
                 .withBulkVariant(BulkSendRequest.BulkVariant.PRO)
-                .withSender("Atom Dance")
+                .withSender(ATOM_DANCE_SENDER)
                 .withSendDate(appClock.nowOffset().plusMinutes(10L));
     }
 

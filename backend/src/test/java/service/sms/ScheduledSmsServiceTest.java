@@ -65,7 +65,7 @@ class ScheduledSmsServiceTest {
 
         // then
         var smsServiceArgumentCaptor = ArgumentCaptor.forClass(List.class);
-        verify(smsService).saveSentScheduledSms((List<Sms>) smsServiceArgumentCaptor.capture());
+        verify(smsService).saveSentScheduledBulkSms((List<Sms>) smsServiceArgumentCaptor.capture());
         assertEquals(1, smsServiceArgumentCaptor.getValue().size());
 
         Sms combinedSms = (Sms) smsServiceArgumentCaptor.getValue().getFirst();
