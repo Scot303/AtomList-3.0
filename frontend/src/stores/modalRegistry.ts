@@ -3,14 +3,12 @@ import type { ComponentType } from 'react';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'custom';
 
-
 /**
  * A fixed heading, or one built from the props the modal was opened with - for a modal titled after the record it is showing.
  *
- * Only for what the caller already knows. A title that arrives with a query belongs in `setModalTitle`,
- * since there is nothing to build it from at the moment of opening.
+ * Only for what the caller already knows. A title that arrives with a query belongs in `setModalTitle`.
  */
-export type ModalTitle<P> = string | ((props: NoInfer<P>) => string);
+export type ModalTitle<P> = string | ( (props: NoInfer<P>) => string );
 
 
 export interface ModalDefinition<P> {
@@ -21,61 +19,56 @@ export interface ModalDefinition<P> {
 	dismissible?: boolean;
 }
 
+
 /**
- * Identity at runtime. It exists to pin each entry to {@link ModalDefinition} and capture the
- * component's props as `P` - which is what lets `openModal` demand the right props for a given key.
+ * Identity at runtime.
  */
 function defineModal<P>(definition: ModalDefinition<P>): ModalDefinition<P> {
 	return definition;
 }
 
+
 /**
  * Every modal the application can open, by key.
- *
- * A modal that needs input takes it as props:
- *
- *     'persons.edit': defineModal({
- *         load: () => import('@/modules/persons/modals/EditPersonModal.tsx'),
- *         title: 'Edytuj osobę',
- *     }),
- *
- *     openModal('persons.edit', { personId });
  */
 export const MODAL_REGISTRY = {
 	'auth.account': defineModal({
 		load: () => import('@/modules/auth/modals/AccountModal.tsx'),
 		title: 'Twoje konto',
-		size: 'md',
+		size: 'md'
 	}),
 
 	'users.create': defineModal({
 		load: () => import('@/modules/users/modals/CreateUserModal.tsx'),
-		title: 'Nowe konto',
+		title: 'Nowy użytkownik',
 		size: 'md',
 	}),
 
 	'users.edit': defineModal({
 		load: () => import('@/modules/users/modals/EditUserModal.tsx'),
-		title: 'Edytuj konto',
+		title: 'Edytuj użytkownika',
 		size: 'md',
 	}),
 
 	'persons.form': defineModal({
 		load: () => import('@/modules/persons/modals/PersonFormModal.tsx'),
-		title: ({ personId }) => (personId === undefined ? 'Nowa osoba' : 'Szczegóły osoby'),
+		title: ({ personId }) => ( personId === undefined ? 'Nowa osoba' : 'Szczegóły osoby' ),
 		size: 'xl',
+		dismissible: false
 	}),
 
 	'persons.groups': defineModal({
 		load: () => import('@/modules/persons/modals/PersonGroupsModal.tsx'),
 		title: ({ personName }) => `Grupy osoby - ${ personName }`,
 		size: 'xl',
+		dismissible: false
 	}),
 
 	'persons.discounts': defineModal({
 		load: () => import('@/modules/persons/modals/PersonDiscountsModal.tsx'),
 		title: ({ personName }) => `Zniżki osoby - ${ personName }`,
 		size: 'xl',
+		dismissible: false
 	}),
 
 	'groups.form': defineModal({
@@ -87,12 +80,102 @@ export const MODAL_REGISTRY = {
 			return groupName === undefined ? 'Szczegóły grupy' : `Szczegóły grupy - ${ groupName }`;
 		},
 		size: 'xl',
+		dismissible: false
 	}),
 
 	'groups.members': defineModal({
 		load: () => import('@/modules/groups/modals/GroupMembersModal.tsx'),
 		title: ({ groupName }) => `Członkowie grupy - ${ groupName }`,
 		size: 'lg',
+		dismissible: false
+	}),
+
+	'payments.deposit': defineModal({
+		load: () => import('@/modules/paymentLists/modals/DepositModal.tsx'),
+		title: 'Wprowadź wpłatę',
+		size: 'xl',
+		dismissible: false
+	}),
+
+	'payments.settle': defineModal({
+		load: () => import('@/modules/paymentLists/modals/SettlePaymentModal.tsx'),
+		title: 'Rozlicz płatność',
+		size: 'lg',
+		dismissible: false
+	}),
+
+	'payments.details': defineModal({
+		load: () => import('@/modules/paymentLists/modals/PaymentDetailsModal.tsx'),
+		title: 'Szczegóły płatności',
+		size: 'lg',
+		dismissible: false
+	}),
+
+	'payments.oneOff': defineModal({
+		load: () => import('@/modules/paymentLists/modals/OneOffPaymentModal.tsx'),
+		title: ({ payment }) => ( payment === undefined ? 'Nowa opłata jednorazowa' : 'Edytuj opłatę jednorazową' ),
+		size: 'md',
+		dismissible: false
+	}),
+
+	'payments.quantity': defineModal({
+		load: () => import('@/modules/paymentLists/modals/QuantityModal.tsx'),
+		title: 'Zmień liczę wejść na zajęcia',
+		size: 'md',
+		dismissible: false
+	}),
+
+	'payments.edit': defineModal({
+		load: () => import('@/modules/paymentLists/modals/PaymentEditModal.tsx'),
+		title: 'Informacje dodatkowe',
+		size: 'md',
+		dismissible: false
+	}),
+
+	'lists.addPersons': defineModal({
+		load: () => import('@/modules/paymentLists/modals/AddPersonsModal.tsx'),
+		title: 'Dodaj osoby do listy',
+		size: 'md',
+		dismissible: false
+	}),
+
+	'deposits.details': defineModal({
+		load: () => import('@/modules/deposits/modals/DepositDetailsModal.tsx'),
+		title: 'Szczegóły wpłaty',
+		size: 'lg',
+	}),
+
+	'deposits.allocate': defineModal({
+		load: () => import('@/modules/deposits/modals/AllocateCreditModal.tsx'),
+		title: ({ deposit }) => `Rozlicz nadpłatę - ${ deposit.code }`,
+		size: 'xl',
+		dismissible: false
+	}),
+
+	'deposits.find': defineModal({
+		load: () => import('@/modules/deposits/modals/FindDepositModal.tsx'),
+		title: 'Znajdź wpłatę',
+		size: 'md',
+		dismissible: false
+	}),
+
+	'deposits.personCredit': defineModal({
+		load: () => import('@/modules/deposits/modals/PersonCreditModal.tsx'),
+		title: ({ personName }) => `Wpłaty osoby - ${ personName }`,
+		size: 'lg',
+	}),
+
+	'lists.report': defineModal({
+		load: () => import('@/modules/paymentLists/modals/ListReportModal.tsx'),
+		title: 'Podsumowanie listy',
+		size: 'lg',
+	}),
+
+	'lists.overpayments': defineModal({
+		load: () => import('@/modules/paymentLists/modals/CreditSweepModal.tsx'),
+		title: 'Rozlicz nadpłaty',
+		size: 'lg',
+		dismissible: false
 	}),
 };
 
@@ -100,21 +183,22 @@ export const MODAL_REGISTRY = {
 export type ModalKey = keyof typeof MODAL_REGISTRY;
 
 /** The props of the component behind a key, which is what `openModal` demands at that key. */
-export type ModalProps<K extends ModalKey> = (typeof MODAL_REGISTRY)[K] extends ModalDefinition<infer P> ? P : never;
+export type ModalProps<K extends ModalKey> = ( typeof MODAL_REGISTRY )[K] extends ModalDefinition<infer P> ? P : never;
 
 
 export function resolveModalTitle(key: ModalKey, props: Record<string, unknown>): string {
 	const { title } = MODAL_REGISTRY[key];
 
-	return typeof title === 'function' ? (title as (props: Record<string, unknown>) => string)(props) : title;
+	return typeof title === 'function' ? ( title as (props: Record<string, unknown>) => string )(props) : title;
 }
 
 
-/** Loaded on the way to being opened, never during.  */
 type LoadedModal = ComponentType<Record<string, unknown>>;
+
 
 /** Components whose chunk has arrived, by key. */
 export const loadedModals: Partial<Record<ModalKey, LoadedModal>> = {};
+
 
 /** Resolves once the chunk is in memory. Repeat calls are free - the import is cached. */
 export async function loadModal(key: ModalKey): Promise<void> {
@@ -130,14 +214,14 @@ export async function loadModal(key: ModalKey): Promise<void> {
 
 /**
  * Fetches a modal's chunk ahead of time, so opening it is instant rather than a network round trip.
- * Hang it off whatever the user touches before the modal itself: `onMouseEnter` on the trigger, and `onFocus` for anyone arriving by keyboard.
  */
 export function preloadModal(key: ModalKey): void {
 	void loadModal(key);
 }
 
+
 /**
- * The same, for the whole registry, once the page has gone quiet.
+ * Fetches the whole registry, once the page has gone quiet.
  * Worth making selective if the registry ever grows past a handful of heavy screens.
  */
 export function preloadAllModals(): void {

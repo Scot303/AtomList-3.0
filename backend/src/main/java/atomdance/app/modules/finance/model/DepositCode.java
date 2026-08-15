@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public final class DepositCode {
 
-	public static final String PREFIX = "D-";
+	public static final String PREFIX = "W-";
 
 
 	private DepositCode() {

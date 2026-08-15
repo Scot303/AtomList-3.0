@@ -3,6 +3,7 @@ export const paths = {
 	verifyEmail: '/verify-email',
 	paymentLists: '/listy-platnosci',
 	paymentListDetail: '/listy-platnosci/:listId',
+	deposits: '/wplaty',
 	users: '/uzytkownicy',
 	persons: '/osoby',
 	groups: '/grupy',
@@ -13,8 +14,12 @@ export function paymentListDetailPath(listId: string): string {
 	return `${ paths.paymentLists }/${ listId }`;
 }
 
-/** Where a signed-in user lands when they have not asked for anywhere in particular. */
+
+/**
+ * Where a signed-in user lands when they have not asked for anywhere in particular.
+ */
 export const DEFAULT_AUTHENTICATED_PATH = paths.paymentLists;
+
 
 /**
  * Accepts a remembered location only if it points back into this application.
