@@ -26,7 +26,7 @@ public class Sms {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(length = 70)
+    @Column(length = 140)
     private String message;
 
     @ManyToOne(fetch = FetchType.LAZY)
