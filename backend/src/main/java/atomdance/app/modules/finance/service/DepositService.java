@@ -18,9 +18,6 @@ import atomdance.app.modules.person.repository.PersonRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,37 +60,18 @@ public class DepositService {
 	// ---------------------------------------------------------------- Fetching
 
 
+	/**
+	 * The history of deposits, most recent first: one booking year, or every handover ever recorded when no year is named.
+	 */
 	@Transactional(readOnly = true)
-	public Page<DepositView> getHistory(UUID payerId, Integer year, Integer month, Pageable pageable) {
-		return findHistory(payerId, year, month, withNewestFirst(pageable)).map(DepositView::withoutSettlements);
-	}
+	public List<DepositView> getHistory(Integer year) {
+		List<Deposit> deposits = year == null
+				? depositRepository.findAllBy(NEWEST_FIRST)
+				: depositRepository.findByBookedYear(year, NEWEST_FIRST);
 
-
-	private Page<Deposit> findHistory(UUID payerId, Integer year, Integer month, Pageable pageable) {
-		boolean byMonth = year != null && month != null;
-
-		if (payerId != null && byMonth) {
-			return depositRepository.findByPayerIdAndBookedYearAndBookedMonth(payerId, year, month, pageable);
-		}
-
-		if (payerId != null) {
-			return depositRepository.findByPayerId(payerId, pageable);
-		}
-
-		if (byMonth) {
-			return depositRepository.findByBookedYearAndBookedMonth(year, month, pageable);
-		}
-
-		return depositRepository.findAllBy(pageable);
-	}
-
-
-	private static Pageable withNewestFirst(Pageable pageable) {
-		if (pageable.getSort().isSorted()) {
-			return pageable;
-		}
-
-		return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), NEWEST_FIRST);
+		return deposits.stream()
+				.map(DepositView::withoutSettlements)
+				.toList();
 	}
 
 

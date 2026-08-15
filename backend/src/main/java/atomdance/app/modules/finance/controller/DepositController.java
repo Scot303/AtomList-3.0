@@ -4,8 +4,6 @@ import atomdance.app.modules.finance.dto.*;
 import atomdance.app.modules.finance.service.DepositService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +16,6 @@ import java.util.UUID;
 @RequestMapping("/api/deposits")
 @RequiredArgsConstructor
 public class DepositController {
-
-	private static final int MAX_PAGE_SIZE = 100;
 
 	private final DepositService depositService;
 
@@ -45,19 +41,10 @@ public class DepositController {
 	}
 
 
-	/**
-	 * The history of handovers, most recent first.
-	 */
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_PAYMENTS')")
-	public Page<DepositView> getHistory(
-			@RequestParam(required = false) UUID payerId,
-			@RequestParam(required = false) Integer year,
-			@RequestParam(required = false) Integer month,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "25") int size) {
-
-		return depositService.getHistory(payerId, year, month, PageRequest.of(Math.max(page, 0), Math.clamp(size, 1, MAX_PAGE_SIZE)));
+	public List<DepositView> getHistory(@RequestParam(required = false) Integer year) {
+		return depositService.getHistory(year);
 	}
 
 
