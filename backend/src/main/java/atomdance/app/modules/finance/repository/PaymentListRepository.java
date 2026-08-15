@@ -11,11 +11,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
 public interface PaymentListRepository extends JpaRepository<PaymentList, UUID> {
 
 	Optional<PaymentList> findByYearAndMonthAndType(Integer year, Integer month, ListType type);
-
-	boolean existsByYearAndMonthAndType(Integer year, Integer month, ListType type);
 
 	List<PaymentList> findByYearAndTypeIn(Integer year, Collection<ListType> types);
 
@@ -34,20 +33,14 @@ public interface PaymentListRepository extends JpaRepository<PaymentList, UUID> 
 	List<PaymentList> findOpenStandard();
 
 	/**
-	 * Standard lists a person still owes money on, oldest first.
-	 * Rows already marked as fake are excluded: a month settled out of another month's overpayment is
-	 * dealt with, and offering it again would let the same debt be covered twice.
+	 * The monthly sheets for one month, so a report can see the whole month's cash even when only one of the two sheets is being printed.
 	 */
 	@Query("""
 			SELECT l FROM PaymentList l
-			JOIN Payment p ON p.list = l
-			WHERE l.type IN (ListType.STANDARD, ListType.STANDARD_TOURNAMENT)
-			  AND p.person.id = :personId
-			  AND p.isFakePayment = FALSE
-			  AND p.amountPaid < p.amountToPay
-			  AND l.id <> :excludedListId
-			ORDER BY l.year ASC, l.month ASC, l.type ASC
+			WHERE l.year = :year AND l.month = :month
+			  AND l.type IN (ListType.STANDARD, ListType.STANDARD_TOURNAMENT)
+			ORDER BY l.type ASC
 			""")
-	List<PaymentList> findStandardListsWithDebtFor(@Param("personId") UUID personId, @Param("excludedListId") UUID excludedListId);
+	List<PaymentList> findStandardFor(@Param("year") int year, @Param("month") int month);
 
 }
