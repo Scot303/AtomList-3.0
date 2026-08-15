@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+
 /**
  * One handover of money, and what it went on.
  */
@@ -37,6 +38,11 @@ public record DepositView(
 		List<DepositSettlementView> settlements
 ) {
 
+	public DepositView {
+		coveredPersonIds = coveredPersonIds == null ? Set.of() : Set.copyOf(coveredPersonIds);
+	}
+
+
 	private static final Comparator<PaymentSettlement> DISPLAY_ORDER = Comparator
 			.comparing(PaymentSettlement::getSettledAt, Comparator.nullsLast(Comparator.naturalOrder()))
 			.thenComparing(PaymentSettlement::getNumber, Comparator.nullsLast(Comparator.naturalOrder()));
@@ -45,6 +51,7 @@ public record DepositView(
 	public static DepositView from(Deposit deposit) {
 		return from(deposit, deposit.getSettlements());
 	}
+
 
 	/**
 	 * For a read that loaded the settlements separately, with the payment and person each one names.
@@ -56,9 +63,11 @@ public record DepositView(
 				.toList());
 	}
 
+
 	public static DepositView withoutSettlements(Deposit deposit) {
 		return build(deposit, null);
 	}
+
 
 	private static DepositView build(Deposit deposit, List<DepositSettlementView> settlements) {
 		return new DepositView(

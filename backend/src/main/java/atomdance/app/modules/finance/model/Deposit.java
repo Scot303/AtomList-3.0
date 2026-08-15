@@ -4,6 +4,7 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.person.model.Person;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
@@ -53,6 +54,7 @@ public class Deposit {
 	@ElementCollection(fetch = FetchType.LAZY)
 	@CollectionTable(name = "deposit_covered_persons", joinColumns = @JoinColumn(name = "deposit_id"))
 	@Column(name = "person_id", nullable = false)
+	@BatchSize(size = 64)
 	@Builder.Default
 	private Set<UUID> coveredPersonIds = new HashSet<>();
 
