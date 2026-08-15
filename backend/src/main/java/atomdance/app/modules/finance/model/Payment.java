@@ -1,6 +1,8 @@
 package atomdance.app.modules.finance.model;
 
 import atomdance.app.common.utils.Money;
+import atomdance.app.modules.group.model.Group;
+import atomdance.app.modules.group.model.Membership;
 import atomdance.app.modules.person.model.Person;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,25 +10,24 @@ import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * One person's entry on one list: what they owe, and what they have handed over.
+ * One billable item on one list: what a person owes for a single group, or a one-off charge added by hand.
  */
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "payments",
 		uniqueConstraints = {
-				@UniqueConstraint(name = "uk_payments_list_person", columnNames = {"list_id", "person_id"}),
+				@UniqueConstraint(name = "uk_payments_list_person_group", columnNames = {"list_id", "person_id", "group_id"}),
 				@UniqueConstraint(name = "uk_payments_number", columnNames = "number")
 		},
 		indexes = {
 				@Index(name = "idx_payments_list_id", columnList = "list_id"),
 				@Index(name = "idx_payments_person_id", columnList = "person_id"),
-				@Index(name = "idx_payments_settled_by", columnList = "settled_by_payment_id")
+				@Index(name = "idx_payments_group_id", columnList = "group_id")
 		})
 public class Payment {
 
@@ -50,6 +51,53 @@ public class Payment {
 	@JoinColumn(name = "person_id", nullable = false)
 	private Person person;
 
+	@Enumerated(EnumType.STRING)
+	@Column(name = "charge_kind", nullable = false, length = 32)
+	private PaymentChargeKind chargeKind;
+
+	/**
+	 * The group being billed, or {@code null} on a one-off charge.
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "group_id")
+	private Group group;
+
+	/**
+	 * Where the rate came from. Held alongside the group so the payment still names its group if the membership is ever removed.
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "membership_id")
+	private Membership membership;
+
+	/**
+	 * What the charge is for. Set by hand on a one-off; a label for the group otherwise.
+	 */
+	@Column(length = 255)
+	private String description;
+
+	/**
+	 * The rate charged - a monthly fee, or the price of one class. Snapshotted from the group or the
+	 * individually agreed amount, so a later price change does not rewrite history.
+	 */
+	@Column(nullable = false, precision = 12, scale = 2)
+	@Builder.Default
+	private BigDecimal unitCost = Money.ZERO;
+
+	/**
+	 * 1 for a monthly fee. For a per-class group, the number of classes attended.
+	 */
+	@Column(nullable = false, precision = 12, scale = 2)
+	@Builder.Default
+	private BigDecimal quantity = BigDecimal.ONE;
+
+	@Column(nullable = false, precision = 5, scale = 2)
+	@Builder.Default
+	private BigDecimal discountPercent = Money.ZERO;
+
+	@Column(nullable = false, precision = 12, scale = 2)
+	@Builder.Default
+	private BigDecimal discountAmount = Money.ZERO;
+
 	/**
 	 * The total owed, held as a stored figure rather than derived on read.
 	 */
@@ -58,31 +106,11 @@ public class Payment {
 	private BigDecimal amountToPay = Money.ZERO;
 
 	/**
-	 * What was actually handed over.
+	 * A cache of {@link #settlements}, refreshed by {@link #recalculateSettledAmount()} on every settlement write.
 	 */
 	@Column(nullable = false, precision = 12, scale = 2)
 	@Builder.Default
-	private BigDecimal amountPaid = Money.ZERO;
-
-	@Enumerated(EnumType.STRING)
-	@Column(length = 16)
-	private PaymentMethod paymentMethod;
-
-	private Instant paidAt;
-
-	/**
-	 * Marks a row that reads as settled but holds no money of its own.
-	 */
-	@Column(name = "is_fake_payment", nullable = false)
-	@Builder.Default
-	private boolean isFakePayment = false;
-
-	/**
-	 * The payment whose overpayment settled this one. Only set alongside {@link #isFakePayment}.
-	 */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "settled_by_payment_id")
-	private Payment settledByPayment;
+	private BigDecimal amountSettled = Money.ZERO;
 
 	/**
 	 * Camp lists only.
@@ -95,17 +123,12 @@ public class Payment {
 	private String note;
 
 	/**
-	 * Why {@link #amountToPay} is what it is.
+	 * What has been paid towards this, and out of which deposit.
 	 */
-	@OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "payment", fetch = FetchType.LAZY)
 	@Builder.Default
-	private List<PaymentLine> lines = new ArrayList<>();
+	private List<PaymentSettlement> settlements = new ArrayList<>();
 
-
-	public void addLine(PaymentLine line) {
-		line.setPayment(this);
-		lines.add(line);
-	}
 
 	/**
 	 * How {@link #number} is written and spoken: "P-1234".
@@ -114,28 +137,83 @@ public class Payment {
 		return PaymentCode.format(number);
 	}
 
+
 	/**
-	 * What is still owed, floored at zero so an overpayment does not read as a negative debt.
+	 * The charge before any discount.
 	 */
-	public BigDecimal getOutstanding() {
-		return Money.atLeastZero(Money.subtract(amountToPay, amountPaid));
+	public BigDecimal getGross() {
+		return Money.multiply(unitCost, quantity);
 	}
 
-	public boolean isSettled() {
-		return !Money.isGreaterThan(amountToPay, amountPaid);
+
+	/**
+	 * The one way {@link #amountToPay} is arrived at.
+	 */
+	public void applyDiscount(BigDecimal percent) {
+		BigDecimal gross = getGross();
+
+		discountPercent = Money.normalize(percent);
+		discountAmount = Money.percentOf(gross, discountPercent);
+		amountToPay = Money.atLeastZero(Money.subtract(gross, discountAmount));
 	}
 
-	public BigDecimal getOverpayment() {
-		return Money.atLeastZero(Money.subtract(amountPaid, amountToPay));
-	}
 
-	public void recalculateAmountToPay() {
+	/**
+	 * Brings {@link #amountSettled} back into line with the settlements actually recorded.
+	 */
+	public void recalculateSettledAmount() {
 		BigDecimal total = Money.ZERO;
 
-		for (PaymentLine line : lines) {
-			total = Money.add(total, line.getSubtotal());
+		for (PaymentSettlement settlement : settlements) {
+			total = Money.add(total, settlement.getAmount());
 		}
 
-		amountToPay = total;
+		amountSettled = total;
+	}
+
+
+	public void addSettlement(PaymentSettlement settlement) {
+		settlement.setPayment(this);
+		settlements.add(settlement);
+		recalculateSettledAmount();
+	}
+
+
+	public void removeSettlement(PaymentSettlement settlement) {
+		settlements.remove(settlement);
+		recalculateSettledAmount();
+	}
+
+
+	/**
+	 * What is still owed, floored at zero.
+	 */
+	public BigDecimal getOutstanding() {
+		return Money.atLeastZero(Money.subtract(amountToPay, amountSettled));
+	}
+
+
+	public boolean isSettled() {
+		return !Money.isGreaterThan(amountToPay, amountSettled);
+	}
+
+
+	/**
+	 * Whether anything has been paid towards this at all, which is what stops it being deleted by a recalculation or a list deletion.
+	 */
+	public boolean holdsSettlements() {
+		return Money.isPositive(amountSettled);
+	}
+
+
+	/**
+	 * A label for a report or an audit line: the group's name, or the one-off's own description.
+	 */
+	public String getLabel() {
+		if (description != null && !description.isBlank()) {
+			return description;
+		}
+
+		return group == null ? "" : group.getName();
 	}
 }

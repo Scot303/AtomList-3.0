@@ -11,9 +11,6 @@ export type FieldType = 'text' | 'number' | 'date' | 'tag' | 'select' | 'boolean
 
 /**
  * Per-column configuration.
- *
- * Registered as the `columnMeta` slot of {@link dataTableFeatures} rather than through global `declare module` augmentation,
- * so it applies to this table's feature set only and does not leak onto every other table in the app.
  */
 export interface AppColumnMeta {
 	/** Lets the cell be edited in place. Requires `onCellEdit` on the table. */
@@ -23,6 +20,8 @@ export interface AppColumnMeta {
 	selectOptions?: ExtendedSelectOption[];
 	/** Adds a search box to the tag/select editor's panel. Unrelated to {@link globalSearch}. */
 	searchable?: boolean;
+	/** Whether the editor may unset the value. Defaults to true. */
+	clearable?: boolean;
 	/**
 	 * Whether the toolbar's search box scans this column.
 	 *

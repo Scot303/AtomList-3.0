@@ -1,15 +1,18 @@
 package atomdance.app.modules.finance.dto;
 
 import atomdance.app.modules.finance.model.Payment;
-import atomdance.app.modules.finance.model.PaymentLine;
-import atomdance.app.modules.finance.model.PaymentMethod;
+import atomdance.app.modules.finance.model.PaymentChargeKind;
+import atomdance.app.modules.finance.model.PaymentSettlement;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+
+/**
+ * One billable item: what a person owes for one group, and what has been paid towards it.
+ */
 public record PaymentView(
 		UUID id,
 		Long number,
@@ -20,42 +23,56 @@ public record PaymentView(
 		String personFirstName,
 		String personLastName,
 		String personPhone,
+		PaymentChargeKind chargeKind,
+		UUID groupId,
+		UUID membershipId,
+		String description,
+		BigDecimal unitCost,
+		BigDecimal quantity,
+		BigDecimal gross,
+		BigDecimal discountPercent,
+		BigDecimal discountAmount,
 		BigDecimal amountToPay,
-		BigDecimal amountPaid,
+		BigDecimal amountSettled,
 		BigDecimal outstanding,
-		BigDecimal overpayment,
 		boolean settled,
-		PaymentMethod paymentMethod,
-		Instant paidAt,
-		boolean fakePayment,
-		UUID settledByPaymentId,
 		boolean contractReturned,
 		String note,
-		List<PaymentLineView> lines
+		List<SettlementView> settlements
 ) {
 
 	/**
-	 * Membership charges first, then hand-added ones, each in the order the charges were numbered.
+	 * How a list reads on screen and on paper: people alphabetically, each person's groups by name.
 	 */
-	private static final Comparator<PaymentLine> DISPLAY_ORDER = Comparator
-			.comparingInt((PaymentLine line) -> line.getKind().ordinal())
-			.thenComparing(PaymentLine::getNumber, Comparator.nullsLast(Comparator.naturalOrder()));
+	public static final Comparator<Payment> DISPLAY_ORDER = Comparator
+			.comparing((Payment payment) -> payment.getPerson().getLastName(), String.CASE_INSENSITIVE_ORDER)
+			.thenComparing(payment -> payment.getPerson().getName(), String.CASE_INSENSITIVE_ORDER)
+			.thenComparingInt(payment -> payment.getChargeKind() == null ? 0 : payment.getChargeKind().ordinal())
+			.thenComparing(Payment::getLabel, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+			.thenComparing(Payment::getNumber, Comparator.nullsLast(Comparator.naturalOrder()));
+
+	private static final Comparator<PaymentSettlement> SETTLEMENT_ORDER = Comparator
+			.comparing(PaymentSettlement::getSettledAt, Comparator.nullsLast(Comparator.naturalOrder()))
+			.thenComparing(PaymentSettlement::getNumber, Comparator.nullsLast(Comparator.naturalOrder()));
 
 
 	public static PaymentView from(Payment payment) {
-		List<PaymentLineView> lines = payment.getLines().stream()
-				.sorted(DISPLAY_ORDER)
-				.map(PaymentLineView::from)
-				.toList();
-
-		return build(payment, lines);
+		return build(payment, payment.getSettlements().stream()
+				.sorted(SETTLEMENT_ORDER)
+				.map(SettlementView::from)
+				.toList());
 	}
 
-	public static PaymentView withoutLines(Payment payment) {
+
+	/**
+	 * For a whole list, where the split of each payment is more detail than a table needs.
+	 */
+	public static PaymentView withoutSettlements(Payment payment) {
 		return build(payment, null);
 	}
 
-	private static PaymentView build(Payment payment, List<PaymentLineView> lines) {
+
+	private static PaymentView build(Payment payment, List<SettlementView> settlements) {
 		return new PaymentView(
 				payment.getId(),
 				payment.getNumber(),
@@ -66,18 +83,22 @@ public record PaymentView(
 				payment.getPerson().getName(),
 				payment.getPerson().getLastName(),
 				payment.getPerson().getEffectivePhone(),
+				payment.getChargeKind(),
+				payment.getGroup() == null ? null : payment.getGroup().getId(),
+				payment.getMembership() == null ? null : payment.getMembership().getId(),
+				payment.getDescription(),
+				payment.getUnitCost(),
+				payment.getQuantity(),
+				payment.getGross(),
+				payment.getDiscountPercent(),
+				payment.getDiscountAmount(),
 				payment.getAmountToPay(),
-				payment.getAmountPaid(),
+				payment.getAmountSettled(),
 				payment.getOutstanding(),
-				payment.getOverpayment(),
 				payment.isSettled(),
-				payment.getPaymentMethod(),
-				payment.getPaidAt(),
-				payment.isFakePayment(),
-				payment.getSettledByPayment() == null ? null : payment.getSettledByPayment().getId(),
 				payment.isContractReturned(),
 				payment.getNote(),
-				lines
+				settlements
 		);
 	}
 }

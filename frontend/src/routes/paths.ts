@@ -2,10 +2,16 @@ export const paths = {
 	login: '/login',
 	verifyEmail: '/verify-email',
 	paymentLists: '/listy-platnosci',
+	paymentListDetail: '/listy-platnosci/:listId',
 	users: '/uzytkownicy',
 	persons: '/osoby',
 	groups: '/grupy',
 } as const;
+
+
+export function paymentListDetailPath(listId: string): string {
+	return `${ paths.paymentLists }/${ listId }`;
+}
 
 /** Where a signed-in user lands when they have not asked for anywhere in particular. */
 export const DEFAULT_AUTHENTICATED_PATH = paths.paymentLists;

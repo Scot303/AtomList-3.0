@@ -6,13 +6,14 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
+
 /**
- * Sets how many classes somebody attended, for a per-class group.
+ * How many classes somebody attended, for a per-class group - or the quantity on a one-off charge.
  */
-public record UpdateLineQuantityRequest(
+public record UpdateQuantityRequest(
 
 		@NotNull(message = "Quantity is required")
 		@DecimalMin(value = "0.00", message = "Quantity cannot be negative")
-		@Digits(integer = 10, fraction = 2, message = "Quantity may have at most 2 decimal places")
+		@Digits(integer = 10, fraction = 2, message = "Quantity has too many digits")
 		BigDecimal quantity
 ) {}

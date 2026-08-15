@@ -6,6 +6,10 @@
     /* ---- Motion ---- */
     --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 
+    /* ---- Layout ---- */
+    /* What a page gets to fill: 7rem = the 4rem Topbar plus the 3rem vertical padding on Dashboard's <main>. */
+    --page-height: calc(100dvh - 7rem);
+
     --color-os-bg: #020203;
     --color-os-surface: #121212;
     --color-os-surface-dark: #080808;
@@ -23,6 +27,8 @@
     --color-os-error: #ef4444;
     --color-os-green: #22c55e;
     --color-os-warning: #f97316;
+
+    --breakpoint-3xl: 130rem;
 }
 
 @layer base {
@@ -50,14 +56,6 @@
         border: 1px solid var(--color-os-border);
     }
 
-    /* A page that is one full-height table. Pair with .styled-card. */
-    .table-page {
-        /* 7rem = the 4rem Topbar plus the 3rem vertical padding on Dashboard's <main>. */
-        height: calc(100dvh - 7rem);
-        overflow: hidden;
-        border-radius: 1rem;
-    }
-
     .popover-surface {
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
         var(--color-os-surface-dark);
@@ -68,6 +66,17 @@
         transition: border-color 0.2s,
         box-shadow 0.2s,
         transform 0.2s;
+    }
+
+    .table-page {
+        height: var(--page-height);
+        overflow: hidden;
+        border-radius: 1rem;
+    }
+
+    .full-height-page {
+        height: var(--page-height);
+        overflow: hidden;
     }
 }
 

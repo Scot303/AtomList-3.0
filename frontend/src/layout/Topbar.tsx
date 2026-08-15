@@ -1,13 +1,13 @@
-import { Menu as MenuIcon, PanelLeftClose } from 'lucide-react';
-import { useLocation } from 'react-router';
+import { Lock, Menu as MenuIcon, PanelLeftClose } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
-import { MODULES } from '@/modules/registry';
 import { useUiStore } from '@/stores/uiStore';
+import { usePageTitle } from './usePageTitle';
 import { UserMenu } from './UserMenu';
 
 export function Topbar() {
 	const isDesktop = useIsDesktop();
-	const location = useLocation();
+	const title = usePageTitle();
 
 	const sidebarOpen = useUiStore((state) => state.sidebarOpen);
 	const mobileNavOpen = useUiStore((state) => state.mobileNavOpen);
@@ -15,7 +15,6 @@ export function Topbar() {
 	const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen);
 
 	const menuOpen = isDesktop ? sidebarOpen : mobileNavOpen;
-	const currentTitle = MODULES.find((module) => location.pathname.startsWith(module.path))?.label ?? 'AtomList';
 
 	const toggle = () => {
 		if (isDesktop) {
@@ -37,7 +36,18 @@ export function Topbar() {
 				{ menuOpen ? <PanelLeftClose className="size-5"/> : <MenuIcon className="size-5"/> }
 			</button>
 
-			<h1 className="truncate text-base font-semibold text-os-text">{ currentTitle }</h1>
+			<h1 className="flex min-w-0 items-center gap-1.5 truncate text-base font-semibold text-os-text">
+				{ title.text }
+
+				{ title.closed && (
+					<>
+						<Tooltip content="Lista jest zamknięta - jej dane są już tylko do wglądu" focusable={ false }>
+							<Lock size={ 14 } aria-hidden className="shrink-0 text-os-warning"/>
+						</Tooltip>
+						<span className="sr-only">Lista zamknięta</span>
+					</>
+				) }
+			</h1>
 
 			<div className="ml-auto flex items-center">
 				<UserMenu/>
