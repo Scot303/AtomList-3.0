@@ -2,7 +2,6 @@ package atomdance.app.modules.finance.service;
 
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NotFoundException;
-import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
@@ -34,6 +33,7 @@ import java.time.Instant;
 import java.time.YearMonth;
 import java.util.*;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -54,20 +54,22 @@ public class PaymentListService {
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 	private final MessageSource messageSource;
-	private final AppClock clock;
+
 
 	public PaymentList getOrThrow(UUID id) {
 		return paymentListRepository.findByIdWithSource(id)
 				.orElseThrow(() -> new NotFoundException("entity.list"));
 	}
 
+
 	/**
-	 * Every list, newest first. Narrowing them by type or year is the client's business.
+	 * Every list, newest first.
 	 */
 	@Transactional(readOnly = true)
 	public List<PaymentListView> getAll() {
 		return paymentListRepository.findAll(NEWEST_FIRST).stream().map(PaymentListView::from).toList();
 	}
+
 
 	@Transactional(readOnly = true)
 	public PaymentListView get(UUID id) {
@@ -75,7 +77,9 @@ public class PaymentListService {
 		return PaymentListView.from(getOrThrow(id));
 	}
 
+
 	// ---------------------------------------------------------------- Standard Lists
+
 
 	@Transactional
 	public PaymentList ensureStandardList(YearMonth ym, ListType type) {
@@ -113,6 +117,7 @@ public class PaymentListService {
 		return list;
 	}
 
+
 	/**
 	 * @param tournament which of the month's two sheets is wanted
 	 * @param create     whether to bring it into being if it does not exist yet
@@ -132,6 +137,7 @@ public class PaymentListService {
 	}
 
 	// ---------------------------------------------------------------- custom lists
+
 
 	/**
 	 * Builds an ad-hoc list from one of the three ways a user picks who belongs on it.
@@ -158,6 +164,7 @@ public class PaymentListService {
 
 		return PaymentListView.from(list);
 	}
+
 
 	/**
 	 * Replays the choice that built a custom list, picking up people who have since come to qualify.
@@ -194,6 +201,7 @@ public class PaymentListService {
 		return PaymentListView.from(list);
 	}
 
+
 	/**
 	 * Adds specific people to an existing open list.
 	 */
@@ -211,6 +219,7 @@ public class PaymentListService {
 
 	// ---------------------------------------------------------------- recalculation
 
+
 	/**
 	 * Rebuilds every amount on an open list from the current memberships and discount configuration.
 	 */
@@ -221,16 +230,13 @@ public class PaymentListService {
 
 		if (list.isStandard()) {
 			syncStandardPayments(list);
-		} else {
-			for (Payment payment : paymentRepository.findByListIdWithLines(id)) {
-				payment.recalculateAmountToPay();
-			}
 		}
 
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s has been recalculated.", describe(list)));
 
 		return PaymentListView.from(list);
 	}
+
 
 	/**
 	 * Rebuilds every open monthly list, for when something a list reads but does not own has changed - a family
@@ -258,6 +264,7 @@ public class PaymentListService {
 
 	// ---------------------------------------------------------------- closing
 
+
 	/**
 	 * Freezes the list for the accountants. Idempotent.
 	 */
@@ -278,6 +285,7 @@ public class PaymentListService {
 
 		return PaymentListView.from(list);
 	}
+
 
 	/**
 	 * Unfreezes a list.
@@ -300,24 +308,22 @@ public class PaymentListService {
 		return PaymentListView.from(list);
 	}
 
+
 	/**
 	 * Only for a list created by mistake: refused once it is closed or once any money has been recorded against it.
 	 */
 	@Transactional
 	public void delete(UUID id) {
-		//admin bypass needed
+		//TODO: admin bypass needed - cascade all
 		PaymentList list = getOrThrow(id);
 		list.assertOpen();
 
-		boolean holdsMoney = paymentRepository.findByListIdWithLines(id).stream()
-				.anyMatch(payment -> Money.isPositive(payment.getAmountPaid()));
-
-		if (holdsMoney) {
+		if (paymentRepository.hasSettlementsOnList(id)) {
 			throw new InvalidOperationException("error.list_holds_money");
 		}
 
 		transactionRepository.deleteByListId(id);
-		paymentRepository.deleteAll(paymentRepository.findByListIdWithLines(id));
+		paymentRepository.deleteAll(paymentRepository.findByListId(id));
 		paymentListRepository.delete(list);
 
 		log.info("Deleted list {} ({})", id, describe(list));
@@ -326,8 +332,9 @@ public class PaymentListService {
 
 	// ---------------------------------------------------------------- population internals
 
+
 	/**
-	 * Brings a monthly list's people and amounts into line with the memberships that were running that month and belong on this sheet.
+	 * Brings a monthly list's rows and amounts into line with the memberships that were running that month and belong on this sheet.
 	 */
 	private void syncStandardPayments(PaymentList list) {
 		YearMonth month = list.yearMonth();
@@ -338,29 +345,18 @@ public class PaymentListService {
 
 		List<Membership> monthMemberships = membershipRepository.findActiveDuring(month.atDay(1), month.atEndOfMonth(), true);
 		List<Membership> billable = billableOn(list, monthMemberships);
-		Map<UUID, Person> billablePersons = new LinkedHashMap<>();
+		List<Payment> existing = paymentRepository.findByListIdForCalculation(list.getId());
 
-		for (Membership membership : billable) {
-			billablePersons.putIfAbsent(membership.getPerson().getId(), membership.getPerson());
+		PaymentCalculator.Recalculation result = paymentCalculator.recalculate(list, existing, billable, monthMemberships, discountService.currentRules());
+
+		paymentRepository.saveAll(result.created());
+
+		// A row whose group is no longer billed here, and which nobody has paid anything towards.
+		if (!result.obsolete().isEmpty()) {
+			paymentRepository.deleteAll(result.obsolete());
 		}
-
-		List<Payment> payments = new ArrayList<>(paymentRepository.findByListIdWithLines(list.getId()));
-		Set<UUID> alreadyOnList = new HashSet<>();
-
-		for (Payment payment : payments) {
-			alreadyOnList.add(payment.getPerson().getId());
-		}
-
-		for (Map.Entry<UUID, Person> entry : billablePersons.entrySet()) {
-			if (!alreadyOnList.contains(entry.getKey())) {
-				payments.add(paymentRepository.save(newPayment(list, entry.getValue())));
-			}
-		}
-
-		payments.removeIf(payment -> dropIfNoLongerBillable(payment, billablePersons.keySet()));
-
-		paymentCalculator.recalculate(payments, billable, monthMemberships, discountService.currentRules());
 	}
+
 
 	/**
 	 * The memberships a sheet charges for: the tournament list carries the tournament groups and the regular
@@ -372,35 +368,13 @@ public class PaymentListService {
 				.toList();
 	}
 
+
 	private static void requireStandardType(ListType type) {
 		if (type == null || !type.isStandard()) {
 			throw new InvalidOperationException("error.not_a_standard_list_type");
 		}
 	}
 
-	/**
-	 * Removes somebody who no longer has a membership this month - but only when there is nothing on their
-	 * row worth keeping.
-	 *
-	 * @return whether the payment was deleted
-	 */
-	private boolean dropIfNoLongerBillable(Payment payment, Set<UUID> billablePersonIds) {
-		if (billablePersonIds.contains(payment.getPerson().getId())) {
-			return false;
-		}
-
-		boolean worthKeeping = Money.isPositive(payment.getAmountPaid())
-				|| payment.isFakePayment()
-				|| payment.getLines().stream().anyMatch(line -> line.getKind() == PaymentLineKind.ONE_TIME);
-
-		if (worthKeeping) {
-			return false;
-		}
-
-		paymentRepository.delete(payment);
-
-		return true;
-	}
 
 	private int populateCustom(PaymentList list, CreateCustomListRequest request) {
 		return switch (request.populationMode()) {
@@ -424,10 +398,12 @@ public class PaymentListService {
 		};
 	}
 
+
 	/**
 	 * Carries everybody still owing on another list over to this one, debt included.
 	 */
 	private int populateFromUnpaid(PaymentList list, UUID sourceListId) {
+		// TODO not needed?
 		if (sourceListId == null) {
 			throw new InvalidOperationException("error.list_population_requires_source");
 		}
@@ -443,9 +419,11 @@ public class PaymentListService {
 				continue;
 			}
 
-			Payment payment = paymentRepository.save(newPayment(list, debt.getPerson()));
-			payment.addLine(carriedOverLine(debt.getOutstanding(), source));
-			payment.recalculateAmountToPay();
+			paymentRepository.save(oneOffPayment(list, debt.getPerson(), messageSource.getMessage(
+					"list.carried_over_from",
+					new Object[]{describe(source)},
+					"Carried over from " + describe(source),
+					LocaleContextHolder.getLocale()), debt.getOutstanding()));
 
 			added++;
 		}
@@ -453,25 +431,9 @@ public class PaymentListService {
 		return added;
 	}
 
-	private PaymentLine carriedOverLine(BigDecimal outstanding, PaymentList source) {
-		PaymentLine line = PaymentLine.builder()
-				.kind(PaymentLineKind.ONE_TIME)
-				.description(messageSource.getMessage(
-						"list.carried_over_from",
-						new Object[]{describe(source)},
-						"Carried over from " + describe(source),
-						LocaleContextHolder.getLocale()))
-				.unitCost(Money.normalize(outstanding))
-				.quantity(BigDecimal.ONE)
-				.build();
-
-		line.applyDiscount(Money.ZERO);
-
-		return line;
-	}
 
 	/**
-	 * Puts people on a list with nothing owed yet.
+	 * Puts people on a custom list, each with one blank charge for a manager to fill in.
 	 *
 	 * @return how many people were added, skipping any already present
 	 */
@@ -491,21 +453,33 @@ public class PaymentListService {
 				continue;
 			}
 
-			paymentRepository.save(newPayment(list, person));
+			paymentRepository.save(oneOffPayment(list, person, list.getName(), Money.ZERO));
 			added++;
 		}
 
 		return added;
 	}
 
-	private static Payment newPayment(PaymentList list, Person person) {
-		return Payment.builder()
+
+	/**
+	 * A charge nothing derives, for a list whose amounts are decided by hand. One of these per person is what
+	 * a custom list is made of, and on a camp list it is the row that tracks their contract.
+	 */
+	private static Payment oneOffPayment(PaymentList list, Person person, String description, BigDecimal amount) {
+		Payment payment = Payment.builder()
 				.list(list)
 				.person(person)
-				.amountToPay(Money.ZERO)
-				.amountPaid(Money.ZERO)
+				.chargeKind(PaymentChargeKind.ONE_TIME)
+				.description(description)
+				.unitCost(Money.normalize(amount))
+				.quantity(BigDecimal.ONE)
 				.build();
+
+		payment.applyDiscount(Money.ZERO);
+
+		return payment;
 	}
+
 
 	private UUID requireSourceList(CreateCustomListRequest request) {
 		if (request.sourceListId() == null) {
@@ -514,6 +488,7 @@ public class PaymentListService {
 
 		return request.sourceListId();
 	}
+
 
 	/**
 	 * A short label for logs and audit records.
@@ -526,6 +501,7 @@ public class PaymentListService {
 		return list.getName() != null ? "'" + list.getName() + "'" : String.valueOf(list.getId());
 	}
 
+
 	private UUID currentUserOrSystem() {
 		try {
 			return securityService.getCurrentUserId();
@@ -534,10 +510,4 @@ public class PaymentListService {
 		}
 	}
 
-	/**
-	 * The month the scheduler should be looking at.
-	 */
-	public YearMonth currentMonth() {
-		return clock.currentYearMonth();
-	}
 }

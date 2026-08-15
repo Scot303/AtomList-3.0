@@ -1,8 +1,10 @@
 package atomdance.app.modules.finance.controller;
 
 import atomdance.app.modules.finance.dto.CreateCustomListRequest;
+import atomdance.app.modules.finance.dto.ListReportView;
 import atomdance.app.modules.finance.dto.MonthSummaryView;
 import atomdance.app.modules.finance.dto.PaymentListView;
+import atomdance.app.modules.finance.service.ListReportService;
 import atomdance.app.modules.finance.service.ListSummaryService;
 import atomdance.app.modules.finance.service.PaymentListService;
 import jakarta.validation.Valid;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+
 @RestController
 @RequestMapping("/api/lists")
 @RequiredArgsConstructor
@@ -22,6 +25,8 @@ public class PaymentListController {
 
 	private final PaymentListService paymentListService;
 	private final ListSummaryService listSummaryService;
+	private final ListReportService listReportService;
+
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_LISTS')")
@@ -29,11 +34,13 @@ public class PaymentListController {
 		return paymentListService.getAll();
 	}
 
+
 	@GetMapping("/summary/{year}")
 	@PreAuthorize("hasAuthority('READ_LISTS')")
 	public List<MonthSummaryView> summariseYear(@PathVariable int year) {
 		return listSummaryService.summariseYear(year);
 	}
+
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAuthority('READ_LISTS')")
@@ -41,11 +48,24 @@ public class PaymentListController {
 		return paymentListService.get(id);
 	}
 
+
+	/**
+	 * Everything this list would say on paper: every charge with the instalments that settled it, the money taken
+	 * in for the period and where it went, and the totals underneath.
+	 */
+	@GetMapping("/{id}/report")
+	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
+	public ListReportView report(@PathVariable UUID id) {
+		return listReportService.build(id);
+	}
+
+
 	@GetMapping("/standard/{year}/{month}")
 	@PreAuthorize("hasAuthority('READ_LISTS') and (!#create or hasAuthority('MODIFY_LISTS'))")
 	public PaymentListView getStandard(@PathVariable int year, @PathVariable int month, @RequestParam(defaultValue = "false") boolean tournament, @RequestParam(defaultValue = "false") boolean create) {
 		return paymentListService.getStandard(year, month, tournament, create);
 	}
+
 
 	@PostMapping("/custom")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -53,6 +73,7 @@ public class PaymentListController {
 	public PaymentListView createCustom(@RequestBody @Valid CreateCustomListRequest request) {
 		return paymentListService.createCustom(request);
 	}
+
 
 	/**
 	 * Replays how a custom list chose its people, adding anybody who now qualifies. Never removes.
@@ -63,11 +84,13 @@ public class PaymentListController {
 		return paymentListService.repopulate(id);
 	}
 
+
 	@PostMapping("/{id}/persons")
 	@PreAuthorize("hasAuthority('MODIFY_LISTS')")
 	public PaymentListView addPersons(@PathVariable UUID id, @RequestBody @NotEmpty(message = "At least one person is required") List<UUID> personIds) {
 		return paymentListService.addPersons(id, personIds);
 	}
+
 
 	/**
 	 * Rebuilds every amount from the current memberships and discount configuration. Needed after a group
@@ -79,6 +102,7 @@ public class PaymentListController {
 		return paymentListService.recalculate(id);
 	}
 
+
 	/**
 	 * Freezes the figures for the accountants.
 	 */
@@ -88,11 +112,13 @@ public class PaymentListController {
 		return paymentListService.close(id);
 	}
 
+
 	@PostMapping("/{id}/reopen")
 	@PreAuthorize("hasAuthority('CLOSE_LISTS')")
 	public PaymentListView reopen(@PathVariable UUID id) {
 		return paymentListService.reopen(id);
 	}
+
 
 	/**
 	 * Only for a list created by mistake: refused once closed or once any money has been recorded on it.

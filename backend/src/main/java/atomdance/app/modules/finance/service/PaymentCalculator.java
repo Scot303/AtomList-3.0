@@ -4,8 +4,8 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.discount.service.DiscountRules;
 import atomdance.app.modules.discount.service.FamilyPositions;
 import atomdance.app.modules.finance.model.Payment;
-import atomdance.app.modules.finance.model.PaymentLine;
-import atomdance.app.modules.finance.model.PaymentLineKind;
+import atomdance.app.modules.finance.model.PaymentChargeKind;
+import atomdance.app.modules.finance.model.PaymentList;
 import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.model.Membership;
 import atomdance.app.modules.person.model.Person;
@@ -14,111 +14,224 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.*;
 
+
 /**
  * Turns memberships into amounts owed. The only place a charge is decided.
+ * <p>
+ * One payment per person per group: a membership that belongs on this sheet gets a row, and nothing else does.
  */
 @Component
 public class PaymentCalculator {
 
 	/**
-	 * Recomputes the breakdown for each payment, in place.
+	 * What a recalculation concluded.
 	 *
-	 * @param payments            the rows to recompute
+	 * @param current  every payment that should exist on the list afterwards, amounts already applied
+	 * @param created  the subset of {@code current} that is new and needs saving
+	 * @param obsolete payments whose group is no longer billed and which hold nothing worth keeping
+	 */
+	public record Recalculation(List<Payment> current, List<Payment> created, List<Payment> obsolete) {
+	}
+
+
+	/**
+	 * Recomputes a whole list.
+	 *
+	 * @param existing            the payments already on the list
 	 * @param billableMemberships the memberships this list charges for - the month's memberships narrowed to the groups that belong on this sheet
 	 * @param monthMemberships    every membership active in the month for these people, whichever sheet it is billed on, which is what the two discounts are worked out from
 	 */
-	public void recalculate(Collection<Payment> payments, Collection<Membership> billableMemberships, Collection<Membership> monthMemberships, DiscountRules rules) {
+	public Recalculation recalculate(PaymentList list, Collection<Payment> existing, Collection<Membership> billableMemberships, Collection<Membership> monthMemberships, DiscountRules rules) {
 
 		Map<UUID, List<Membership>> billableByPerson = FamilyPositions.byPerson(billableMemberships);
 		Map<UUID, List<Membership>> monthByPerson = FamilyPositions.byPerson(monthMemberships);
-		Map<UUID, List<PaymentLine>> chargesByPerson = new HashMap<>();
 
-		for (Payment payment : payments) {
-			UUID personId = payment.getPerson().getId();
-			List<Membership> personMemberships = billableByPerson.getOrDefault(personId, List.of());
+		List<Payment> oneOffs = new ArrayList<>();
+		Map<UUID, Map<UUID, Payment>> membershipDerived = indexByPersonAndGroup(existing, oneOffs);
 
-			chargesByPerson.put(personId, refreshMembershipLines(payment, personMemberships));
-		}
+		List<Payment> current = new ArrayList<>(oneOffs);
+		List<Payment> created = new ArrayList<>();
 
-		Map<UUID, Integer> familyPositions = FamilyPositions.resolve(orderedForPositioning(payments, monthByPerson), monthByPerson);
+		Map<UUID, Person> persons = personsOf(existing, billableMemberships);
 
-		for (Payment payment : payments) {
-			UUID personId = payment.getPerson().getId();
+		for (Map.Entry<UUID, List<Membership>> entry : billableByPerson.entrySet()) {
+			Map<UUID, Payment> byGroup = membershipDerived.getOrDefault(entry.getKey(), Map.of());
 
-			// How many groups they attend in total, not how many this sheet happens to charge for.
-			int groupCount = monthByPerson.getOrDefault(personId, List.of()).size();
-			BigDecimal percent = rules.combinedPercent(familyPositions.getOrDefault(personId, 1), groupCount);
+			for (Membership membership : oneMembershipPerGroup(entry.getValue())) {
+				Payment payment = byGroup.get(membership.getGroup().getId());
 
-			for (PaymentLine line : chargesByPerson.get(personId)) {
-				line.applyDiscount(percent);
+				if (payment == null) {
+					payment = newPayment(list, membership.getPerson(), membership);
+					created.add(payment);
+				}
+
+				refresh(payment, membership);
+
+				current.add(payment);
 			}
-
-			payment.recalculateAmountToPay();
 		}
+
+		applyDiscounts(current, monthByPerson, persons, rules);
+
+		return new Recalculation(current, created, obsoleteAmong(existing, current));
 	}
+
 
 	/**
-	 * Brings each membership-derived line up to date, leaving hand-added charges untouched.
+	 * Applies the month's two discount ladders. A one-off charge is left alone - it is a figure somebody typed, not a fee a rule applies to.
 	 */
-	private List<PaymentLine> refreshMembershipLines(Payment payment, List<Membership> memberships) {
-		Map<UUID, PaymentLine> existing = membershipLinesByMembership(payment);
-		Set<UUID> stillBilled = new HashSet<>();
-		List<PaymentLine> charges = new ArrayList<>();
+	private void applyDiscounts(Collection<Payment> payments, Map<UUID, List<Membership>> monthByPerson, Map<UUID, Person> persons, DiscountRules rules) {
+		Map<UUID, Integer> familyPositions = FamilyPositions.resolve(orderedForPositioning(payments, persons, monthByPerson), monthByPerson);
+		Map<UUID, BigDecimal> percentByPerson = new HashMap<>();
+
+		for (Payment payment : payments) {
+			UUID personId = payment.getPerson().getId();
+
+			BigDecimal percent = percentByPerson.computeIfAbsent(personId, key -> rules.combinedPercent(
+					familyPositions.getOrDefault(key, 1),
+					groupCount(monthByPerson.get(key))));
+
+			payment.applyDiscount(payment.getChargeKind().isMembershipDerived() ? percent : Money.ZERO);
+		}
+	}
+
+
+	/**
+	 * Brings a payment up to date with the membership it bills, preserving what a manager entered by hand.
+	 */
+	private static void refresh(Payment payment, Membership membership) {
+		Group group = membership.getGroup();
+		boolean perClass = group.isPerClass();
+
+		payment.setChargeKind(PaymentChargeKind.forGroup(perClass));
+		payment.setMembership(membership);
+		payment.setGroup(group);
+		payment.setDescription(group.getName());
+		payment.setUnitCost(Money.normalize(membership.resolveUnitCost()));
+
+		// A per-class count is attendance a manager recorded, so a recalculation must leave it be.
+		if (!perClass) {
+			payment.setQuantity(BigDecimal.ONE);
+		}
+	}
+
+
+	private static Payment newPayment(PaymentList list, Person person, Membership membership) {
+		return Payment.builder()
+				.list(list)
+				.person(person)
+				.chargeKind(PaymentChargeKind.forGroup(membership.getGroup().isPerClass()))
+				.quantity(membership.getGroup().isPerClass() ? Money.ZERO : BigDecimal.ONE)
+				.build();
+	}
+
+
+	/**
+	 * Splits what is already on the list into the membership-derived rows, keyed by person and group, and the
+	 * hand-added ones - which no membership can claim and no recalculation may touch.
+	 */
+	private static Map<UUID, Map<UUID, Payment>> indexByPersonAndGroup(Collection<Payment> existing, List<Payment> oneOffs) {
+		Map<UUID, Map<UUID, Payment>> byPersonAndGroup = new HashMap<>();
+
+		for (Payment payment : existing) {
+			if (payment.getChargeKind() == null || !payment.getChargeKind().isMembershipDerived() || payment.getGroup() == null) {
+				oneOffs.add(payment);
+
+				continue;
+			}
+
+			byPersonAndGroup
+					.computeIfAbsent(payment.getPerson().getId(), key -> new HashMap<>())
+					.put(payment.getGroup().getId(), payment);
+		}
+
+		return byPersonAndGroup;
+	}
+
+
+	/**
+	 * Whatever is left over belonged to a group that is no longer billed here - the membership ended, or the
+	 * group moved to the other sheet. Only droppable while nothing has been paid towards it.
+	 */
+	private static List<Payment> obsoleteAmong(Collection<Payment> existing, Collection<Payment> current) {
+		Set<Payment> kept = Collections.newSetFromMap(new IdentityHashMap<>());
+		kept.addAll(current);
+
+		return existing.stream()
+				.filter(payment -> !kept.contains(payment))
+				.filter(payment -> !payment.holdsSettlements())
+				.toList();
+	}
+
+
+	/**
+	 * A person can hold two memberships of one group in a month - having left and rejoined - and that is one
+	 * group to bill, not two. The most recent one carries the rate.
+	 */
+	private static List<Membership> oneMembershipPerGroup(List<Membership> memberships) {
+		Map<UUID, Membership> byGroup = new LinkedHashMap<>();
 
 		for (Membership membership : sortedForStableOutput(memberships)) {
-			Group group = membership.getGroup();
-			boolean perClass = group.isPerClass();
-			PaymentLine line = existing.get(membership.getId());
-
-			if (line == null) {
-				line = PaymentLine.builder()
-						.membership(membership)
-						.quantity(perClass ? Money.ZERO : BigDecimal.ONE)
-						.build();
-
-				payment.addLine(line);
-			} else if (!perClass) {
-				line.setQuantity(BigDecimal.ONE);
-			}
-
-			line.setKind(perClass ? PaymentLineKind.MEMBERSHIP_PER_CLASS : PaymentLineKind.MEMBERSHIP_MONTHLY);
-			line.setGroup(group);
-			line.setDescription(group.getName());
-			line.setUnitCost(Money.normalize(membership.resolveUnitCost()));
-
-			stillBilled.add(membership.getId());
-			charges.add(line);
+			byGroup.merge(membership.getGroup().getId(), membership, PaymentCalculator::mostRecent);
 		}
 
-		// Whatever is left over belonged to a membership that no longer covers this month, or to a group that has since moved to the other sheet.
-		payment.getLines().removeIf(line -> line.getKind().isMembershipDerived()
-				&& (line.getMembership() == null || !stillBilled.contains(line.getMembership().getId())));
-
-		return charges;
+		return List.copyOf(byGroup.values());
 	}
 
-	private Map<UUID, PaymentLine> membershipLinesByMembership(Payment payment) {
-		Map<UUID, PaymentLine> byMembership = new HashMap<>();
 
-		for (PaymentLine line : payment.getLines()) {
-			if (line.getKind().isMembershipDerived() && line.getMembership() != null) {
-				byMembership.put(line.getMembership().getId(), line);
-			}
+	private static Membership mostRecent(Membership left, Membership right) {
+		int byJoined = left.getJoinedAt().compareTo(right.getJoinedAt());
+
+		return byJoined >= 0 ? left : right;
+	}
+
+
+	/**
+	 * How many groups somebody attends this month, counting a group once however many memberships of it they have held.
+	 */
+	private static int groupCount(List<Membership> memberships) {
+		if (memberships == null) {
+			return 0;
 		}
 
-		return byMembership;
+		Set<UUID> groups = new HashSet<>();
+
+		for (Membership membership : memberships) {
+			groups.add(membership.getGroup().getId());
+		}
+
+		return groups.size();
 	}
+
+
+	private static Map<UUID, Person> personsOf(Collection<Payment> payments, Collection<Membership> memberships) {
+		Map<UUID, Person> persons = new LinkedHashMap<>();
+
+		for (Payment payment : payments) {
+			persons.putIfAbsent(payment.getPerson().getId(), payment.getPerson());
+		}
+
+		for (Membership membership : memberships) {
+			persons.putIfAbsent(membership.getPerson().getId(), membership.getPerson());
+		}
+
+		return persons;
+	}
+
 
 	/**
 	 * Everybody the month's discount ladders have to account for, each appearing once.
 	 */
-	private static Collection<Person> orderedForPositioning(Collection<Payment> payments, Map<UUID, List<Membership>> monthByPerson) {
+	private static Collection<Person> orderedForPositioning(Collection<Payment> payments, Map<UUID, Person> known, Map<UUID, List<Membership>> monthByPerson) {
 		Map<UUID, Person> candidates = new LinkedHashMap<>();
 
 		for (Payment payment : payments) {
 			candidates.putIfAbsent(payment.getPerson().getId(), payment.getPerson());
 		}
 
+		candidates.putAll(known);
+
+		// Siblings billed on the other sheet still take up a rung on the family ladder.
 		for (List<Membership> memberships : monthByPerson.values()) {
 			Person person = memberships.getFirst().getPerson();
 
@@ -130,8 +243,9 @@ public class PaymentCalculator {
 		return candidates.values();
 	}
 
+
 	/**
-	 * Fixes the order lines are created in, so two runs produce identical output rather than output that merely adds up the same.
+	 * Fixes the order rows are created in, so two runs produce identical output rather than output that merely adds up the same.
 	 */
 	private static List<Membership> sortedForStableOutput(List<Membership> memberships) {
 		return memberships.stream()

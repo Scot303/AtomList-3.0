@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router';
 import { Dashboard } from '@/layout/Dashboard';
 import { LoginPage } from '@/modules/auth/pages/LoginPage';
 import { VerifyEmailPage } from '@/modules/auth/pages/VerifyEmailPage';
+import { PaymentListDetailPage } from '@/modules/paymentLists/PaymentListDetailPage';
 import { MODULES } from '@/modules/registry';
 import { DEFAULT_AUTHENTICATED_PATH, paths } from './paths';
 import { ProtectedRoute, RequirePermission } from './ProtectedRoute';
@@ -30,6 +31,15 @@ export function AppRoutes() {
 							}
 						/>
 					)) }
+
+					<Route
+						path={ paths.paymentListDetail }
+						element={
+							<RequirePermission permissions={ ['READ_LISTS'] }>
+								<PaymentListDetailPage/>
+							</RequirePermission>
+						}
+					/>
 				</Route>
 			</Route>
 

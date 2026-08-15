@@ -29,6 +29,7 @@ export const TagCell = ({ value, rowId, columnId, meta, onCommit, onEditingChang
 		placeholder: dataTableStrings.cell.empty,
 		className: 'w-full',
 		onOpenChange: onEditingChange,
+		clearable: meta.clearable !== false,
 	};
 
 	return multiple ? (
@@ -37,14 +38,12 @@ export const TagCell = ({ value, rowId, columnId, meta, onCommit, onEditingChang
 			multiple
 			value={ optimistic.value }
 			onChange={ commit }
-			clearable
 		/>
 	) : (
 		<TagCellSelect
 			{ ...shared }
 			value={ optimistic.value[0] }
 			onChange={ (id) => commit(id === undefined ? [] : [id]) }
-			clearable
 		/>
 	);
 };

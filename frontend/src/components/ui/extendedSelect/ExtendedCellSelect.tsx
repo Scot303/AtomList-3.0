@@ -13,6 +13,8 @@ interface ExtendedCellSelectOwnProps {
 	/** The panel's width. The trigger is usually far too narrow to size it from. */
 	popoverWidth?: string;
 	searchable?: boolean;
+	/** Whether the panel offers to unset the value. Defaults to true. */
+	clearable?: boolean;
 	addNew?: ExtendedSelectAddNew;
 	disabled?: boolean;
 	/** Shown in place of the value when nothing is selected. */
@@ -36,6 +38,7 @@ export const ExtendedCellSelect = (props: ExtendedCellSelectProps) => {
 		onOpenChange,
 		popoverWidth = '18rem',
 		searchable = true,
+		clearable = true,
 		addNew,
 		disabled,
 		placeholder = 'Brak',
@@ -81,8 +84,8 @@ export const ExtendedCellSelect = (props: ExtendedCellSelectProps) => {
 				options={ options }
 				selectedIds={ value.selectedIds }
 				onSelect={ handleSelect }
-				onClear={ value.clear }
-				clearable
+				onClear={ clearable ? value.clear : undefined }
+				clearable={ clearable }
 				searchable={ searchable }
 				multiple={ value.isMultiple }
 				theme="glass"

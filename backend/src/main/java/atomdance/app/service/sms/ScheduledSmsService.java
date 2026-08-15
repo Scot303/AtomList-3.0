@@ -1,5 +1,6 @@
 package atomdance.app.service.sms;
 
+import atomdance.app.common.sms.SmsApiClient;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
@@ -36,26 +37,27 @@ import static atomdance.app.common.utils.StaticValuesUtil.PHONE_COUNTRY_CODE;
 @RequiredArgsConstructor
 @Slf4j
 public class ScheduledSmsService {
-    private final AppClock appClock;
-    private final SmsService smsService;
-    private final PaymentListRepository paymentListRepository;
-    private final PaymentRepository paymentRepository;
-    private final SmsApiClient smsApiClient;
-    private final AuditLogger auditLogger;
-    private final List<String> phoneWhitelist;
 
-    // TODO templates in English?
-    private static final String STANDARD_TEMPLATE = "Przypominamy o uregulowaniu płatności za zajęcia: %s zł.";
+	private final AppClock appClock;
+	private final SmsService smsService;
+	private final PaymentListRepository paymentListRepository;
+	private final PaymentRepository paymentRepository;
+	private final SmsApiClient smsApiClient;
+	private final AuditLogger auditLogger;
+	private final List<String> phoneWhitelist;
+
+	// TODO templates in English?
+	private static final String STANDARD_TEMPLATE = "Przypominamy o uregulowaniu płatności za zajęcia: %s zł.";
 
     @Scheduled(cron = "${app.sms.schedule.reminder.cron}", zone = "${app.time-zone}")
     public void scheduleSms() {
         log.info("Running scheduled sms service for owed payments");
         var currentYearMonth = appClock.currentYearMonth();
 
-        var owedPayments = getOwedPayments(currentYearMonth);
-        Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments = pairPhoneNumbersWithOwedPayments(owedPayments);
-        leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
-        List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
+		var owedPayments = getOwedPayments(currentYearMonth);
+		Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments = pairPhoneNumbersWithOwedPayments(owedPayments);
+		leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
+		List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
 
         var recipients = messagesToSend.stream()
                 .map(sms -> new RestRecipient(PHONE_COUNTRY_CODE + sms.getSentToPhone(), sms.getMessage()))
@@ -82,21 +84,26 @@ public class ScheduledSmsService {
                 .toList();
     }
 
-    /**
-     * <p>Pair Persons with outstanding payment and its amount with the phone number where alert should be sent (key).
-     * </p>
-     * One phone number may lead to a group of Persons (Family) ({@link SumOfOwedPaymentsInFamily}) with shared debt,
-     * of which the family phone number will be notified.
-     */
-    private Map<String, SumOfOwedPaymentsInFamily> pairPhoneNumbersWithOwedPayments(List<Payment> owedPayments) {
-        Map<String, SumOfOwedPaymentsInFamily> map = new HashMap<>();
-        owedPayments.forEach(
-                payment -> map.merge(
-                        payment.getPerson().getEffectivePhone(),
-                        new SumOfOwedPaymentsInFamily(new ArrayList<>(Arrays.asList(payment.getPerson())), payment.getAmountToPay()),
-                        (currentSumInFamily, newMember) -> {
-                            List<Person> currentList = currentSumInFamily.persons;
-                            currentList.add(newMember.persons.getFirst());
+
+	/**
+	 * <p>Pair Persons with outstanding payment and its amount with the phone number where alert should be sent (key).
+	 * </p>
+	 * One phone number may lead to a group of Persons (Family) ({@link SumOfOwedPaymentsInFamily}) with shared debt,
+	 * of which the family phone number will be notified.
+	 */
+	private Map<String, SumOfOwedPaymentsInFamily> pairPhoneNumbersWithOwedPayments(List<Payment> owedPayments) {
+		Map<String, SumOfOwedPaymentsInFamily> map = new HashMap<>();
+		owedPayments.forEach(
+				payment -> map.merge(
+						payment.getPerson().getEffectivePhone(),
+						new SumOfOwedPaymentsInFamily(new ArrayList<>(Arrays.asList(payment.getPerson())), payment.getOutstanding()),
+						(currentSumInFamily, newMember) -> {
+							List<Person> currentList = currentSumInFamily.persons;
+							Person person = newMember.persons.getFirst();
+
+							if (currentList.stream().noneMatch(known -> Objects.equals(known.getId(), person.getId()))) {
+								currentList.add(person);
+							}
 
                             BigDecimal currentOwnedSum = currentSumInFamily.owedPayment;
                             BigDecimal increasedSum = currentOwnedSum.add(newMember.owedPayment);

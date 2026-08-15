@@ -80,3 +80,23 @@ export const FAMILY_ENDPOINTS = {
 	base: '/api/families',
 	byId: (id: string) => `/api/families/${ id }`,
 } as const;
+
+
+/**
+ * `READ_LISTS` / `MODIFY_LISTS`.
+ */
+export const PAYMENT_LIST_ENDPOINTS = {
+	base: '/api/lists',
+	byId: (id: string) => `/api/lists/${ id }`,
+	yearSummary: (year: number) => `/api/lists/summary/${ year }`,
+	standard: (year: number, month: number) => `/api/lists/standard/${ year }/${ month }`,
+} as const;
+
+
+/**
+ * `READ_PAYMENTS` / `MODIFY_PAYMENTS`.
+ */
+export const PAYMENT_ENDPOINTS = {
+	forList: (listId: string) => `/api/lists/${ listId }/payments`,
+	byId: (id: string) => `/api/payments/${ id }`,
+} as const;

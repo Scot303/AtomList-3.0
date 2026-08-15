@@ -6,13 +6,17 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.finance.dto.*;
+import atomdance.app.modules.finance.dto.PaymentView;
+import atomdance.app.modules.finance.dto.SaveOneOffPaymentRequest;
+import atomdance.app.modules.finance.dto.UpdatePaymentRequest;
+import atomdance.app.modules.finance.dto.UpdateQuantityRequest;
 import atomdance.app.modules.finance.model.Payment;
+import atomdance.app.modules.finance.model.PaymentChargeKind;
 import atomdance.app.modules.finance.model.PaymentCode;
-import atomdance.app.modules.finance.model.PaymentLine;
-import atomdance.app.modules.finance.model.PaymentLineKind;
-import atomdance.app.modules.finance.model.PaymentMethod;
+import atomdance.app.modules.finance.model.PaymentList;
 import atomdance.app.modules.finance.repository.PaymentRepository;
+import atomdance.app.modules.person.model.Person;
+import atomdance.app.modules.person.repository.PersonRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +24,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+
 /**
- * What each person owes and has paid on a list.
+ * The charge side of a payment: what somebody owes for one group, and why.
  */
 @Slf4j
 @Service
@@ -34,34 +38,43 @@ public class PaymentService {
 
 	private final PaymentRepository paymentRepository;
 	private final PaymentListService paymentListService;
+	private final PersonRepository personRepository;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
+
 	public Payment getOrThrow(UUID id) {
-		return paymentRepository.findByIdWithLines(id)
+		return paymentRepository.findByIdWithSettlements(id)
 				.orElseThrow(() -> new NotFoundException("entity.payment"));
 	}
+
 
 	@Transactional(readOnly = true)
 	public List<PaymentView> getForList(UUID listId) {
 		paymentListService.getOrThrow(listId);
 
-		return paymentRepository.findByListId(listId).stream().map(PaymentView::withoutLines).toList();
+		return paymentRepository.findByListIdWithSettlements(listId).stream()
+				.sorted(PaymentView.DISPLAY_ORDER)
+				.map(PaymentView::withoutSettlements)
+				.toList();
 	}
+
 
 	@Transactional(readOnly = true)
 	public PaymentView get(UUID id) {
 		return PaymentView.from(getOrThrow(id));
 	}
 
+
 	@Transactional(readOnly = true)
 	public PaymentView getByCode(String code) {
 		Long number = PaymentCode.parse(code)
 				.orElseThrow(() -> new NotFoundException("entity.payment"));
 
-		return PaymentView.from(paymentRepository.findByNumberWithLines(number)
+		return PaymentView.from(paymentRepository.findByNumberWithSettlements(number)
 				.orElseThrow(() -> new NotFoundException("entity.payment")));
 	}
+
 
 	@Transactional
 	public PaymentView update(UUID id, UpdatePaymentRequest request) {
@@ -76,24 +89,6 @@ public class PaymentService {
 			payment.setContractReturned(request.contractReturned());
 		}
 
-		if (request.paymentMethod() != null) {
-			if (payment.isFakePayment()) {
-				throw new InvalidOperationException("error.payment_is_fake");
-			}
-
-			if (!Money.isPositive(payment.getAmountPaid())) {
-				throw new InvalidOperationException("error.payment_method_without_amount");
-			}
-
-			PaymentMethod previous = payment.getPaymentMethod();
-
-			payment.setPaymentMethod(request.paymentMethod());
-
-			log.info("Payment method on {} [{}] changed from {} to {}", payment.getCode(), id, previous, payment.getPaymentMethod());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Payment method on %s for %s on list %s changed from %s to %s.",
-					payment.getCode(), payment.getPerson().getFullName(), PaymentListService.describe(payment.getList()), previous, payment.getPaymentMethod()));
-		}
-
 		if (request.note() != null) {
 			payment.setNote(request.note());
 		}
@@ -101,129 +96,117 @@ public class PaymentService {
 		return PaymentView.from(payment);
 	}
 
+
 	/**
-	 * Records what somebody handed over, which may be more than they owed.
+	 * Adds a charge for this list only, belonging to no group.
 	 */
 	@Transactional
-	public PaymentView recordPayment(UUID id, RecordPaymentRequest request) {
-		Payment payment = getOrThrow(id);
-		payment.getList().assertOpen();
+	public PaymentView addOneOff(UUID listId, SaveOneOffPaymentRequest request) {
+		PaymentList list = paymentListService.getOrThrow(listId);
+		list.assertOpen();
 
-		if (payment.isFakePayment()) {
-			throw new InvalidOperationException("error.payment_is_fake");
-		}
+		Person person = personRepository.findById(request.personId())
+				.orElseThrow(() -> new NotFoundException("entity.person"));
 
-		BigDecimal amount = Money.normalize(request.amountPaid());
-
-		if (Money.isPositive(amount) && request.paymentMethod() == null) {
-			throw new InvalidOperationException("error.payment_method_required");
-		}
-
-		guardAgainstUnfundingAllocations(payment, amount);
-
-		BigDecimal previous = payment.getAmountPaid();
-
-		payment.setAmountPaid(amount);
-		payment.setPaymentMethod(Money.isZero(amount) ? null : request.paymentMethod());
-		payment.setPaidAt(Money.isZero(amount) ? null : (request.paidAt() != null ? request.paidAt() : Instant.now()));
-
-		log.info("Recorded {} on payment {} [{}] (was {}) via {}", amount, payment.getCode(), id, previous, payment.getPaymentMethod());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Payment %s for %s on list %s changed from %s to %s (%s).",
-				payment.getCode(), payment.getPerson().getFullName(), PaymentListService.describe(payment.getList()), previous, amount, payment.getPaymentMethod()));
-
-		return PaymentView.from(payment);
-	}
-
-	@Transactional
-	public PaymentView addOneTimeLine(UUID id, SaveOneTimeLineRequest request) {
-		Payment payment = getOrThrow(id);
-		payment.getList().assertOpen();
-
-		PaymentLine line = PaymentLine.builder()
-				.kind(PaymentLineKind.ONE_TIME)
+		Payment payment = Payment.builder()
+				.list(list)
+				.person(person)
+				.chargeKind(PaymentChargeKind.ONE_TIME)
 				.description(request.description().trim())
 				.unitCost(Money.normalize(request.unitCost()))
 				.quantity(request.quantity() != null ? Money.normalize(request.quantity()) : BigDecimal.ONE)
 				.build();
 
-		line.applyDiscount(Money.ZERO);
+		payment.applyDiscount(Money.ZERO);
+		paymentRepository.save(payment);
 
-		payment.addLine(line);
-		payment.recalculateAmountToPay();
-
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge '%s' of %s added for %s on payment %s.",
-				line.getDescription(), line.getSubtotal(), payment.getPerson().getFullName(), payment.getCode()));
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge '%s' of %s added for %s on list %s.",
+				payment.getDescription(), payment.getAmountToPay(), person.getFullName(), PaymentListService.describe(list)));
 
 		return PaymentView.from(payment);
 	}
+
 
 	/**
 	 * Sets how many classes somebody attended, for a per-class group - or the quantity on a one-off charge.
 	 */
 	@Transactional
-	public PaymentView updateLineQuantity(UUID id, UUID lineId, UpdateLineQuantityRequest request) {
+	public PaymentView updateQuantity(UUID id, UpdateQuantityRequest request) {
 		Payment payment = getOrThrow(id);
 		payment.getList().assertOpen();
 
-		PaymentLine line = lineOrThrow(payment, lineId);
-
-		if (line.getKind() == PaymentLineKind.MEMBERSHIP_MONTHLY) {
-			throw new InvalidOperationException("error.monthly_line_quantity_fixed");
+		if (payment.getChargeKind() == PaymentChargeKind.MEMBERSHIP_MONTHLY) {
+			throw new InvalidOperationException("error.monthly_quantity_fixed");
 		}
 
-		line.setQuantity(Money.normalize(request.quantity()));
-		line.applyDiscount(line.getDiscountPercent());
+		payment.setQuantity(Money.normalize(request.quantity()));
+		payment.applyDiscount(payment.getDiscountPercent());
 
-		payment.recalculateAmountToPay();
+		guardAgainstUnderfundedCharge(payment);
 
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Quantity on '%s' for %s set to %s, giving %s on payment %s.",
-				line.getDescription(), payment.getPerson().getFullName(), line.getQuantity(), payment.getAmountToPay(), payment.getCode()));
+				payment.getLabel(), payment.getPerson().getFullName(), payment.getQuantity(), payment.getAmountToPay(), payment.getCode()));
 
 		return PaymentView.from(payment);
 	}
 
+
+	/**
+	 * Edits a hand-added charge. A membership-derived one is not editable here: its rate comes from the group
+	 * or the individually agreed amount, and a recalculation would overwrite anything typed over it.
+	 */
 	@Transactional
-	public PaymentView deleteLine(UUID id, UUID lineId) {
+	public PaymentView updateOneOff(UUID id, SaveOneOffPaymentRequest request) {
 		Payment payment = getOrThrow(id);
 		payment.getList().assertOpen();
 
-		PaymentLine line = lineOrThrow(payment, lineId);
+		requireOneOff(payment);
 
-		if (line.getKind().isMembershipDerived()) {
-			// A membership line is regenerated by the next recalculation, so deleting it here would achieve nothing. Ending the membership is what removes the charge.
-			throw new InvalidOperationException("error.cannot_delete_membership_line");
-		}
+		payment.setDescription(request.description().trim());
+		payment.setUnitCost(Money.normalize(request.unitCost()));
+		payment.setQuantity(request.quantity() != null ? Money.normalize(request.quantity()) : BigDecimal.ONE);
+		payment.applyDiscount(Money.ZERO);
 
-		payment.getLines().remove(line);
-		payment.recalculateAmountToPay();
+		guardAgainstUnderfundedCharge(payment);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge '%s' removed for %s on payment %s.",
-				line.getDescription(), payment.getPerson().getFullName(), payment.getCode()));
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge %s for %s changed to '%s' of %s.",
+				payment.getCode(), payment.getPerson().getFullName(), payment.getDescription(), payment.getAmountToPay()));
 
 		return PaymentView.from(payment);
 	}
 
-	/**
-	 * Refuses to reduce a payment below what has already been handed out to other months.
-	 */
-	private void guardAgainstUnfundingAllocations(Payment payment, BigDecimal newAmountPaid) {
-		BigDecimal allocated = Money.normalize(paymentRepository.sumAllocatedFrom(payment.getId()));
 
-		if (Money.isZero(allocated)) {
-			return;
+	@Transactional
+	public void deleteOneOff(UUID id) {
+		Payment payment = getOrThrow(id);
+		payment.getList().assertOpen();
+
+		requireOneOff(payment);
+
+		if (payment.holdsSettlements()) {
+			throw new InvalidOperationException("error.payment_holds_money");
 		}
 
-		BigDecimal availableOverpayment = Money.atLeastZero(Money.subtract(newAmountPaid, payment.getAmountToPay()));
+		paymentRepository.delete(payment);
 
-		if (Money.isGreaterThan(allocated, availableOverpayment)) {
-			throw new InvalidOperationException("error.overpayment_already_allocated", allocated);
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), id, AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge '%s' removed for %s on list %s.",
+				payment.getLabel(), payment.getPerson().getFullName(), PaymentListService.describe(payment.getList())));
+	}
+
+
+	private static void requireOneOff(Payment payment) {
+		if (payment.getChargeKind().isMembershipDerived()) {
+			throw new InvalidOperationException("error.cannot_edit_membership_charge");
 		}
 	}
 
-	private static PaymentLine lineOrThrow(Payment payment, UUID lineId) {
-		return payment.getLines().stream()
-				.filter(line -> lineId.equals(line.getId()))
-				.findFirst()
-				.orElseThrow(() -> new NotFoundException("entity.payment_line"));
+
+	/**
+	 * Refuses to drop a charge below what has already been paid towards it, which would leave money settled against a debt that no longer exists.
+	 */
+	private static void guardAgainstUnderfundedCharge(Payment payment) {
+		if (Money.isGreaterThan(payment.getAmountSettled(), payment.getAmountToPay())) {
+			throw new InvalidOperationException("error.charge_below_settled", payment.getAmountSettled());
+		}
 	}
 }
