@@ -1,5 +1,6 @@
-package atomdance.app.common.exception;
+package atomdance.app.modules.sms.exception;
 
+import atomdance.app.common.exception.BaseException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 

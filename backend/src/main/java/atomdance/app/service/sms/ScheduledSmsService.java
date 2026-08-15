@@ -14,7 +14,6 @@ import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.sms.model.Sms;
 import atomdance.app.modules.sms.service.SmsService;
-import atomdance.app.common.sms.SmsApiClient;
 import atomdance.json.justsend.BulkSendRequest;
 import atomdance.json.justsend.RestRecipient;
 import lombok.RequiredArgsConstructor;

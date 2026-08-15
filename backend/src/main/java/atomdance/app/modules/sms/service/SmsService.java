@@ -1,7 +1,7 @@
 package atomdance.app.modules.sms.service;
 
 
-import atomdance.app.common.exception.SmsSendException;
+import atomdance.app.modules.sms.exception.SmsSendException;
 import atomdance.app.common.sms.SmsApiClient;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
