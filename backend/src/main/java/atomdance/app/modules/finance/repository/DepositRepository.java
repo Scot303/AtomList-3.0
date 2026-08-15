@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -72,4 +73,19 @@ public interface DepositRepository extends JpaRepository<Deposit, UUID> {
 			ORDER BY d.receivedAt ASC, d.number ASC
 			""")
 	List<Deposit> findWithCreditFor(@Param("payerId") UUID payerId);
+
+	/**
+	 * Every bit of credit still in hand for any of these people, oldest first - so the earliest money is spent first.
+	 */
+	@Query("""
+			SELECT DISTINCT d FROM Deposit d
+			JOIN FETCH d.payer payer
+			LEFT JOIN FETCH payer.family
+			LEFT JOIN FETCH d.settlements
+			JOIN d.coveredPersonIds coveredId
+			WHERE coveredId IN :personIds
+			  AND d.totalAmount > (SELECT COALESCE(SUM(s.amount), 0) FROM PaymentSettlement s WHERE s.deposit = d)
+			ORDER BY d.receivedAt ASC, d.number ASC
+			""")
+	List<Deposit> findWithCreditForPersons(@Param("personIds") Collection<UUID> personIds);
 }

@@ -1,9 +1,7 @@
 package atomdance.app.modules.finance.controller;
 
-import atomdance.app.modules.finance.dto.CreateCustomListRequest;
-import atomdance.app.modules.finance.dto.ListReportView;
-import atomdance.app.modules.finance.dto.MonthSummaryView;
-import atomdance.app.modules.finance.dto.PaymentListView;
+import atomdance.app.modules.finance.dto.*;
+import atomdance.app.modules.finance.service.CreditSweepService;
 import atomdance.app.modules.finance.service.ListReportService;
 import atomdance.app.modules.finance.service.ListSummaryService;
 import atomdance.app.modules.finance.service.PaymentListService;
@@ -26,6 +24,7 @@ public class PaymentListController {
 	private final PaymentListService paymentListService;
 	private final ListSummaryService listSummaryService;
 	private final ListReportService listReportService;
+	private final CreditSweepService creditSweepService;
 
 
 	@GetMapping
@@ -57,6 +56,29 @@ public class PaymentListController {
 	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
 	public ListReportView report(@PathVariable UUID id) {
 		return listReportService.build(id);
+	}
+
+
+	/**
+	 * Every bit of leftover credit that could be spent on this list, and what each bit would settle here.
+	 */
+	@GetMapping("/{id}/overpayments")
+	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
+	public CreditSweepView overpayments(@PathVariable UUID id) {
+		return creditSweepService.preview(id);
+	}
+
+
+	/**
+	 * Spends that credit, settling what the manager approved.
+	 * <p>
+	 * Send the plan back as {@code expected} and the server works it out again and compares before writing anything, so
+	 * a charge somebody else settled in the meantime is reported rather than quietly changing what this money covers.
+	 */
+	@PostMapping("/{id}/overpayments/settle")
+	@PreAuthorize("hasAuthority('MODIFY_PAYMENTS')")
+	public CreditSweepResultView settleOverpayments(@PathVariable UUID id, @RequestBody @Valid SettleCreditRequest request) {
+		return creditSweepService.apply(id, request);
 	}
 
 
