@@ -85,9 +85,9 @@ public class SmsService {
         sms = smsRepository.saveAndFlush(sms);
 
         var realSmsGeneratedCount = Math.floorDiv(sms.getMessage().length(), 70);
-        log.info("Created sms message to {}, content length - {}, generates {} actual sms messages", sms.getSentToPhone(), sms.getMessage().length(), realSmsGeneratedCount);
-        auditLogger.recordOnCommit(null, sms.getId(), AuditEventType.SMS_CREATION, AuditOutcome.SUCCESS,
-                String.format("Sms %s has been created.", sms.getId()));
+        var logMsg = String.format("Created sms message to %s, content length - %d, generates %d actual sms messages", sms.getSentToPhone(), sms.getMessage().length(), realSmsGeneratedCount);
+        log.info(logMsg);
+        auditLogger.recordOnCommit(null, sms.getId(), AuditEventType.SMS_CREATION, AuditOutcome.SUCCESS, logMsg);
 
         return SmsView.from(sms);
     }
