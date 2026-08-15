@@ -7,6 +7,7 @@ import atomdance.app.modules.finance.service.DepositAllocationPlanner;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+
 /**
  * One line of a plan: this much of the money against this debt.
  *
@@ -32,7 +33,17 @@ public record PlannedSettlementView(
 ) {
 
 	public static PlannedSettlementView from(DepositAllocationPlanner.PlannedSettlement planned) {
-		Payment payment = planned.payment();
+		return of(planned.payment(), planned.amount(), planned.payment().getOutstanding());
+	}
+
+
+	/**
+	 * One line worked out against a stated outstanding figure rather than against the payment's current one.
+	 *
+	 * @param outstandingBefore what the charge still owes at this point in the plan
+	 */
+	public static PlannedSettlementView of(Payment payment, BigDecimal amount, BigDecimal outstandingBefore) {
+		BigDecimal remainingAfter = Money.atLeastZero(Money.subtract(outstandingBefore, amount));
 
 		return new PlannedSettlementView(
 				payment.getId(),
@@ -46,10 +57,10 @@ public record PlannedSettlementView(
 				payment.getPerson().getFullName(),
 				payment.getLabel(),
 				payment.getAmountToPay(),
-				payment.getAmountSettled(),
-				planned.amount(),
-				Money.subtract(payment.getOutstanding(), planned.amount()),
-				planned.partial()
+				Money.subtract(payment.getAmountToPay(), outstandingBefore),
+				amount,
+				remainingAfter,
+				Money.isPositive(remainingAfter)
 		);
 	}
 }
