@@ -1,6 +1,8 @@
 import type { ExtendedSelectOption } from '@/components/ui/extendedSelect';
 import type { TagColor, TagOption } from '@/components/ui/tags';
 import { type Permission, PERMISSIONS, type Role } from '@/types/auth.ts';
+import { ACTIVE_ID, INACTIVE_ID } from '@/types/rowTags.ts';
+
 
 /**
  * The order the list shows roles in - most privileged first.
@@ -24,19 +26,16 @@ export const ROLE_COLORS: Record<Role, TagColor> = {
 	BASIC: 'slate',
 };
 
-export const ROLE_OPTIONS: TagOption[] = ROLE_ORDER.map((role) => ({
+export const ROLE_OPTIONS: TagOption[] = ROLE_ORDER.map((role) => ( {
 	id: role,
 	name: ROLE_LABELS[role],
 	color: ROLE_COLORS[role],
-}));
+} ));
 
-/** The two ids the active-state badge switches between. */
-export const ACTIVE_ID = 'active';
-export const INACTIVE_ID = 'inactive';
-
+/** The same colors groups and persons use for the same state - only the Polish differs, for a masculine noun. */
 export const ACTIVE_OPTIONS: TagOption[] = [
 	{ id: ACTIVE_ID, name: 'Aktywny', color: 'emerald' },
-	{ id: INACTIVE_ID, name: 'Nieaktywny', color: 'red' },
+	{ id: INACTIVE_ID, name: 'Nieaktywny', color: 'slate' },
 ];
 
 export const PERMISSION_LABELS: Record<Permission, string> = {
@@ -62,6 +61,8 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
 	MODIFY_PERSONS: 'Edycja osób',
 	READ_FAMILIES: 'Podgląd rodzin',
 	MODIFY_FAMILIES: 'Edycja rodzin',
+	READ_SMS: 'Wyświetlanie SMS',
+	SEND_SMS: 'Wysyłanie SMS',
 };
 
 /** All of them, in the order the backend declares them, which groups related ones together. */
@@ -71,7 +72,7 @@ export const PERMISSION_ORDER: readonly Permission[] = PERMISSIONS;
  * Every permission, selectable. A row showing an existing account locks the ones its role already
  * grants on top of these - see {@link '@/modules/users/components/UserRow'}.
  */
-export const PERMISSION_OPTIONS: ExtendedSelectOption[] = PERMISSION_ORDER.map((permission) => ({
+export const PERMISSION_OPTIONS: ExtendedSelectOption[] = PERMISSION_ORDER.map((permission) => ( {
 	id: permission,
 	name: PERMISSION_LABELS[permission],
-}));
+} ));

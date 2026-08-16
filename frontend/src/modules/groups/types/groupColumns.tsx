@@ -1,7 +1,9 @@
 import type { AppColumnDef } from '@/components/dataTable';
 import { TagBadge, TagBadgeSingle } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
-import { ACTIVE_TAG_OPTIONS, BILLING_TYPE_OPTIONS, GROUP_KIND_OPTIONS, type GroupRow } from './groupRows.ts';
+import { ACTIVE_TAG_OPTIONS } from '@/types/rowTags.ts';
+import { BILLING_TYPE_OPTIONS, GROUP_KIND_OPTIONS, type GroupRow } from './groupRows.ts';
+
 
 /**
  * The groups table's columns.

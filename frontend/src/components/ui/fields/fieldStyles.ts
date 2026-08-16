@@ -1,10 +1,12 @@
 import { cn } from '@/lib/cn';
 
+
 /**
  * Every class string the form controls share.
  */
 
 export type FieldSize = 'sm' | 'default';
+
 
 /** Whether a control is drawn as an error, and whether it is interactive at all. */
 export interface FieldStateOptions {
@@ -13,6 +15,7 @@ export interface FieldStateOptions {
 	/** Draws the focus border even when focus is elsewhere - for a control whose panel is open. */
 	active?: boolean;
 }
+
 
 /* ── Wrapper ─────────────────────────────────────────────────────────────── */
 
@@ -26,7 +29,7 @@ export const fieldWrapper = (disabled?: boolean) => cn('w-full', disabled && 'op
  */
 export const fieldLabel = ({ hasError }: FieldStateOptions = {}) =>
 	cn(
-		'mb-1.5 block px-1 text-sm font-medium tracking-wide',
+		'mb-1.5 block w-fit px-1 text-sm font-medium tracking-wide',
 		hasError ? 'text-os-error' : 'text-os-text',
 	);
 
@@ -47,11 +50,7 @@ export const fieldControl = (size: FieldSize, state: FieldStateOptions = {}) =>
 		'w-full appearance-none bg-os-surface text-os-text transition-all outline-none',
 		'border focus:ring-0',
 		SIZE_BOX[size],
-		state.active
-			? 'border-os-primary'
-			: state.hasError
-				? 'border-os-error focus:border-os-error'
-				: 'border-os-border focus:border-os-primary',
+		state.active ? 'border-os-primary' : state.hasError ? 'border-os-error focus:border-os-error' : 'border-os-border focus:border-os-primary',
 		state.disabled && 'cursor-not-allowed',
 	);
 
@@ -89,18 +88,10 @@ export const fieldLeftIcon = (size: FieldSize, state: FieldStateOptions = {}) =>
 	cn(
 		'pointer-events-none absolute top-1/2 -translate-y-1/2 transition-colors',
 		SIZE_ICON_INSET[size],
-		state.hasError
-			? 'text-os-error'
-			: state.active
-				? 'text-os-primary'
-				: 'text-os-text-muted peer-focus:text-os-primary',
+		state.hasError ? 'text-os-error' : state.active ? 'text-os-primary' : 'text-os-text-muted peer-focus:text-os-primary',
 	);
 
-export const fieldRightAdornment = (size: FieldSize) =>
-	cn(
-		'absolute top-1/2 flex -translate-y-1/2 items-center gap-1',
-		size === 'sm' ? 'right-3' : 'right-4',
-	);
+export const fieldRightAdornment = (size: FieldSize) => cn('absolute top-1/2 flex -translate-y-1/2 items-center gap-1', size === 'sm' ? 'right-3' : 'right-4');
 
 
 /* ── Error ───────────────────────────────────────────────────────────────── */

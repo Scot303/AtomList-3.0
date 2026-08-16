@@ -1,6 +1,6 @@
 import { type MouseEvent, useCallback, useMemo } from 'react';
 import { Info, Plus, Users } from 'lucide-react';
-import { DataTable, useTableFilterTags } from '@/components/dataTable';
+import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { notifyApiError } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
@@ -8,11 +8,11 @@ import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
 import { useContextMenu } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
-import { GroupKindFilters } from './components/GroupKindFilters';
+import { ACTIVE_ID } from '@/types/rowTags.ts';
 import { useGroups } from './hooks/useGroups';
 import { useUpdateGroup } from './hooks/useGroupMutations';
 import { buildGroupColumns } from './types/groupColumns.tsx';
-import { ACTIVE_ID, type GroupRow, OPEN_KIND, toGroupRow, TOURNAMENT_KIND } from './types/groupRows.ts';
+import { GROUP_KIND_OPTIONS, type GroupRow, OPEN_KIND, toGroupRow, TOURNAMENT_KIND } from './types/groupRows.ts';
 import type { UpdateGroupPayload } from './types/types.ts';
 
 
@@ -22,7 +22,7 @@ import type { UpdateGroupPayload } from './types/types.ts';
 const TABLE_KEY = 'groups';
 
 
-/** The id the kind chips keep their filter under, and the column they filter. */
+/** The id the tag chips keep their filter under, and the column they filter. */
 const KIND_FILTER_ID = 'groups-quick-kind';
 const KIND_FIELD = 'kind';
 
@@ -108,10 +108,11 @@ export function GroupsPage() {
 	const toolbar = (
 		<div className="flex items-center">
 			<div className="ml-5 mr-10 flex items-center gap-2">
-				<GroupKindFilters
+				<TagChipFilters
 					tags={ filterTags }
 					filterId={ KIND_FILTER_ID }
 					field={ KIND_FIELD }
+					options={ GROUP_KIND_OPTIONS }
 					titles={ KIND_TITLES }
 				/>
 			</div>

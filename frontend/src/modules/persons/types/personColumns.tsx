@@ -1,9 +1,11 @@
 import type { AppColumnDef } from '@/components/dataTable';
 import type { TagOption } from '@/components/ui/tags';
-import { TagBadgeList } from '@/components/ui/tags';
+import { TagBadgeList, TagBadgeSingle } from '@/components/ui/tags';
 import { GROUP_KIND_OPTIONS } from '@/modules/groups/types/groupRows.ts';
+import { ACTIVE_TAG_OPTIONS } from '@/types/rowTags.ts';
 import { formatAge } from '../utils/personFormat';
-import { ACTIVE_TAG_OPTIONS, type PersonRow } from './personRows.ts';
+import type { PersonRow } from './personRows.ts';
+
 
 /**
  * The persons table's columns.
@@ -75,6 +77,7 @@ export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<Pers
 			fieldType: 'tag',
 			size: 160,
 			meta: { editable: true, groupable: true, tagOptions: ACTIVE_TAG_OPTIONS, globalSearch: true },
+			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ ACTIVE_TAG_OPTIONS }/>,
 		}
 	];
 }

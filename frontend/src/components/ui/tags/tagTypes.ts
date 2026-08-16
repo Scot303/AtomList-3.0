@@ -19,6 +19,7 @@ export type TagColor =
 	| 'slate'
 	| 'gray';
 
+
 export interface TagOption {
 	id: string;
 	name: string;
@@ -29,6 +30,7 @@ export interface TagOption {
 	/** Muted note shown after the badge. Worth setting whenever `disabled` is, to say why. */
 	hint?: string;
 }
+
 
 export const TAG_COLOR_CLASSES: Record<TagColor, string> = {
 	red: 'bg-red-500/15 text-red-400',
@@ -51,3 +53,33 @@ export const TAG_COLOR_CLASSES: Record<TagColor, string> = {
 	slate: 'bg-slate-500/15 text-slate-400',
 	gray: 'bg-gray-500/15 text-gray-400',
 };
+
+/**
+ * The same palette as six hex digits, for the places CSS is written by hand rather than by a class.
+ */
+export const TAG_COLOR_HEX: Record<TagColor, string> = {
+	red: 'EF4444',
+	orange: 'F97316',
+	amber: 'F59E0B',
+	yellow: 'EAB308',
+	lime: '84CC16',
+	green: '22C55E',
+	emerald: '10B981',
+	teal: '14B8A6',
+	cyan: '06B6D4',
+	sky: '0EA5E9',
+	blue: '3B82F6',
+	indigo: '6366F1',
+	violet: '8B5CF6',
+	purple: 'A855F7',
+	fuchsia: 'D946EF',
+	pink: 'EC4899',
+	rose: 'F43F5E',
+	slate: '64748B',
+	gray: '6B7280',
+};
+
+
+export function resolveTagHex(color: TagColor | string): string {
+	return color in TAG_COLOR_HEX ? TAG_COLOR_HEX[color as TagColor] : color.replace('#', '');
+}

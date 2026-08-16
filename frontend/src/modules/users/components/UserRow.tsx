@@ -10,7 +10,8 @@ import { cn } from '@/lib/cn';
 import { notifyApiError } from '@/lib/toast';
 import { useConfirm } from '@/stores/dialogStore';
 import type { Permission, Role } from '@/types/auth';
-import { ACTIVE_ID, ACTIVE_OPTIONS, INACTIVE_ID, PERMISSION_OPTIONS, ROLE_OPTIONS } from '../types/constants.ts';
+import { ACTIVE_ID, INACTIVE_ID } from '@/types/rowTags.ts';
+import { ACTIVE_OPTIONS, PERMISSION_OPTIONS, ROLE_OPTIONS } from '../types/constants.ts';
 import { useUpdateUser } from '../hooks/useAdminUserMutations';
 import type { AdminUserView, UpdateUserPayload } from '../types/types.ts';
 import { UserRowActions } from './UserRowActions';
@@ -164,6 +165,7 @@ export function UserRow({ user, isSelf }: UserRowProps) {
 	);
 }
 
+
 /**
  * An inline account flag.
  */
@@ -175,6 +177,7 @@ function StatusIcon({ icon: Icon, className, description }: { icon: LucideIcon; 
 		</Tooltip>
 	);
 }
+
 
 /** A label above an inline control. */
 function RowField({ label, className, children }: { label: string; className?: string; children: ReactNode }) {

@@ -87,6 +87,15 @@ export const MONTH_NAMES: string[] = Array.from({ length: 12 }, (_, month) =>
 	new Intl.DateTimeFormat(LOCALE, { month: 'long' }).format(new Date(2000, month, 1)),
 );
 
+
+/** One month as a sentence starts it: `1` reads as "Styczeń". Out-of-range months give an empty string. */
+export function monthName(month: number): string {
+	const name = MONTH_NAMES[month - 1] ?? '';
+
+	return name === '' ? '' : name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+
 export const WEEKDAY_NAMES: string[] = Array.from({ length: 7 }, (_, offset) => {
 	// 2000-01-02 was a Sunday, so adding the offset walks the week from the configured first day.
 	const day = new Date(2000, 0, 2 + ( ( FIRST_DAY_OF_WEEK + offset ) % 7 ));
