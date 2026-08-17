@@ -1,7 +1,7 @@
 import type { AppColumnDef } from '@/components/dataTable';
 import type { TagOption } from '@/components/ui/tags';
 import { TagBadgeList, TagBadgeSingle } from '@/components/ui/tags';
-import { GROUP_KIND_OPTIONS } from '@/modules/groups/types/groupRows.ts';
+import { GROUP_TYPE_OPTIONS } from '@/modules/groups/types/groupRows.ts';
 import { ACTIVE_TAG_OPTIONS } from '@/types/rowTags.ts';
 import { formatAge } from '../utils/personFormat';
 import type { PersonRow } from './personRows.ts';
@@ -64,12 +64,12 @@ export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<Pers
 			cell: ({ getValue }) => <TagBadgeList ids={ getValue<string[]>() } options={ groupOptions }/>,
 		},
 		{
-			accessorKey: 'groupKinds',
-			header: 'Rodzaj grup',
+			accessorKey: 'groupTypes',
+			header: 'Rodzaj',
 			fieldType: 'tag',
 			size: 220,
-			meta: { multiTag: true, tagOptions: GROUP_KIND_OPTIONS, globalSearch: false },
-			cell: ({ getValue }) => <TagBadgeList ids={ getValue<string[]>() } options={ GROUP_KIND_OPTIONS }/>,
+			meta: { multiTag: true, tagOptions: GROUP_TYPE_OPTIONS, globalSearch: false },
+			cell: ({ getValue }) => <TagBadgeList ids={ getValue<string[]>() } options={ GROUP_TYPE_OPTIONS }/>,
 		},
 		{
 			accessorKey: 'activeTag',

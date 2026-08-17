@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/buttons/Button';
 import { notifyApiError } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
-import { buildGroupOptions, GROUP_KIND_OPTIONS, indexGroups, OPEN_KIND, TOURNAMENT_KIND, } from '@/modules/groups/types/groupRows.ts';
+import { buildGroupOptions, GROUP_TYPE_OPTIONS, indexGroups, } from '@/modules/groups/types/groupRows.ts';
 import { ACTIVE_ID } from '@/types/rowTags.ts';
 import { useContextMenu } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
@@ -29,11 +29,11 @@ const TABLE_KEY = 'persons';
 
 /** The id the kind chips keep their filter under, and the column they filter. */
 const KIND_FILTER_ID = 'persons-quick-group-kind';
-const KIND_FIELD = 'groupKinds';
+const KIND_FIELD = 'groupTypes';
 
 const KIND_TITLES = {
-	[OPEN_KIND]: 'Pokaż osoby zapisane do grup OPEN',
-	[TOURNAMENT_KIND]: 'Pokaż osoby zapisane do grup turniejowych',
+	OPEN: 'Pokaż osoby zapisane do grup OPEN',
+	TOURNAMENT: 'Pokaż osoby zapisane do grup turniejowych',
 };
 
 
@@ -140,7 +140,7 @@ export function PersonsPage() {
 					tags={ filterTags }
 					filterId={ KIND_FILTER_ID }
 					field={ KIND_FIELD }
-					options={ GROUP_KIND_OPTIONS }
+					options={ GROUP_TYPE_OPTIONS }
 					titles={ KIND_TITLES }
 				/>
 			</div>

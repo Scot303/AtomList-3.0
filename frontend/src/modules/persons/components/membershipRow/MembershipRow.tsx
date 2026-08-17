@@ -21,6 +21,7 @@ interface MembershipRowProps {
 	canModify: boolean;
 }
 
+
 /**
  * One membership, running or ended.
  */
@@ -52,6 +53,7 @@ export function MembershipRow(props: MembershipRowProps) {
 	);
 }
 
+
 /**
  * Which group this is and for how long.
  */
@@ -65,7 +67,7 @@ function GroupHeading({ membership, group }: { membership: MembershipView; group
 			<div className="flex min-w-0 max-w-full items-center gap-1">
 				<TagBadge label={ membership.groupName } color={ color }/>
 
-				{ membership.tournamentGroup && (
+				{ membership.groupType === 'TOURNAMENT' && (
 					<GroupMarker description="Grupa turniejowa" className="text-os-error">
 						<span aria-hidden className="text-base leading-none font-bold">*</span>
 					</GroupMarker>
@@ -87,6 +89,7 @@ function GroupHeading({ membership, group }: { membership: MembershipView; group
 	);
 }
 
+
 /**
  * A hint sitting next to the group's name.
  */
@@ -98,6 +101,7 @@ function GroupMarker({ description, className, children }: { description: string
 		</Tooltip>
 	);
 }
+
 
 /**
  * Ends the membership on a day the user picks.

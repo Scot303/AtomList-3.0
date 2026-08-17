@@ -2,7 +2,7 @@
  * Mirrors of the payloads the persons and memberships endpoints exchange.
  */
 
-import type { GroupBillingType } from '@/modules/groups/types/types.ts';
+import type { GroupBillingType, GroupType } from '@/modules/groups/types/types.ts';
 
 
 /** Mirror of the backend's `PersonView`. */
@@ -26,6 +26,7 @@ export interface PersonView {
 	note: string | null;
 }
 
+
 /**
  * Mirror of the backend's `CreatePersonRequest`.
  */
@@ -40,6 +41,7 @@ export interface CreatePersonPayload {
 	familyId?: string;
 	note?: string;
 }
+
 
 /** Every field optional: the backend leaves a missing one alone. */
 export interface UpdatePersonPayload {
@@ -66,31 +68,41 @@ export interface MembershipView {
 	groupId: string;
 	groupName: string;
 	billingType: GroupBillingType;
-	tournamentGroup: boolean;
+	groupType: GroupType;
 	joinedAt: string;
 	/** Null while the membership is running. */
 	leftAt: string | null;
 	active: boolean;
+	joinedMidMonth: boolean;
 	groupDefaultCost: number;
 	/** An individually agreed amount replacing the group's default. */
 	customMonthlyCost: number | null;
-	/** What is actually billed - the custom amount when there is one, the group's otherwise. */
+	/** What is actually billed month after month - the custom amount when there is one, the group's otherwise. */
 	effectiveCost: number;
+	/** What the joining month is billed at, or null when it is billed in full like every other month. */
+	firstMonthCost: number | null;
 	note: string | null;
 }
+
 
 export interface CreateMembershipPayload {
 	groupId: string;
 	joinedAt?: string;
 	customMonthlyCost?: number;
+	/** What to bill for the joining month, when `joinedAt` falls part-way through it. */
+	firstMonthCost?: number;
 	note?: string;
 }
+
 
 export interface UpdateMembershipPayload {
 	joinedAt?: string;
 	customMonthlyCost?: number;
 	/** Puts the membership back on the group's default rate. */
 	clearCustomMonthlyCost?: boolean;
+	firstMonthCost?: number;
+	/** Puts the joining month back on the standing rate. */
+	clearFirstMonthCost?: boolean;
 	note?: string;
 }
 
@@ -114,6 +126,7 @@ export interface FamilyMemberView {
 	groupIds: string[];
 }
 
+
 /** Mirror of the backend's `FamilyView`. */
 export interface FamilyView {
 	id: string;
@@ -136,6 +149,7 @@ export interface DiscountRung {
 	applied: boolean;
 }
 
+
 /**
  * One of the two parts of the total, with the ladder it came from. Mirror of `PersonDiscountView.Component`.
  */
@@ -147,6 +161,7 @@ export interface DiscountComponent {
 	percent: number;
 	ladder: DiscountRung[];
 }
+
 
 /** One member of the household as the ladder sees them. Mirror of `PersonDiscountView.Sibling`. */
 export interface DiscountSibling {
@@ -160,6 +175,7 @@ export interface DiscountSibling {
 	self: boolean;
 }
 
+
 /** Mirror of `PersonDiscountView.Household`. */
 export interface DiscountHousehold {
 	familyId: string;
@@ -167,6 +183,7 @@ export interface DiscountHousehold {
 	/** In ladder order, everybody who takes up no slot last. */
 	members: DiscountSibling[];
 }
+
 
 /** One membership counted toward the group-count discount. Mirror of `PersonDiscountView.CountedMembership`. */
 export interface CountedMembership {
@@ -179,6 +196,7 @@ export interface CountedMembership {
 	/** False for a membership that ended mid-month: still counted, but no longer running. */
 	current: boolean;
 }
+
 
 /**
  * Mirror of the backend's `PersonDiscountView` - this month's discount for one person, with its inputs.
