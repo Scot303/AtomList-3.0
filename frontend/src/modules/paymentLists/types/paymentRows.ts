@@ -85,9 +85,9 @@ export interface PaymentRow {
 	code: string;
 	firstName: string;
 	lastName: string;
-	personName: string;
-	/** The group's name, or what somebody typed on a one-off charge. */
+	/** The group's name, or what somebody typed on a charge that names no group. What the column sorts, groups, and searches on. */
 	label: string;
+	groupId: string | null;
 	chargeKind: PaymentChargeKind;
 	unitCost: number;
 	quantity: number;
@@ -116,8 +116,8 @@ export function toPaymentRow(payment: PaymentView): PaymentRow {
 		code: payment.code,
 		firstName: payment.personFirstName,
 		lastName: payment.personLastName,
-		personName: `${ payment.personLastName } ${ payment.personFirstName }`,
 		label: chargeLabel(payment),
+		groupId: payment.groupId,
 		chargeKind: payment.chargeKind,
 		unitCost: payment.unitCost,
 		quantity: payment.quantity,

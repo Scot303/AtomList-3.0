@@ -8,9 +8,8 @@ export type ListType = 'STANDARD' | 'STANDARD_TOURNAMENT' | 'CUSTOM' | 'CAMP';
 /** Mirror of the backend's `ListStatus`. */
 export type ListStatus = 'OPEN' | 'CLOSED';
 
-//TODO: FROM_UNPAID is probably going to be removed
 /** Mirror of the backend's `ListPopulationMode`. */
-export type ListPopulationMode = 'BY_GROUPS' | 'BY_PERSONS' | 'FROM_UNPAID';
+export type ListPopulationMode = 'BY_GROUPS' | 'BY_PERSONS';
 
 /**
  * Mirror of the backend's `PaymentChargeKind` - what a payment is charging for.
@@ -37,8 +36,14 @@ export interface PaymentListView {
 	closedByUserId: string | null;
 	isTournamentList: boolean;
 	tracksContracts: boolean;
+	/**
+	 * Whether every charge here names a group.
+	 *
+	 * True on the monthly sheets, which bill groups and nothing else - anything they do not cover is a `Transaction`.
+	 * False on the ad-hoc ones, whose charges are described by hand because there is no group behind them.
+	 */
+	requiresGroup: boolean;
 	populationMode: ListPopulationMode | null;
-	sourceListId: string | null;
 	note: string | null;
 	createdAt: string;
 }
@@ -89,12 +94,10 @@ export interface PaymentView {
 	personName: string;
 	personFirstName: string;
 	personLastName: string;
-	personPhone: string | null;
 	chargeKind: PaymentChargeKind;
-	/** Null on a one-off charge, which belongs to no group. */
+	/** The group billed. Always set on a monthly list, and null on an ad-hoc one, which bills no groups. */
 	groupId: string | null;
-	membershipId: string | null;
-	/** Set by hand on a one-off; a label for the group otherwise. */
+	/** The group's name, or what somebody typed on a charge that names no group. */
 	description: string | null;
 	/** A monthly fee, or the price of one class. Snapshotted, so a later price change does not rewrite history. */
 	unitCost: number;
@@ -118,7 +121,7 @@ export interface PaymentView {
 /**
  * Mirror of the backend's `SettlementView`
  *
- * `carryingMoney` false makes it a clearance: the debt is settled so nobody chases it, but the cash is counted in the month its deposit was booked to instead.
+ * `carryingMoney` false makes it a clearance: the debt is settled so nobody chases it, but the cash is counted in the month its deposit arrived in instead.
  */
 export interface SettlementView {
 	id: string;
@@ -131,8 +134,7 @@ export interface SettlementView {
 	paymentMethod: PaymentMethod | null;
 	settledAt: string;
 	carryingMoney: boolean;
-	bookedYear: number | null;
-	bookedMonth: number | null;
+	depositReceivedAt: string | null;
 }
 
 
@@ -163,8 +165,6 @@ export interface CreditSweepEntryView {
 	payerName: string;
 	paymentMethod: PaymentMethod;
 	receivedAt: string;
-	bookedYear: number | null;
-	bookedMonth: number | null;
 	creditAvailable: number;
 	allocated: number;
 	remainingCredit: number;
@@ -207,9 +207,20 @@ export interface UpdateQuantityPayload {
  */
 export interface SaveOneOffPaymentPayload {
 	personId?: string;
-	description: string;
+	groupId?: string;
+	description?: string;
 	unitCost: number;
 	quantity?: number;
+}
+
+
+/**
+ * Mirror of the backend's `AddPersonsRequest` - people to put on a list, each with one charge to fill in afterwards.
+ */
+export interface AddPersonsPayload {
+	personIds: string[];
+	/** Required on a list that bills groups, refused on one that does not. */
+	groupId?: string;
 }
 
 
@@ -220,8 +231,6 @@ export interface SettleDirectPayload {
 	amount: number;
 	paymentMethod: PaymentMethod;
 	receivedAt?: string;
-	bookedYear?: number;
-	bookedMonth?: number;
 	note?: string;
 }
 
@@ -275,8 +284,6 @@ export interface ReportDepositView {
 	payerName: string;
 	paymentMethod: PaymentMethod;
 	receivedAt: string;
-	bookedYear: number | null;
-	bookedMonth: number | null;
 	direct: boolean;
 	totalAmount: number;
 	countedOnThisList: number;

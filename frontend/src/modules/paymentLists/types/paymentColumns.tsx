@@ -1,5 +1,5 @@
 import type { AppColumnDef } from '@/components/dataTable';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadge, TagBadgeSingle, type TagOption } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { CHARGE_KIND_OPTIONS, CONTRACT_TAG_OPTIONS, PAID_TAG_OPTIONS, type PaymentRow, SETTLE_STATE_OPTIONS, } from './paymentRows.ts';
 
@@ -24,9 +24,21 @@ function moneyColumn(accessorKey: keyof PaymentRow, header: string, summarised: 
 
 
 /**
+ * What a charge is for, drawn as the group's own badge.
+ */
+function chargeLabelCell(row: PaymentRow, groupOptions: TagOption[]) {
+	const group = row.groupId === null ? undefined : groupOptions.find((option) => option.id === row.groupId);
+
+	return group === undefined
+		? <span className="truncate">{ row.label }</span>
+		: <TagBadge label={ group.name } color={ group.color }/>;
+}
+
+
+/**
  * One list's charges, as the table reads them.
  */
-export function buildPaymentColumns(tracksContracts: boolean): AppColumnDef<PaymentRow>[] {
+export function buildPaymentColumns(tracksContracts: boolean, groupOptions: TagOption[]): AppColumnDef<PaymentRow>[] {
 	const columns: AppColumnDef<PaymentRow>[] = [
 		{
 			accessorKey: 'code',
@@ -51,18 +63,12 @@ export function buildPaymentColumns(tracksContracts: boolean): AppColumnDef<Paym
 			meta: { globalSearch: true },
 		},
 		{
-			accessorKey: 'personName',
-			header: 'Osoba',
-			fieldType: 'text',
-			size: 220,
-			meta: { groupable: true, globalSearch: true },
-		},
-		{
 			accessorKey: 'label',
 			header: 'Za co',
 			fieldType: 'text',
 			size: 200,
 			meta: { groupable: true, globalSearch: true },
+			cell: ({ row }) => chargeLabelCell(row.original, groupOptions),
 		},
 		{
 			accessorKey: 'chargeKind',
@@ -89,7 +95,6 @@ export function buildPaymentColumns(tracksContracts: boolean): AppColumnDef<Paym
 			header: 'Rozliczenie',
 			fieldType: 'tag',
 			size: 160,
-			aggregatedCell: () => null,
 			meta: { groupable: true, globalSearch: false, tagOptions: SETTLE_STATE_OPTIONS },
 			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ SETTLE_STATE_OPTIONS }/>,
 		},
