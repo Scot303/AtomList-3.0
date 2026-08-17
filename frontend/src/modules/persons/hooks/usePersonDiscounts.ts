@@ -6,10 +6,11 @@ import { fetchPersonDiscounts } from '../api/personsApi';
 
 function discountsQuery(personId: string) {
 	return {
-		queryKey: personKeys.discounts(personId),
+		queryKey: personKeys.discount(personId),
 		queryFn: () => fetchPersonDiscounts(personId),
 	};
 }
+
 
 /**
  * One person's discount for the current month, with everything it was worked out from.

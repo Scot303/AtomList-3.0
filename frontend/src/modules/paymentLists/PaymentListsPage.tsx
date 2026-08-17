@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Alert } from '@/components/feedback/Alert';
 import { FullPageLoader } from '@/components/feedback/FullPageLoader';
+import { BirthdayIndicator } from '@/components/shared/BirthdayIndicator';
 import { useIsDesktop, useMediaQuery } from '@/hooks/useMediaQuery';
 import { LOCALE, TIME_ZONE } from '@/lib/locale';
 import { cn } from '@/lib/cn';
+import { usePersons } from '@/modules/persons/hooks/usePersons';
 import { CustomListsPanel } from './components/paymentListsOverview/CustomListsPanel.tsx';
 import { YearSwitcher } from './components/paymentListsOverview/YearSwitcher.tsx';
 import { usePaymentLists } from './hooks/usePaymentLists';
@@ -18,6 +20,7 @@ function currentYear(): number {
 	return Number(new Intl.DateTimeFormat(LOCALE, { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date()));
 }
 
+
 export function PaymentListsPage() {
 	const [year, setYear] = useState(currentYear);
 	const [yearDirection, setYearDirection] = useState(0);
@@ -29,11 +32,11 @@ export function PaymentListsPage() {
 	const summary = useYearSummary(year);
 	//TODO should query no all lists but first standard one from this year, and then all custom lists.
 	const lists = usePaymentLists();
-
+	const persons = usePersons();
 	const prefetchYear = usePrefetchYearSummary();
 
 	const months = useMemo(() => summary.data ?? [], [summary.data]);
-
+	const personList = useMemo(() => persons.data ?? [], [persons.data]);
 	const customLists = useMemo(() => ( lists.data ?? [] ).filter(isCustomList), [lists.data]);
 	const showCustomLists = is2xl || !sidebarOpen;
 
@@ -48,7 +51,11 @@ export function PaymentListsPage() {
 				"gap-5 3xl:gap-10",
 				"p-10 2xl:p-7 2xl:pt-5 2xl:pb-12 3xl:p-30"
 			) }>
-				<YearSwitcher year={ year } onChange={ handleYearChange } onPrime={ prefetchYear }/>
+				<div className="relative flex w-full items-center justify-center">
+					<BirthdayIndicator persons={ personList } className="absolute left-0 ml-1"/>
+
+					<YearSwitcher year={ year } onChange={ handleYearChange } onPrime={ prefetchYear }/>
+				</div>
 
 				{ summary.isPending ? (
 					<div className="flex min-h-0 flex-1 items-center justify-center">

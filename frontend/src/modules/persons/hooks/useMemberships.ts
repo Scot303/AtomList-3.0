@@ -48,6 +48,7 @@ function useMembershipInvalidation(personId: string) {
 			queryClient.invalidateQueries({ queryKey: personKeys.memberships(personId) }),
 			queryClient.invalidateQueries({ queryKey: personKeys.list() }),
 			queryClient.invalidateQueries({ queryKey: paymentListKeys.all }),
+			queryClient.invalidateQueries({ queryKey: personKeys.discounts() }),
 		]);
 }
 

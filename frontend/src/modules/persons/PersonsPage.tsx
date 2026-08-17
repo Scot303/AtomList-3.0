@@ -2,6 +2,7 @@ import { type MouseEvent, useCallback, useMemo } from 'react';
 import { Info, Percent, Plus, Users } from 'lucide-react';
 import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
+import { BirthdayIndicator } from '@/components/shared/BirthdayIndicator';
 import { notifyApiError } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
@@ -160,6 +161,10 @@ export function PersonsPage() {
 		</div>
 	);
 
+	const toolbarStart = (
+		<BirthdayIndicator persons={ personList } className="mr-2 items-center flex"/>
+	);
+
 	return (
 		<div className="styled-card table-page">
 			<DataTable
@@ -172,6 +177,7 @@ export function PersonsPage() {
 				emptyMessage="Brak osób do wyświetlenia"
 				onCellEdit={ canModify ? handleCellEdit : undefined }
 				onRowContextMenu={ handleRowContextMenu }
+				toolbarStart={ toolbarStart }
 				toolbar={ toolbar }
 				initialColumnVisibility={ HIDDEN_COLS }
 			/>
