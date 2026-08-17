@@ -12,7 +12,7 @@ import { ACTIVE_ID } from '@/types/rowTags.ts';
 import { useGroups } from './hooks/useGroups';
 import { useUpdateGroup } from './hooks/useGroupMutations';
 import { buildGroupColumns } from './types/groupColumns.tsx';
-import { GROUP_KIND_OPTIONS, type GroupRow, OPEN_KIND, toGroupRow, TOURNAMENT_KIND } from './types/groupRows.ts';
+import { GROUP_TYPE_OPTIONS, type GroupRow, toGroupRow } from './types/groupRows.ts';
 import type { UpdateGroupPayload } from './types/types.ts';
 
 
@@ -24,11 +24,11 @@ const TABLE_KEY = 'groups';
 
 /** The id the tag chips keep their filter under, and the column they filter. */
 const KIND_FILTER_ID = 'groups-quick-kind';
-const KIND_FIELD = 'kind';
+const KIND_FIELD = 'type';
 
 const KIND_TITLES = {
-	[OPEN_KIND]: 'Pokaż grupy OPEN',
-	[TOURNAMENT_KIND]: 'Pokaż grupy turniejowe',
+	OPEN: 'Pokaż grupy OPEN',
+	TOURNAMENT: 'Pokaż grupy TURNIEJOWE',
 };
 
 
@@ -112,7 +112,7 @@ export function GroupsPage() {
 					tags={ filterTags }
 					filterId={ KIND_FILTER_ID }
 					field={ KIND_FIELD }
-					options={ GROUP_KIND_OPTIONS }
+					options={ GROUP_TYPE_OPTIONS }
 					titles={ KIND_TITLES }
 				/>
 			</div>

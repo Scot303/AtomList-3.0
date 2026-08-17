@@ -46,6 +46,13 @@ export function todayInTimeZone(): Date {
 }
 
 
+export function monthHasEnded(year: number, month: number): boolean {
+	const today = todayInTimeZone();
+
+	return year * 12 + month < today.getFullYear() * 12 + ( today.getMonth() + 1 );
+}
+
+
 const longFormat = new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'long', year: 'numeric' });
 
 
