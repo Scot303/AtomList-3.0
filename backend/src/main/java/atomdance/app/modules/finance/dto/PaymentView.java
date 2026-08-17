@@ -11,7 +11,10 @@ import java.util.UUID;
 
 
 /**
- * One billable item: what a person owes for one group, and what has been paid towards it.
+ * One billable item: what a person owes for one group - or, on an ad-hoc list, for whatever it says - and what has been paid towards it.
+ *
+ * @param groupId     the group billed, or {@code null} on an ad-hoc list.
+ * @param description the group's name, or what somebody typed on a charge that names no group
  */
 public record PaymentView(
 		UUID id,
@@ -22,10 +25,8 @@ public record PaymentView(
 		String personName,
 		String personFirstName,
 		String personLastName,
-		String personPhone,
 		PaymentChargeKind chargeKind,
 		UUID groupId,
-		UUID membershipId,
 		String description,
 		BigDecimal unitCost,
 		BigDecimal quantity,
@@ -82,10 +83,8 @@ public record PaymentView(
 				payment.getPerson().getFullName(),
 				payment.getPerson().getName(),
 				payment.getPerson().getLastName(),
-				payment.getPerson().getEffectivePhone(),
 				payment.getChargeKind(),
 				payment.getGroup() == null ? null : payment.getGroup().getId(),
-				payment.getMembership() == null ? null : payment.getMembership().getId(),
 				payment.getDescription(),
 				payment.getUnitCost(),
 				payment.getQuantity(),

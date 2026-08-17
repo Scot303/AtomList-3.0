@@ -1,5 +1,6 @@
 package atomdance.app.modules.finance.dto;
 
+import atomdance.app.modules.finance.model.DepositScope;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotEmpty;
@@ -11,6 +12,10 @@ import java.util.List;
 import java.util.UUID;
 
 
+/**
+ * @param scope      which account the money was paid into, which decides the charges it may reach
+ * @param receivedAt when the cash arrived. The month it falls in is the one "arrears" and "ahead" are measured against; omitted, the current month is used.
+ */
 public record PlanDepositRequest(
 
 		@NotNull(message = "Amount is required")
@@ -21,14 +26,10 @@ public record PlanDepositRequest(
 		@NotEmpty(message = "At least one person is required")
 		List<UUID> personIds,
 
-		@NotNull(message = "Must specify whether this is for the tournament sheet or the regular one")
-		Boolean tournament,
+		@NotNull(message = "Must specify which account this money was paid into")
+		DepositScope scope,
 
 		Instant receivedAt,
-
-		Integer bookedYear,
-
-		Integer bookedMonth,
 
 		Integer monthsAhead
 ) {}

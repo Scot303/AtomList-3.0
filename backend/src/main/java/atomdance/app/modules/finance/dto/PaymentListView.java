@@ -8,6 +8,10 @@ import atomdance.app.modules.finance.model.PaymentList;
 import java.time.Instant;
 import java.util.UUID;
 
+
+/**
+ * One list as the client reads it.
+ */
 public record PaymentListView(
 		UUID id,
 		ListType type,
@@ -20,8 +24,8 @@ public record PaymentListView(
 		UUID closedByUserId,
 		boolean isTournamentList,
 		boolean tracksContracts,
+		boolean requiresGroup,
 		ListPopulationMode populationMode,
-		UUID sourceListId,
 		String note,
 		Instant createdAt
 ) {
@@ -39,8 +43,8 @@ public record PaymentListView(
 				list.getClosedByUserId(),
 				list.isTournament(),
 				list.tracksContracts(),
+				list.requiresGroup(),
 				list.getPopulationMode(),
-				list.getSourceList() == null ? null : list.getSourceList().getId(),
 				list.getNote(),
 				list.getCreatedAt()
 		);

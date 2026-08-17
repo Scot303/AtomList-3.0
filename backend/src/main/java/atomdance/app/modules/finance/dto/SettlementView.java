@@ -11,8 +11,9 @@ import java.util.UUID;
 /**
  * One part of a payment: some of a deposit's money clearing some of a debt.
  *
- * @param carryingMoney whether this money is reported on the list its payment sits on. {@code false} means
- *                      the debt was cleared out of another month's cash, which is counted there instead.
+ * @param carryingMoney     whether this money is reported on the list its payment sits on. {@code false} means
+ *                          the debt was cleared out of another month's cash, which is counted there instead.
+ * @param depositReceivedAt when that cash arrived - and so, for a clearance, which month does report it.
  */
 public record SettlementView(
 		UUID id,
@@ -24,8 +25,7 @@ public record SettlementView(
 		PaymentMethod paymentMethod,
 		Instant settledAt,
 		boolean carryingMoney,
-		Integer bookedYear,
-		Integer bookedMonth
+		Instant depositReceivedAt
 ) {
 
 	public static SettlementView from(PaymentSettlement settlement) {
@@ -39,8 +39,7 @@ public record SettlementView(
 				settlement.getPaymentMethod(),
 				settlement.getSettledAt(),
 				settlement.isCarryingMoney(),
-				settlement.getDeposit() == null ? null : settlement.getDeposit().getBookedYear(),
-				settlement.getDeposit() == null ? null : settlement.getDeposit().getBookedMonth()
+				settlement.getDeposit() == null ? null : settlement.getDeposit().getReceivedAt()
 		);
 	}
 }

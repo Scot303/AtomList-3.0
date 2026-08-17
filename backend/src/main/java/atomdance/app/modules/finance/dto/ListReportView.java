@@ -72,11 +72,12 @@ public record ListReportView(
 	/**
 	 * One instalment of one charge.
 	 *
-	 * @param depositRef    the deposit's number within this report - "#1", "#2" - so paper references stay short
-	 * @param carryingMoney whether this counts as income here. {@code false} means the debt was cleared out of
-	 *                      another period's cash, which is reported in {@link #bookedYear}/{@link #bookedMonth}
-	 *                      instead. Such a part contributes nothing to this sheet's total.
-	 * @param label         the phrase to print against it, already translated
+	 * @param depositRef        the deposit's number within this report - "#1", "#2" - so paper references stay short
+	 * @param carryingMoney     whether this counts as income here. {@code false} means the debt was cleared out of
+	 *                          another period's cash, which is reported in the month {@link #depositReceivedAt} falls in instead.
+	 *                          Such a part contributes nothing to this sheet's total.
+	 * @param depositReceivedAt when that cash arrived, which is what decides the month reporting it
+	 * @param label             the phrase to print against it, already translated
 	 */
 	public record Part(
 			UUID settlementId,
@@ -88,8 +89,7 @@ public record ListReportView(
 			String depositCode,
 			int depositRef,
 			boolean carryingMoney,
-			Integer bookedYear,
-			Integer bookedMonth,
+			Instant depositReceivedAt,
 			String label
 	) {
 	}
@@ -119,8 +119,6 @@ public record ListReportView(
 			String payerName,
 			PaymentMethod paymentMethod,
 			Instant receivedAt,
-			Integer bookedYear,
-			Integer bookedMonth,
 			boolean direct,
 			BigDecimal totalAmount,
 			BigDecimal countedOnThisList,
@@ -175,12 +173,6 @@ public record ListReportView(
 		 * A charge on this very sheet - the ordinary case.
 		 */
 		THIS_LIST,
-
-		/**
-		 * This month, but the other monthly sheet. Only reachable when a deposit predates the rule that keeps
-		 * tournament money and class money apart, since one taken now is confined to a single sheet.
-		 */
-		SAME_MONTH_OTHER_SHEET,
 
 		/**
 		 * A debt from an earlier month, cleared out of this month's money.

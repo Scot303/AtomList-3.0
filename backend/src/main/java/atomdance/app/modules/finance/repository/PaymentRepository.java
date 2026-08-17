@@ -116,6 +116,18 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 	List<Payment> findUnpaidByListId(@Param("listId") UUID listId);
 
 	/**
+	 * Who is already billed for one group on one list, so adding people to it can skip them rather than bill them twice.
+	 */
+	@Query("SELECT p.person.id FROM Payment p WHERE p.list.id = :listId AND p.group.id = :groupId")
+	List<UUID> findPersonIdsByListIdAndGroupId(@Param("listId") UUID listId, @Param("groupId") UUID groupId);
+
+	/**
+	 * @return whether any charge bills this group, which - like a membership - stops it being deleted
+	 */
+	@Query("SELECT COUNT(p) > 0 FROM Payment p WHERE p.group.id = :groupId")
+	boolean existsByGroupId(@Param("groupId") UUID groupId);
+
+	/**
 	 * How many rows each list holds and how many are dealt with, for the year overview.
 	 */
 	@Query("""

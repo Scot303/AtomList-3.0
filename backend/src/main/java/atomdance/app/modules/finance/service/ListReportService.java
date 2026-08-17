@@ -1,5 +1,6 @@
 package atomdance.app.modules.finance.service;
 
+import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
@@ -42,6 +43,7 @@ public class ListReportService {
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 	private final MessageSource messageSource;
+	private final AppClock clock;
 
 
 	@Transactional(readOnly = true)
@@ -143,8 +145,7 @@ public class ListReportService {
 				deposit.getCode(),
 				ref,
 				settlement.isCarryingMoney(),
-				deposit.getBookedYear(),
-				deposit.getBookedMonth(),
+				deposit.getReceivedAt(),
 				partLabel(settlement, ref)
 		);
 	}
@@ -161,16 +162,16 @@ public class ListReportService {
 			return message("report.from_deposit", new Object[]{ref}, "Z wpłaty #" + ref);
 		}
 
-		YearMonth booked = deposit.bookedFor();
+		YearMonth arrived = clock.monthOf(deposit.getReceivedAt());
 
-		return message("report.cleared_from_deposit", new Object[]{ref, booked}, "Rozliczone z wpłaty #" + ref + " (" + booked + ")");
+		return message("report.cleared_from_deposit", new Object[]{ref, arrived}, "Rozliczone z wpłaty #" + ref + " (" + arrived + ")");
 	}
 
 	// ---------------------------------------------------------------- cash in
 
 
 	/**
-	 * The deposits a sheet has to account for: the money booked to its period, plus anything that settled a debt on it whenever that money arrived.
+	 * The deposits a sheet has to account for: the money that arrived during its period, plus anything that settled a debt on it whenever that money arrived.
 	 * <p>
 	 * The first half is what makes the sheet reconcile against the cash box - money taken this month that went on an earlier month's debt
 	 * is still money taken this month. The second half is what makes every paid row on the sheet traceable to a handover.
@@ -180,7 +181,7 @@ public class ListReportService {
 		YearMonth month = list.yearMonth();
 
 		if (month != null) {
-			for (Deposit deposit : depositRepository.findBookedFor(month.getYear(), month.getMonthValue())) {
+			for (Deposit deposit : depositRepository.findReceivedBetween(clock.startOf(month), clock.endOf(month))) {
 				byId.putIfAbsent(deposit.getId(), deposit);
 			}
 		}
@@ -247,8 +248,6 @@ public class ListReportService {
 				deposit.getPayer().getFullName(),
 				deposit.getPaymentMethod(),
 				deposit.getReceivedAt(),
-				deposit.getBookedYear(),
-				deposit.getBookedMonth(),
 				deposit.getOrigin().isDirect(),
 				deposit.getTotalAmount(),
 				countedHere,
@@ -311,7 +310,7 @@ public class ListReportService {
 			return ListReportView.Direction.ADVANCE;
 		}
 
-		return ListReportView.Direction.SAME_MONTH_OTHER_SHEET;
+		return ListReportView.Direction.OTHER_LIST;
 	}
 
 
@@ -326,7 +325,6 @@ public class ListReportService {
 			case THIS_LIST -> message("report.allocation.this_list", new Object[0], "This list");
 			case ARREARS -> message("report.allocation.arrears", new Object[]{where}, "Arrears for " + where);
 			case ADVANCE -> message("report.allocation.advance", new Object[]{where}, "Paid ahead for " + where);
-			case SAME_MONTH_OTHER_SHEET -> message("report.allocation.other_sheet", new Object[]{where}, "Other sheet: " + where);
 			case OTHER_LIST -> message("report.allocation.other_list", new Object[]{where}, "List " + where);
 		};
 	}

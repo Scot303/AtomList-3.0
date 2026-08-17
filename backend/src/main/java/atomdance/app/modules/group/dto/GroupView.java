@@ -2,14 +2,16 @@ package atomdance.app.modules.group.dto;
 
 import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.model.GroupBillingType;
+import atomdance.app.modules.group.model.GroupType;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
+
 public record GroupView(
 		UUID id,
 		String name,
-		boolean tournamentGroup,
+		GroupType type,
 		BigDecimal costForAttending,
 		GroupBillingType billingType,
 		boolean active,
@@ -21,7 +23,7 @@ public record GroupView(
 		return new GroupView(
 				group.getId(),
 				group.getName(),
-				group.isTournamentGroup(),
+				group.getType(),
 				group.getCostForAttending(),
 				group.getBillingType(),
 				group.isActive(),

@@ -1,9 +1,6 @@
 package atomdance.app.modules.finance.dto;
 
-import atomdance.app.modules.finance.model.Deposit;
-import atomdance.app.modules.finance.model.DepositOrigin;
-import atomdance.app.modules.finance.model.PaymentMethod;
-import atomdance.app.modules.finance.model.PaymentSettlement;
+import atomdance.app.modules.finance.model.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -29,9 +26,7 @@ public record DepositView(
 		BigDecimal unallocatedAmount,
 		PaymentMethod paymentMethod,
 		Instant receivedAt,
-		Integer bookedYear,
-		Integer bookedMonth,
-		Boolean forTournament,
+		DepositScope scope,
 		DepositOrigin origin,
 		String note,
 		Instant createdAt,
@@ -83,9 +78,7 @@ public record DepositView(
 				deposit.getUnallocatedAmount(),
 				deposit.getPaymentMethod(),
 				deposit.getReceivedAt(),
-				deposit.getBookedYear(),
-				deposit.getBookedMonth(),
-				deposit.getForTournament(),
+				deposit.getScope(),
 				deposit.getOrigin(),
 				deposit.getNote(),
 				deposit.getCreatedAt(),

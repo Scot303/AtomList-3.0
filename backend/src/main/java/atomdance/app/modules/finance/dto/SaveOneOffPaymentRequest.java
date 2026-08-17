@@ -1,19 +1,23 @@
 package atomdance.app.modules.finance.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 
 /**
- * A charge added by hand for one list only, belonging to no group. No discount applies to it.
+ * A charge added by hand for one list only. No discount applies to it.
  */
 public record SaveOneOffPaymentRequest(
 
 		UUID personId,
 
-		@NotBlank(message = "Description is required")
+		UUID groupId,
+
 		@Size(max = 255, message = "Description is too long")
 		String description,
 

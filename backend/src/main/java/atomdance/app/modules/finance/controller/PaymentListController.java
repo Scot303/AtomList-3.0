@@ -6,7 +6,6 @@ import atomdance.app.modules.finance.service.ListReportService;
 import atomdance.app.modules.finance.service.ListSummaryService;
 import atomdance.app.modules.finance.service.PaymentListService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -109,8 +108,8 @@ public class PaymentListController {
 
 	@PostMapping("/{id}/persons")
 	@PreAuthorize("hasAuthority('MODIFY_LISTS')")
-	public PaymentListView addPersons(@PathVariable UUID id, @RequestBody @NotEmpty(message = "At least one person is required") List<UUID> personIds) {
-		return paymentListService.addPersons(id, personIds);
+	public PaymentListView addPersons(@PathVariable UUID id, @RequestBody @Valid AddPersonsRequest request) {
+		return paymentListService.addPersons(id, request);
 	}
 
 

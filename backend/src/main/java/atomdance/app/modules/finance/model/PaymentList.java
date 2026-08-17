@@ -10,11 +10,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+
 /**
  * A billing sheet: one of the month's two standard lists, or an ad-hoc one a manager assembled.
- * <p>
- * A month has two standard lists rather than one - see {@link ListType#STANDARD_TOURNAMENT} - so the
- * uniqueness that keeps a month from being billed twice is over the type as well as the month.
  */
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -66,13 +64,6 @@ public class PaymentList {
 	private ListPopulationMode populationMode;
 
 	/**
-	 * The list the unpaid people were carried over from, under {@link ListPopulationMode#FROM_UNPAID}.
-	 */
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "source_list_id")
-	private PaymentList sourceList;
-
-	/**
 	 * The groups a {@link ListPopulationMode#BY_GROUPS} list was built from.
 	 * Kept so the choice can be replayed later - somebody who joins one of these groups after the list was
 	 * created should be addable without the manager having to remember which groups they picked.
@@ -97,28 +88,48 @@ public class PaymentList {
 		}
 	}
 
+
 	public boolean isStandard() {
 		return type.isStandard();
 	}
 
-	/**
-	 * @return whether this is the month's tournament sheet rather than its regular one
-	 */
+
 	public boolean isTournament() {
 		return type.isTournament();
 	}
+
+
+	/**
+	 * @return the account the charges on this list are paid into, which decides whose credit may settle them
+	 */
+	public DepositScope scope() {
+		return type.scope();
+	}
+
+
+	/**
+	 * @return whether every charge on this list has to name a group
+	 */
+	public boolean requiresGroup() {
+		return type.requiresGroup();
+	}
+
 
 	public boolean isClosed() {
 		return status == ListStatus.CLOSED;
 	}
 
+
 	public boolean tracksContracts() {
 		return type.tracksContracts();
 	}
 
+
+	//TODO this will need to be changed after instructor can store multiple contracts
 	public boolean carriesInstructorPay() {
 		return isStandard() && !isTournament();
 	}
+
 
 	/**
 	 * @return the month this list bills, or {@code null} if it is not a standard list.
@@ -131,11 +142,7 @@ public class PaymentList {
 		return YearMonth.of(year, month);
 	}
 
-	/**
-	 * Called before anything that would change what this list says.
-	 * The one exception is marking a fake payment, which records that a debt here was settled out of another month's money.
-	 * That deliberately bypasses this guard - it is excluded from every total, so it cannot alter what the accountants were sent.
-	 */
+
 	public void assertOpen() {
 		if (isClosed()) {
 			throw new ListClosedException();

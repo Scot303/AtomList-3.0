@@ -11,7 +11,7 @@ import java.time.Instant;
 
 
 /**
- * Money handed over for one group and nothing else.
+ * Money handed over for one charge and nothing else.
  */
 public record SettleDirectRequest(
 
@@ -24,10 +24,6 @@ public record SettleDirectRequest(
 		PaymentMethod paymentMethod,
 
 		Instant receivedAt,
-
-		Integer bookedYear,
-
-		Integer bookedMonth,
 
 		@Size(max = 512, message = "Note is too long")
 		String note

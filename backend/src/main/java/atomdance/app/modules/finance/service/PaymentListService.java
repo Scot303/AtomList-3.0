@@ -7,22 +7,23 @@ import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.discount.service.DiscountService;
+import atomdance.app.modules.finance.dto.AddPersonsRequest;
 import atomdance.app.modules.finance.dto.CreateCustomListRequest;
 import atomdance.app.modules.finance.dto.PaymentListView;
 import atomdance.app.modules.finance.model.*;
 import atomdance.app.modules.finance.repository.PaymentListRepository;
 import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.finance.repository.TransactionRepository;
+import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.model.Membership;
 import atomdance.app.modules.group.repository.MembershipRepository;
+import atomdance.app.modules.group.service.GroupService;
 import atomdance.app.modules.instructor.service.InstructorService;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.PersonRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ public class PaymentListService {
 	private final PaymentRepository paymentRepository;
 	private final TransactionRepository transactionRepository;
 	private final MembershipRepository membershipRepository;
+	private final GroupService groupService;
 	private final PersonRepository personRepository;
 	private final DiscountService discountService;
 	private final PaymentCalculator paymentCalculator;
@@ -53,11 +55,10 @@ public class PaymentListService {
 	private final InstructorService instructorService;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
-	private final MessageSource messageSource;
 
 
 	public PaymentList getOrThrow(UUID id) {
-		return paymentListRepository.findByIdWithSource(id)
+		return paymentListRepository.findById(id)
 				.orElseThrow(() -> new NotFoundException("entity.list"));
 	}
 
@@ -125,7 +126,7 @@ public class PaymentListService {
 	@Transactional
 	public PaymentListView getStandard(int year, int month, boolean tournament, boolean create) {
 		YearMonth yearMonth = YearMonth.of(year, month);
-		ListType type = ListType.standardFor(tournament);
+		ListType type = tournament ? ListType.STANDARD_TOURNAMENT : ListType.STANDARD;
 
 		if (create) {
 			return PaymentListView.from(ensureStandardList(yearMonth, type));
@@ -140,7 +141,7 @@ public class PaymentListService {
 
 
 	/**
-	 * Builds an ad-hoc list from one of the three ways a user picks who belongs on it.
+	 * Builds an ad-hoc list from either of the two ways a user picks who belongs on it.
 	 */
 	@Transactional
 	public PaymentListView createCustom(CreateCustomListRequest request) {
@@ -151,9 +152,6 @@ public class PaymentListService {
 				.name(request.name().trim())
 				.status(ListStatus.OPEN)
 				.populationMode(request.populationMode())
-				.sourceList(request.populationMode() == ListPopulationMode.FROM_UNPAID
-						? getOrThrow(requireSourceList(request))
-						: null)
 				.note(request.note())
 				.build());
 
@@ -188,11 +186,10 @@ public class PaymentListService {
 					throw new InvalidOperationException("error.list_population_requires_groups");
 				}
 
-				yield attachPersons(list, membershipRepository.findActivePersonIdsInGroups(list.getSourceGroupIds()));
+				yield attachPersons(list, membershipRepository.findActivePersonIdsInGroups(list.getSourceGroupIds()), null);
 			}
 
 			case BY_PERSONS -> throw new InvalidOperationException("error.list_not_repopulatable");
-			case FROM_UNPAID -> populateFromUnpaid(list, list.getSourceList() == null ? null : list.getSourceList().getId());
 		};
 
 		log.info("Repopulated list {} via {}, adding {} person(s)", list.getId(), list.getPopulationMode(), added);
@@ -203,16 +200,19 @@ public class PaymentListService {
 
 
 	/**
-	 * Adds specific people to an existing open list.
+	 * Adds specific people to an existing open list, billing them for a group where the list bills groups.
 	 */
 	@Transactional
-	public PaymentListView addPersons(UUID id, List<UUID> personIds) {
+	public PaymentListView addPersons(UUID id, AddPersonsRequest request) {
 		PaymentList list = getOrThrow(id);
 		list.assertOpen();
 
-		int added = attachPersons(list, personIds);
+		Group group = request.groupId() == null ? null : groupService.getOrThrow(request.groupId());
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%d person(s) added to list %s.", added, describe(list)));
+		int added = attachPersons(list, request.personIds(), group);
+
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%d person(s) added to list %s%s.", added, describe(list),
+				group == null ? "" : " for group " + group.getName()));
 
 		return PaymentListView.from(list);
 	}
@@ -359,12 +359,13 @@ public class PaymentListService {
 
 
 	/**
-	 * The memberships a sheet charges for: the tournament list carries the tournament groups and the regular
-	 * list carries the rest.
+	 * The memberships a sheet charges for: those whose fees are paid into the same account this sheet's are.
+	 * <p>
+	 * Only ever called for a standard list, where the two accounts map one-to-one onto the month's two sheets.
 	 */
 	private static List<Membership> billableOn(PaymentList list, Collection<Membership> memberships) {
 		return memberships.stream()
-				.filter(membership -> membership.getGroup().isTournamentGroup() == list.isTournament())
+				.filter(membership -> DepositScope.of(membership.getGroup().getType()) == list.scope())
 				.toList();
 	}
 
@@ -385,59 +386,33 @@ public class PaymentListService {
 
 				list.getSourceGroupIds().addAll(request.groupIds());
 
-				yield attachPersons(list, membershipRepository.findActivePersonIdsInGroups(request.groupIds()));
+				yield attachPersons(list, membershipRepository.findActivePersonIdsInGroups(request.groupIds()), null);
 			}
 			case BY_PERSONS -> {
 				if (request.personIds() == null || request.personIds().isEmpty()) {
 					throw new InvalidOperationException("error.list_population_requires_persons");
 				}
 
-				yield attachPersons(list, request.personIds());
+				yield attachPersons(list, request.personIds(), null);
 			}
-			case FROM_UNPAID -> populateFromUnpaid(list, requireSourceList(request));
 		};
 	}
 
 
 	/**
-	 * Carries everybody still owing on another list over to this one, debt included.
-	 */
-	private int populateFromUnpaid(PaymentList list, UUID sourceListId) {
-		// TODO not needed?
-		if (sourceListId == null) {
-			throw new InvalidOperationException("error.list_population_requires_source");
-		}
-
-		PaymentList source = getOrThrow(sourceListId);
-		List<Payment> unpaid = paymentRepository.findUnpaidByListId(sourceListId);
-
-		Set<UUID> alreadyOnList = new HashSet<>(paymentRepository.findPersonIdsByListId(list.getId()));
-		int added = 0;
-
-		for (Payment debt : unpaid) {
-			if (alreadyOnList.contains(debt.getPerson().getId())) {
-				continue;
-			}
-
-			paymentRepository.save(oneOffPayment(list, debt.getPerson(), messageSource.getMessage(
-					"list.carried_over_from",
-					new Object[]{describe(source)},
-					"Carried over from " + describe(source),
-					LocaleContextHolder.getLocale()), debt.getOutstanding()));
-
-			added++;
-		}
-
-		return added;
-	}
-
-
-	/**
-	 * Puts people on a custom list, each with one blank charge for a manager to fill in.
+	 * Puts people on a list, each with one charge to fill in afterwards.
 	 *
-	 * @return how many people were added, skipping any already present
+	 * @return how many people were added, skipping anybody the charge would duplicate
 	 */
-	private int attachPersons(PaymentList list, Collection<UUID> personIds) {
+	private int attachPersons(PaymentList list, Collection<UUID> personIds, Group group) {
+		if (list.requiresGroup() == (group == null)) {
+			throw new InvalidOperationException(group == null ? "error.charge_requires_group" : "error.charge_takes_no_group");
+		}
+
+		if (group != null) {
+			requireSameAccount(list, group);
+		}
+
 		List<UUID> distinct = personIds.stream().distinct().toList();
 		List<Person> persons = personRepository.findAllByIdWithFamily(distinct);
 
@@ -445,15 +420,18 @@ public class PaymentListService {
 			throw new NotFoundException("entity.person");
 		}
 
-		Set<UUID> alreadyOnList = new HashSet<>(paymentRepository.findPersonIdsByListId(list.getId()));
+		Set<UUID> alreadyBilled = new HashSet<>(group == null
+				? paymentRepository.findPersonIdsByListId(list.getId())
+				: paymentRepository.findPersonIdsByListIdAndGroupId(list.getId(), group.getId()));
+
 		int added = 0;
 
 		for (Person person : persons) {
-			if (alreadyOnList.contains(person.getId())) {
+			if (alreadyBilled.contains(person.getId())) {
 				continue;
 			}
 
-			paymentRepository.save(oneOffPayment(list, person, list.getName(), Money.ZERO));
+			paymentRepository.save(handAddedCharge(list, person, group));
 			added++;
 		}
 
@@ -462,17 +440,19 @@ public class PaymentListService {
 
 
 	/**
-	 * A charge nothing derives, for a list whose amounts are decided by hand. One of these per person is what
-	 * a custom list is made of, and on a camp list it is the row that tracks their contract.
+	 * A charge nothing derives, for amounts decided by hand.
 	 */
-	private static Payment oneOffPayment(PaymentList list, Person person, String description, BigDecimal amount) {
+	private static Payment handAddedCharge(PaymentList list, Person person, Group group) {
+		boolean perClass = group != null && group.isPerClass();
+
 		Payment payment = Payment.builder()
 				.list(list)
 				.person(person)
 				.chargeKind(PaymentChargeKind.ONE_TIME)
-				.description(description)
-				.unitCost(Money.normalize(amount))
-				.quantity(BigDecimal.ONE)
+				.group(group)
+				.description(group == null ? list.getName() : group.getName())
+				.unitCost(Money.normalize(group == null ? Money.ZERO : group.getCostForAttending()))
+				.quantity(perClass ? Money.ZERO : BigDecimal.ONE)
 				.build();
 
 		payment.applyDiscount(Money.ZERO);
@@ -481,12 +461,13 @@ public class PaymentListService {
 	}
 
 
-	private UUID requireSourceList(CreateCustomListRequest request) {
-		if (request.sourceListId() == null) {
-			throw new InvalidOperationException("error.list_population_requires_source");
+	/**
+	 * Refuses a group whose fees are paid into the other account, which would file its money under the wrong pot.
+	 */
+	static void requireSameAccount(PaymentList list, Group group) {
+		if (DepositScope.of(group.getType()) != list.scope()) {
+			throw new InvalidOperationException("error.group_wrong_account");
 		}
-
-		return request.sourceListId();
 	}
 
 

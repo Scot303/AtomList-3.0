@@ -60,14 +60,11 @@ public class DepositService {
 	// ---------------------------------------------------------------- Fetching
 
 
-	/**
-	 * The history of deposits, most recent first: one booking year, or every handover ever recorded when no year is named.
-	 */
 	@Transactional(readOnly = true)
 	public List<DepositView> getHistory(Integer year) {
 		List<Deposit> deposits = year == null
 				? depositRepository.findAllBy(NEWEST_FIRST)
-				: depositRepository.findByBookedYear(year, NEWEST_FIRST);
+				: depositRepository.findByReceivedAtGreaterThanEqualAndReceivedAtLessThan(clock.startOf(YearMonth.of(year, 1)), clock.endOf(YearMonth.of(year, 12)), NEWEST_FIRST);
 
 		return deposits.stream()
 				.map(DepositView::withoutSettlements)
@@ -113,9 +110,10 @@ public class DepositService {
 		List<UUID> personIds = distinct(request.personIds());
 		requirePersonsExist(personIds);
 
-		YearMonth reference = referenceMonth(request.bookedYear(), request.bookedMonth(), request.receivedAt());
+		YearMonth reference = referenceMonth(request.receivedAt());
 		int monthsAhead = monthsAhead(request.monthsAhead());
-		ListType type = ListType.standardFor(request.tournament());
+
+		ListType type = ListType.standardFor(request.scope());
 
 		List<Payment> outstanding = paymentRepository.findOutstandingStandardForPersons(personIds, type);
 		DepositAllocationPlanner.Plan plan = planner.plan(outstanding, personIds, reference, request.amount(), monthsAhead);
@@ -146,7 +144,7 @@ public class DepositService {
 		}
 
 		Instant receivedAt = request.receivedAt() != null ? request.receivedAt() : Instant.now();
-		YearMonth booked = referenceMonth(request.bookedYear(), request.bookedMonth(), receivedAt);
+		YearMonth reference = referenceMonth(receivedAt);
 
 		Deposit deposit = Deposit.builder()
 				.payer(payer)
@@ -154,17 +152,16 @@ public class DepositService {
 				.totalAmount(Money.normalize(request.amount()))
 				.paymentMethod(request.paymentMethod())
 				.receivedAt(receivedAt)
-				.forTournament(request.tournament())
+				.scope(request.scope())
 				.origin(DepositOrigin.COUNTER)
 				.note(request.note())
 				.createdByUserId(securityService.getCurrentUserId())
 				.build();
 
-		deposit.bookFor(booked);
 		depositRepository.saveAndFlush(deposit);
 
-		List<Payment> outstanding = paymentRepository.findOutstandingStandardForPersons(personIds, ListType.standardFor(request.tournament()));
-		DepositAllocationPlanner.Plan plan = planner.plan(outstanding, personIds, booked, request.amount(), monthsAhead(request.monthsAhead()));
+		List<Payment> outstanding = paymentRepository.findOutstandingStandardForPersons(personIds, ListType.standardFor(request.scope()));
+		DepositAllocationPlanner.Plan plan = planner.plan(outstanding, personIds, reference, request.amount(), monthsAhead(request.monthsAhead()));
 
 		assertMatchesWhatWasApproved(plan, request.expected());
 
@@ -192,7 +189,6 @@ public class DepositService {
 				.orElseThrow(() -> new NotFoundException("entity.payment"));
 
 		Instant receivedAt = request.receivedAt() != null ? request.receivedAt() : Instant.now();
-		YearMonth booked = referenceMonth(request.bookedYear(), request.bookedMonth(), receivedAt);
 
 		Deposit deposit = Deposit.builder()
 				.payer(payment.getPerson())
@@ -200,13 +196,12 @@ public class DepositService {
 				.totalAmount(Money.normalize(request.amount()))
 				.paymentMethod(request.paymentMethod())
 				.receivedAt(receivedAt)
-				.forTournament(payment.getList().isStandard() ? payment.getList().isTournament() : null)
+				.scope(payment.getList().scope())
 				.origin(DepositOrigin.DIRECT)
 				.note(request.note())
 				.createdByUserId(securityService.getCurrentUserId())
 				.build();
 
-		deposit.bookFor(booked);
 		depositRepository.saveAndFlush(deposit);
 
 		settlementService.settle(deposit, payment, request.amount(), receivedAt);
@@ -250,14 +245,10 @@ public class DepositService {
 				throw new InvalidOperationException("error.list_population_requires_persons");
 			}
 
-			ListType type = deposit.scopeType();
-
-			if (type == null) {
-				throw new InvalidOperationException("error.deposit_unscoped");
-			}
+			ListType type = ListType.standardFor(deposit.getScope());
 
 			List<Payment> outstanding = paymentRepository.findOutstandingStandardForPersons(personIds, type);
-			DepositAllocationPlanner.Plan plan = planner.plan(outstanding, personIds, deposit.bookedFor(), deposit.getUnallocatedAmount(), monthsAhead(request.monthsAhead()));
+			DepositAllocationPlanner.Plan plan = planner.plan(outstanding, personIds, clock.monthOf(deposit.getReceivedAt()), deposit.getUnallocatedAmount(), monthsAhead(request.monthsAhead()));
 
 			if (plan.isEmpty()) {
 				throw new InvalidOperationException("error.nothing_to_settle");
@@ -364,16 +355,11 @@ public class DepositService {
 	}
 
 
-	private YearMonth referenceMonth(Integer year, Integer month, Instant receivedAt) {
-		if (year != null && month != null) {
-			return YearMonth.of(year, month);
-		}
-
-		if (receivedAt != null) {
-			return YearMonth.from(receivedAt.atZone(clock.zone()));
-		}
-
-		return clock.currentYearMonth();
+	/**
+	 * The month "arrears" and "ahead" are measured against: the one the cash arrived in.
+	 */
+	private YearMonth referenceMonth(Instant receivedAt) {
+		return receivedAt == null ? clock.currentYearMonth() : clock.monthOf(receivedAt);
 	}
 
 

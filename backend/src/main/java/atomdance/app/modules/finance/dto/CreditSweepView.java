@@ -35,8 +35,6 @@ public record CreditSweepView(
 			String payerName,
 			PaymentMethod paymentMethod,
 			Instant receivedAt,
-			Integer bookedYear,
-			Integer bookedMonth,
 			BigDecimal creditAvailable,
 			BigDecimal allocated,
 			BigDecimal remainingCredit,

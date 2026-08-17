@@ -1,11 +1,13 @@
 package atomdance.app.modules.group.dto;
 
 import atomdance.app.modules.group.model.GroupBillingType;
+import atomdance.app.modules.group.model.GroupType;
 import atomdance.app.modules.group.model.Membership;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+
 
 public record MembershipView(
 		UUID id,
@@ -14,7 +16,7 @@ public record MembershipView(
 		UUID groupId,
 		String groupName,
 		GroupBillingType billingType,
-		boolean tournamentGroup,
+		GroupType groupType,
 		LocalDate joinedAt,
 		LocalDate leftAt,
 		boolean active,
@@ -32,7 +34,7 @@ public record MembershipView(
 				membership.getGroup().getId(),
 				membership.getGroup().getName(),
 				membership.getGroup().getBillingType(),
-				membership.getGroup().isTournamentGroup(),
+				membership.getGroup().getType(),
 				membership.getJoinedAt(),
 				membership.getLeftAt(),
 				membership.isActive(),

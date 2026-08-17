@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +38,7 @@ public interface DepositRepository extends JpaRepository<Deposit, UUID> {
 	List<Deposit> findAllBy(Sort sort);
 
 	@EntityGraph(attributePaths = {"payer", "payer.family", "settlements"})
-	List<Deposit> findByBookedYear(Integer bookedYear, Sort sort);
+	List<Deposit> findByReceivedAtGreaterThanEqualAndReceivedAtLessThan(Instant from, Instant until, Sort sort);
 
 	/**
 	 * The cash a month took in, whichever months' debts it went on to clear. A report's income section.
@@ -46,10 +47,10 @@ public interface DepositRepository extends JpaRepository<Deposit, UUID> {
 			SELECT d FROM Deposit d
 			JOIN FETCH d.payer payer
 			LEFT JOIN FETCH payer.family
-			WHERE d.bookedYear = :year AND d.bookedMonth = :month
+			WHERE d.receivedAt >= :from AND d.receivedAt < :until
 			ORDER BY d.receivedAt ASC, d.number ASC
 			""")
-	List<Deposit> findBookedFor(@Param("year") int year, @Param("month") int month);
+	List<Deposit> findReceivedBetween(@Param("from") Instant from, @Param("until") Instant until);
 
 	/**
 	 * Credit somebody still has in hand, oldest first so the earliest money is spent first.

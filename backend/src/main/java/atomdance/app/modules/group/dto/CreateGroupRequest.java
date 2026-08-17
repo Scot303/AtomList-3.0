@@ -1,9 +1,11 @@
 package atomdance.app.modules.group.dto;
 
 import atomdance.app.modules.group.model.GroupBillingType;
+import atomdance.app.modules.group.model.GroupType;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+
 
 public record CreateGroupRequest(
 
@@ -11,7 +13,7 @@ public record CreateGroupRequest(
 		@Size(max = 128, message = "Group name is too long")
 		String name,
 
-		Boolean tournamentGroup,
+		GroupType type,
 
 		@NotNull(message = "Cost for attending is required")
 		@DecimalMin(value = "0.00", message = "Cost for attending cannot be negative")
