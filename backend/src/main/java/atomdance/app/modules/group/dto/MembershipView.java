@@ -20,9 +20,11 @@ public record MembershipView(
 		LocalDate joinedAt,
 		LocalDate leftAt,
 		boolean active,
+		boolean joinedMidMonth,
 		BigDecimal groupDefaultCost,
 		BigDecimal customMonthlyCost,
 		BigDecimal effectiveCost,
+		BigDecimal firstMonthCost,
 		String note
 ) {
 
@@ -38,9 +40,11 @@ public record MembershipView(
 				membership.getJoinedAt(),
 				membership.getLeftAt(),
 				membership.isActive(),
+				membership.joinedMidMonth(),
 				membership.getGroup().getCostForAttending(),
 				membership.getCustomMonthlyCost(),
 				membership.resolveUnitCost(),
+				membership.getFirstMonthCost(),
 				membership.getNote()
 		);
 	}
