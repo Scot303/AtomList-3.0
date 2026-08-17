@@ -5,8 +5,9 @@ import { cn } from '@/lib/cn.ts';
 import { notifyApiError } from '@/lib/toast.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
 import { paymentListDetailPath } from '@/routes/paths.ts';
+import { useConfirm } from '@/stores/dialogStore.ts';
 import { useOpenStandardList } from '../../hooks/useOpenStandardList.ts';
-import { monthName } from '../../types/listLabels.ts';
+import { monthHasEnded, monthName } from '@/components/ui/fields/dateUtils';
 import type { ListSummaryView, MonthSummaryView } from '../../types/types.ts';
 
 
@@ -24,15 +25,23 @@ export const MonthCardTabs = ({ summary }: MonthCardTabsProps) => {
 	const { hasPermission } = useAuth();
 	const canCreate = hasPermission('MODIFY_LISTS');
 
+	const confirm = useConfirm();
 	const openStandardList = useOpenStandardList();
 
-	const open = (list: ListSummaryView | null, tournament: boolean) => {
+	const open = async (list: ListSummaryView | null, tournament: boolean) => {
 		if (list !== null) {
 			void navigate(paymentListDetailPath(list.id));
 			return;
 		}
 
 		if (!canCreate || openStandardList.isPending) {
+			return;
+		}
+
+		const previousMonth = summary.month === 1 ? 12 : summary.month - 1;
+		const previousYear = summary.month === 1 ? summary.year - 1 : summary.year;
+
+		if (!monthHasEnded(previousYear, previousMonth) && !( await confirmEarlyOpening(confirm, summary.month) )) {
 			return;
 		}
 
@@ -64,7 +73,7 @@ export const MonthCardTabs = ({ summary }: MonthCardTabsProps) => {
 					list={ summary.tournament }
 					canCreate={ canCreate }
 					pending={ openStandardList.isPending && openStandardList.variables?.tournament }
-					onOpen={ () => open(summary.tournament, true) }
+					onOpen={ () => void open(summary.tournament, true) }
 				/>
 
 				<span aria-hidden className="w-px shrink-0 bg-os-border"/>
@@ -75,12 +84,25 @@ export const MonthCardTabs = ({ summary }: MonthCardTabsProps) => {
 					list={ summary.open }
 					canCreate={ canCreate }
 					pending={ openStandardList.isPending && !openStandardList.variables?.tournament }
-					onOpen={ () => open(summary.open, false) }
+					onOpen={ () => void open(summary.open, false) }
 				/>
 			</div>
 		</div>
 	);
 };
+
+
+/**
+ * Warns before a month is committed to a list while the previous month is still in progress.
+ */
+function confirmEarlyOpening(confirm: ReturnType<typeof useConfirm>, month: number): Promise<boolean> {
+	return confirm({
+		title: `Utworzyć listę za ${ monthName(month).toLowerCase() } przed końcem poprzedniego miesiąca?`,
+		message: 'Im wcześniej utworzona zostanie nowa lista, tym bardziej prawdopodobna będzie konieczność jej ręcznego przeliczenia.',
+		confirmText: 'Utwórz mimo to',
+		variant: 'danger',
+	});
+}
 
 
 interface TabProps {
@@ -100,13 +122,11 @@ const Tab = ({ label, month, list, canCreate, pending, onOpen }: TabProps) => {
 
 	const period = monthName(month).toLowerCase();
 
-	const title = unavailable ?
-		`Lista ${ label } za ${ period } jeszcze nie istnieje - jej utworzenie wymaga uprawnienia do zarządzania listami`
-		:
-		missing ?
-			`Utwórz listę ${ label } za ${ period }`
-			:
-			`Otwórz listę ${ label } za ${ period }${ list.closed ? ' (zamknięta)' : '' }`;
+	const title = unavailable
+		? `Lista ${ label } za ${ period } jeszcze nie istnieje`
+		: missing
+			? `Utwórz listę ${ label } za ${ period }`
+			: `Otwórz listę ${ label } za ${ period }${ list.closed ? ' (zamknięta)' : '' }`;
 
 	return (
 		<button
