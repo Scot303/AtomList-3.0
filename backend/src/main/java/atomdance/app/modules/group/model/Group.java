@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+
 /**
  * A class people attend and are billed for.
  */
@@ -22,9 +23,10 @@ public class Group {
 	@Column(nullable = false, length = 128)
 	private String name;
 
-	@Column(name = "is_tournament_group", nullable = false)
+	@Enumerated(EnumType.STRING)
+	@Column(name = "type", nullable = false, length = 32)
 	@Builder.Default
-	private boolean isTournamentGroup = false;
+	private GroupType type = GroupType.OPEN;
 
 	@Column(nullable = false, precision = 12, scale = 2)
 	private BigDecimal costForAttending;
@@ -38,7 +40,6 @@ public class Group {
 	@Builder.Default
 	private boolean isActive = true;
 
-	/** The color frontend draws this group's badge in, as six hex digits with no leading {@code #}. */
 	@Column(length = 6)
 	private String color;
 
@@ -48,12 +49,14 @@ public class Group {
 	@Column(nullable = false)
 	private Instant createdAt;
 
+
 	@PrePersist
 	void onCreate() {
 		if (createdAt == null) {
 			createdAt = Instant.now();
 		}
 	}
+
 
 	public boolean isPerClass() {
 		return billingType == GroupBillingType.PER_CLASS;

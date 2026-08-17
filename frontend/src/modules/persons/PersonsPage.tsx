@@ -1,12 +1,12 @@
 import { type MouseEvent, useCallback, useMemo } from 'react';
 import { Info, Percent, Plus, Users } from 'lucide-react';
-import { DataTable, useTableFilterTags } from '@/components/dataTable';
+import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { notifyApiError } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { GroupKindFilters } from '@/modules/groups/components/GroupKindFilters';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
-import { buildGroupOptions, indexGroups, OPEN_KIND, TOURNAMENT_KIND, } from '@/modules/groups/types/groupRows.ts';
+import { buildGroupOptions, GROUP_TYPE_OPTIONS, indexGroups, } from '@/modules/groups/types/groupRows.ts';
+import { ACTIVE_ID } from '@/types/rowTags.ts';
 import { useContextMenu } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
@@ -16,7 +16,7 @@ import { usePrefetchPersonDiscounts } from './hooks/usePersonDiscounts';
 import { usePersons } from './hooks/usePersons';
 import { useUpdatePerson } from './hooks/usePersonMutations';
 import { buildPersonColumns } from './types/personColumns.tsx';
-import { ACTIVE_ID, type PersonRow, toPersonRow, } from './types/personRows.ts';
+import { type PersonRow, toPersonRow, } from './types/personRows.ts';
 import type { UpdatePersonPayload } from './types/types.ts';
 import type { ColumnVisibilityState } from "@tanstack/react-table";
 
@@ -29,12 +29,13 @@ const TABLE_KEY = 'persons';
 
 /** The id the kind chips keep their filter under, and the column they filter. */
 const KIND_FILTER_ID = 'persons-quick-group-kind';
-const KIND_FIELD = 'groupKinds';
+const KIND_FIELD = 'groupTypes';
 
 const KIND_TITLES = {
-	[OPEN_KIND]: 'Pokaż osoby zapisane do grup OPEN',
-	[TOURNAMENT_KIND]: 'Pokaż osoby zapisane do grup turniejowych',
+	OPEN: 'Pokaż osoby zapisane do grup OPEN',
+	TOURNAMENT: 'Pokaż osoby zapisane do grup turniejowych',
 };
+
 
 export function PersonsPage() {
 	const { hasPermission } = useAuth();
@@ -135,10 +136,11 @@ export function PersonsPage() {
 	const toolbar = (
 		<div className="flex items-center">
 			<div className="ml-5 mr-10 flex items-center gap-2">
-				<GroupKindFilters
+				<TagChipFilters
 					tags={ filterTags }
 					filterId={ KIND_FILTER_ID }
 					field={ KIND_FIELD }
+					options={ GROUP_TYPE_OPTIONS }
 					titles={ KIND_TITLES }
 				/>
 			</div>

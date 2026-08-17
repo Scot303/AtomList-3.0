@@ -13,10 +13,5 @@ public enum ListPopulationMode {
 	/**
 	 * Exactly the people named.
 	 */
-	BY_PERSONS,
-
-	/**
-	 * Everybody still owing money on another list, carrying their outstanding amount over.
-	 */
-	FROM_UNPAID
+	BY_PERSONS
 }

@@ -4,19 +4,25 @@ import { Controller, useForm } from 'react-hook-form';
 import { Alert } from '@/components/feedback/Alert';
 import { Button } from '@/components/ui/buttons/Button';
 import { ExtendedSelect, type ExtendedSelectOption } from '@/components/ui/extendedSelect';
-import { ColorPicker, FormSection, Input, Textarea, Toggle } from '@/components/ui/fields';
+import { ColorPicker, FormSection, Input, Textarea } from '@/components/ui/fields';
+import { TagSelect } from '@/components/ui/tags';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
+import { ACTIVE_ID, ACTIVE_TAG_OPTIONS, toActiveTag } from '@/types/rowTags.ts';
 import { useCreateGroup, useUpdateGroup } from '../../hooks/useGroupMutations';
 import { groupFormSchema, type GroupFormValues } from '../../schemas/groupSchemas';
 import { blankGroupForm, buildCreatePayload, buildUpdatePayload, groupToForm } from '../../utils/groupForm';
 import type { GroupView } from '../../types/types.ts';
-import { cn } from "@/lib/cn.ts";
 
 
 const BILLING_OPTIONS: ExtendedSelectOption[] = [
 	{ id: 'MONTHLY', name: 'Miesięczne', hint: 'stała kwota' },
-	{ id: 'PER_CLASS', name: 'Za wejście', hint: 'liczone od obecności' },
+	{ id: 'PER_CLASS', name: 'Za wejście', hint: 'od obecności' },
+];
+
+const TYPE_OPTIONS: ExtendedSelectOption[] = [
+	{ id: 'OPEN', name: 'OPEN' },
+	{ id: 'TOURNAMENT', name: 'Turniejowa' },
 ];
 
 
@@ -24,6 +30,7 @@ interface GroupFormProps {
 	/** The group being edited. Absent for a new one, which is what puts the form in creating mode. */
 	group?: GroupView;
 }
+
 
 /**
  * Everything held about one group, whether it exists yet or not.
@@ -128,6 +135,27 @@ export const GroupForm = ({ group }: GroupFormProps) => {
 			<FormSection title="Oznaczenie">
 				<Controller
 					control={ control }
+					name="type"
+					render={ ({ field }) => (
+						<ExtendedSelect
+							label="Rodzaj grupy"
+							options={ TYPE_OPTIONS }
+							value={ field.value }
+							onChange={ (id) => {
+								if (id !== undefined) {
+									field.onChange(id);
+								}
+							} }
+							onBlur={ field.onBlur }
+							disabled={ busy }
+							searchable={ false }
+							error={ errors.type?.message }
+						/>
+					) }
+				/>
+
+				<Controller
+					control={ control }
 					name="color"
 					render={ ({ field }) => (
 						<ColorPicker
@@ -144,40 +172,28 @@ export const GroupForm = ({ group }: GroupFormProps) => {
 					) }
 				/>
 
-				<div className={ cn("styled-card flex flex-col justify-center rounded-xl px-3 py-1 sm:col-span-2",
-					group === undefined && 'mt-3'
-				) }>
+				{ isEditing && (
 					<Controller
 						control={ control }
-						name="tournamentGroup"
+						name="active"
 						render={ ({ field }) => (
-							<Toggle
-								label="Grupa turniejowa"
-								checked={ field.value }
-								onChange={ field.onChange }
+							<TagSelect
+								label="Status grupy"
+								options={ ACTIVE_TAG_OPTIONS }
+								searchable={ false }
+								value={ toActiveTag(field.value) }
+								onChange={ (value) => {
+									if (value !== undefined) {
+										field.onChange(value === ACTIVE_ID);
+									}
+								} }
+								onBlur={ field.onBlur }
 								disabled={ busy }
-								compact
+								error={ errors.active?.message }
 							/>
 						) }
 					/>
-
-					{ isEditing && (
-						<Controller
-							control={ control }
-							name="active"
-							render={ ({ field }) => (
-								<Toggle
-									label="Aktywna"
-									description="Do nieaktywnej grupy nie da się dopisać nowych osób."
-									checked={ field.value }
-									onChange={ field.onChange }
-									disabled={ busy }
-									compact
-								/>
-							) }
-						/>
-					) }
-				</div>
+				) }
 			</FormSection>
 
 			<Textarea

@@ -1,5 +1,5 @@
-import { memo, type MouseEvent, useState } from 'react';
-import { flexRender, type Row } from '@tanstack/react-table';
+import { memo, type MouseEvent, type ReactNode, useState } from 'react';
+import { type Cell, flexRender, type Row } from '@tanstack/react-table';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { popoverAnchorProps } from '@/lib/popoverAnchor';
@@ -20,6 +20,7 @@ interface DataTableRowProps<T extends object> {
 	isContextTarget?: boolean;
 	onContextRowChange?: (rowId: string) => void;
 }
+
 
 /**
  * One data row.
@@ -86,6 +87,7 @@ const DataTableRowInner = <T extends object>(props: DataTableRowProps<T>) => {
 
 export const DataTableRow = memo(DataTableRowInner) as typeof DataTableRowInner;
 
+
 /* ── Grouped row ─────────────────────────────────────────────────────────── */
 
 interface DataTableGroupRowProps<T extends object> {
@@ -93,6 +95,7 @@ interface DataTableGroupRowProps<T extends object> {
 	virtualIndex: number;
 	measureRow: (node: HTMLTableRowElement | null) => void;
 }
+
 
 /** A grouping header: the grouped value, a count of what is under it, and a disclosure arrow. */
 export const DataTableGroupRow = <T extends object>({ row, virtualIndex, measureRow }: DataTableGroupRowProps<T>) => (
@@ -112,7 +115,7 @@ export const DataTableGroupRow = <T extends object>({ row, virtualIndex, measure
 				{ cell.getIsGrouped() ? (
 					<span className="flex items-center gap-2">
 						{ row.getIsExpanded() ? <ChevronDown size={ 14 }/> : <ChevronRight size={ 14 }/> }
-						{ flexRender(cell.column.columnDef.cell, cell.getContext()) }
+						{ groupLabel(cell) }
 						<span className="ml-1 text-xs font-normal text-os-text-muted">({ row.subRows.length })</span>
 					</span>
 				) : cell.getIsAggregated() && cell.column.columnDef.aggregatedCell ? (
@@ -122,3 +125,17 @@ export const DataTableGroupRow = <T extends object>({ row, virtualIndex, measure
 		)) }
 	</tr>
 );
+
+
+/**
+ * The value a grouping header stands for.
+ */
+function groupLabel<T extends object>(cell: Cell<DataTableFeatures, T>): ReactNode {
+	const definition = cell.column.columnDef as AppColumnDef<T>;
+
+	if (definition.cell === undefined && definition.meta?.displayFormatter) {
+		return definition.meta.displayFormatter(cell.getValue());
+	}
+
+	return flexRender(definition.cell, cell.getContext());
+}

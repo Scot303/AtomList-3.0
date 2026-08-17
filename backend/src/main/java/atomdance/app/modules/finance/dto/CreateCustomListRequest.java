@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 
+
 public record CreateCustomListRequest(
 
 		@NotBlank(message = "List name is required")
@@ -28,11 +29,6 @@ public record CreateCustomListRequest(
 		 * BY_PERSONS: exactly these people.
 		 */
 		List<UUID> personIds,
-
-		/*
-		 * FROM_UNPAID: everybody still owing on this list, carrying their outstanding amount over.
-		 */
-		UUID sourceListId,
 
 		@Size(max = 512, message = "Note is too long")
 		String note

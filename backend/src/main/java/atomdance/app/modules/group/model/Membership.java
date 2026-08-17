@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.UUID;
 
+
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "memberships",
@@ -44,27 +45,48 @@ public class Membership {
 	@Column(precision = 12, scale = 2)
 	private BigDecimal customMonthlyCost;
 
+	/**
+	 * What to bill for the month this person joined, when they came in part-way through it and should not pay for
+	 * the whole of it. {@code null} bills the usual rate from the start.
+	 */
+	@Column(name = "first_month_cost", precision = 12, scale = 2)
+	private BigDecimal firstMonthCost;
+
 	@Column(length = 512)
 	private String note;
+
 
 	public boolean isActive() {
 		return leftAt == null;
 	}
 
-	/**
-	 * Whether this membership was running at any point during the given month, which is what decides if it appears on that month's list.
-	 */
-	public boolean wasActiveDuring(YearMonth month) {
-		boolean startedByEndOfMonth = !joinedAt.isAfter(month.atEndOfMonth());
-		boolean notYetLeftAtStartOfMonth = leftAt == null || !leftAt.isBefore(month.atDay(1));
 
-		return startedByEndOfMonth && notYetLeftAtStartOfMonth;
+	public boolean joinedMidMonth() {
+		return joinedAt.getDayOfMonth() > 1;
 	}
 
+
+	public YearMonth joinMonth() {
+		return YearMonth.from(joinedAt);
+	}
+
+
 	/**
-	 * The rate to bill, honoring an individually agreed amount over the group default.
+	 * The standing rate, honoring an individually agreed amount over the group default.
 	 */
 	public BigDecimal resolveUnitCost() {
 		return customMonthlyCost != null ? customMonthlyCost : group.getCostForAttending();
+	}
+
+
+	/**
+	 * The rate to bill for one month: the agreed part-month amount for the month they joined, the standing rate for every month after it.
+	 */
+	public BigDecimal resolveUnitCostFor(YearMonth month) {
+		if (firstMonthCost != null && month != null && month.equals(joinMonth())) {
+			return firstMonthCost;
+		}
+
+		return resolveUnitCost();
 	}
 }

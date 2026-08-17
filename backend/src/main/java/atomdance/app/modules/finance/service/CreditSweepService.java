@@ -223,8 +223,6 @@ public class CreditSweepService {
 					deposit.getPayer().getFullName(),
 					deposit.getPaymentMethod(),
 					deposit.getReceivedAt(),
-					deposit.getBookedYear(),
-					deposit.getBookedMonth(),
 					planned.creditAvailable(),
 					allocated,
 					Money.subtract(planned.creditAvailable(), allocated),

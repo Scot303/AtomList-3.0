@@ -1,20 +1,6 @@
-import type { TagOption } from '@/components/ui/tags';
-import { type GroupKind, OPEN_KIND, TOURNAMENT_KIND } from '@/modules/groups/types/groupRows.ts';
-import type { GroupView } from '@/modules/groups/types/types.ts';
+import type { GroupType, GroupView } from '@/modules/groups/types/types.ts';
+import { type ActiveTag, toActiveTag } from '@/types/rowTags.ts';
 import type { PersonView } from './types.ts';
-
-
-/* ── Active ──────────────────────────────────────────────────────────────── */
-
-export const ACTIVE_ID = 'active';
-export const INACTIVE_ID = 'inactive';
-
-export type ActiveTag = typeof ACTIVE_ID | typeof INACTIVE_ID;
-
-export const ACTIVE_TAG_OPTIONS: TagOption[] = [
-	{ id: ACTIVE_ID, name: 'Aktywna', color: 'emerald' },
-	{ id: INACTIVE_ID, name: 'Nieaktywna', color: 'slate' },
-];
 
 
 /* ── Row ─────────────────────────────────────────────────────────────────── */
@@ -33,7 +19,7 @@ export interface PersonRow {
 	/** Ids of the groups currently attended, matched against the Grupy column's options. */
 	groupIds: string[];
 	/** Which kinds of group those are. What the OPEN and TURNIEJOWI chips filter on. */
-	groupKinds: GroupKind[];
+	groupTypes: GroupType[];
 	person: PersonView;
 }
 
@@ -43,15 +29,8 @@ export function toPersonRow(person: PersonView, groupsById: Map<string, GroupVie
 		.map((id) => groupsById.get(id))
 		.filter((group): group is GroupView => group !== undefined);
 
-	const kinds: GroupKind[] = [];
-
-	if (groups.some((group) => !group.tournamentGroup)) {
-		kinds.push(OPEN_KIND);
-	}
-
-	if (groups.some((group) => group.tournamentGroup)) {
-		kinds.push(TOURNAMENT_KIND);
-	}
+	const types: GroupType[] = ( ['OPEN', 'TOURNAMENT'] as const )
+		.filter((type) => groups.some((group) => group.type === type));
 
 	return {
 		id: person.id,
@@ -59,9 +38,9 @@ export function toPersonRow(person: PersonView, groupsById: Map<string, GroupVie
 		lastName: person.lastName,
 		dateOfBirth: person.dateOfBirth ?? '',
 		contractSigned: person.contractSigned,
-		activeTag: person.active ? ACTIVE_ID : INACTIVE_ID,
+		activeTag: toActiveTag(person.active),
 		groupIds: person.groupIds,
-		groupKinds: kinds,
+		groupTypes: types,
 		person,
 	};
 }

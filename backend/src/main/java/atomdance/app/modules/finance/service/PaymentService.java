@@ -15,6 +15,8 @@ import atomdance.app.modules.finance.model.PaymentChargeKind;
 import atomdance.app.modules.finance.model.PaymentCode;
 import atomdance.app.modules.finance.model.PaymentList;
 import atomdance.app.modules.finance.repository.PaymentRepository;
+import atomdance.app.modules.group.model.Group;
+import atomdance.app.modules.group.service.GroupService;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.PersonRepository;
 import atomdance.app.modules.user.service.SecurityService;
@@ -38,6 +40,7 @@ public class PaymentService {
 
 	private final PaymentRepository paymentRepository;
 	private final PaymentListService paymentListService;
+	private final GroupService groupService;
 	private final PersonRepository personRepository;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
@@ -98,7 +101,7 @@ public class PaymentService {
 
 
 	/**
-	 * Adds a charge for this list only, belonging to no group.
+	 * Adds a charge for this list only, which no membership backs and no recalculation rewrites.
 	 */
 	@Transactional
 	public PaymentView addOneOff(UUID listId, SaveOneOffPaymentRequest request) {
@@ -112,16 +115,17 @@ public class PaymentService {
 				.list(list)
 				.person(person)
 				.chargeKind(PaymentChargeKind.ONE_TIME)
-				.description(request.description().trim())
 				.unitCost(Money.normalize(request.unitCost()))
 				.quantity(request.quantity() != null ? Money.normalize(request.quantity()) : BigDecimal.ONE)
 				.build();
+
+		pointAtCharge(payment, list, request);
 
 		payment.applyDiscount(Money.ZERO);
 		paymentRepository.save(payment);
 
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge '%s' of %s added for %s on list %s.",
-				payment.getDescription(), payment.getAmountToPay(), person.getFullName(), PaymentListService.describe(list)));
+				payment.getLabel(), payment.getAmountToPay(), person.getFullName(), PaymentListService.describe(list)));
 
 		return PaymentView.from(payment);
 	}
@@ -162,7 +166,8 @@ public class PaymentService {
 
 		requireOneOff(payment);
 
-		payment.setDescription(request.description().trim());
+		pointAtCharge(payment, payment.getList(), request);
+
 		payment.setUnitCost(Money.normalize(request.unitCost()));
 		payment.setQuantity(request.quantity() != null ? Money.normalize(request.quantity()) : BigDecimal.ONE);
 		payment.applyDiscount(Money.ZERO);
@@ -170,9 +175,39 @@ public class PaymentService {
 		guardAgainstUnderfundedCharge(payment);
 
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge %s for %s changed to '%s' of %s.",
-				payment.getCode(), payment.getPerson().getFullName(), payment.getDescription(), payment.getAmountToPay()));
+				payment.getCode(), payment.getPerson().getFullName(), payment.getLabel(), payment.getAmountToPay()));
 
 		return PaymentView.from(payment);
+	}
+
+
+	/**
+	 * Points a hand-added charge at whatever its list bills.
+	 */
+	private void pointAtCharge(Payment payment, PaymentList list, SaveOneOffPaymentRequest request) {
+		if (list.requiresGroup()) {
+			if (request.groupId() == null) {
+				throw new InvalidOperationException("error.charge_requires_group");
+			}
+
+			Group group = groupService.getOrThrow(request.groupId());
+			PaymentListService.requireSameAccount(list, group);
+
+			payment.setGroup(group);
+			payment.setDescription(group.getName());
+
+			return;
+		}
+
+		if (request.groupId() != null) {
+			throw new InvalidOperationException("error.charge_takes_no_group");
+		}
+
+		if (request.description() == null || request.description().isBlank()) {
+			throw new InvalidOperationException("error.charge_requires_description");
+		}
+
+		payment.setDescription(request.description().trim());
 	}
 
 

@@ -6,6 +6,7 @@ import atomdance.app.modules.finance.repository.projection.ListAmount;
 import atomdance.app.modules.finance.repository.projection.PaymentCounts;
 import atomdance.app.modules.finance.repository.projection.PaymentOutstanding;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -114,6 +115,25 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 			ORDER BY person.lastName ASC, person.name ASC
 			""")
 	List<Payment> findUnpaidByListId(@Param("listId") UUID listId);
+
+	/**
+	 * Who is already billed for one group on one list, so adding people to it can skip them rather than bill them twice.
+	 */
+	@Query("SELECT p.person.id FROM Payment p WHERE p.list.id = :listId AND p.group.id = :groupId")
+	List<UUID> findPersonIdsByListIdAndGroupId(@Param("listId") UUID listId, @Param("groupId") UUID groupId);
+
+	/**
+	 * @return whether any charge bills this group, which - like a membership - stops it being deleted
+	 */
+	@Query("SELECT COUNT(p) > 0 FROM Payment p WHERE p.group.id = :groupId")
+	boolean existsByGroupId(@Param("groupId") UUID groupId);
+
+	/**
+	 * Lets go of the membership a charge was priced from, without touching what it charged.
+	 */
+	@Modifying(flushAutomatically = true)
+	@Query("UPDATE Payment p SET p.membership = NULL WHERE p.membership.id = :membershipId")
+	int releaseMembership(@Param("membershipId") UUID membershipId);
 
 	/**
 	 * How many rows each list holds and how many are dealt with, for the year overview.

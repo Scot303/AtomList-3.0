@@ -34,15 +34,27 @@ export const NO_TOKEN_RENEWAL_PATHS: readonly string[] = [
 ];
 
 
+/**  MODULES  */
+
+const ADMIN_USERS = '/api/admin/users';
+const PERSONS = '/api/persons';
+const GROUPS = '/api/groups';
+const MEMBERSHIPS = '/api/memberships';
+const FAMILIES = '/api/families';
+const LISTS = '/api/lists';
+const PAYMENTS = '/api/payments';
+const DEPOSITS = '/api/deposits';
+
+
 /**
  * Account administration. Every one of these needs the `MANAGE_USERS` authority.
  */
 export const ADMIN_USER_ENDPOINTS = {
-	base: '/api/admin/users',
-	byId: (id: string) => `/api/admin/users/${ id }`,
-	unlock: (id: string) => `/api/admin/users/${ id }/unlock`,
-	resendVerification: (id: string) => `/api/admin/users/${ id }/resend-verification`,
-	forceLogout: (id: string) => `/api/admin/users/${ id }/force-logout`,
+	base: ADMIN_USERS,
+	byId: (id: string) => `${ ADMIN_USERS }/${ id }`,
+	unlock: (id: string) => `${ ADMIN_USERS }/${ id }/unlock`,
+	resendVerification: (id: string) => `${ ADMIN_USERS }/${ id }/resend-verification`,
+	forceLogout: (id: string) => `${ ADMIN_USERS }/${ id }/force-logout`,
 } as const;
 
 
@@ -50,10 +62,10 @@ export const ADMIN_USER_ENDPOINTS = {
  * `READ_PERSONS` / `MODIFY_PERSONS`.
  */
 export const PERSON_ENDPOINTS = {
-	base: '/api/persons',
-	byId: (id: string) => `/api/persons/${ id }`,
-	memberships: (personId: string) => `/api/persons/${ personId }/memberships`,
-	discounts: (personId: string) => `/api/persons/${ personId }/discounts`,
+	base: PERSONS,
+	byId: (id: string) => `${ PERSONS }/${ id }`,
+	memberships: (personId: string) => `${ PERSONS }/${ personId }/memberships`,
+	discounts: (personId: string) => `${ PERSONS }/${ personId }/discounts`,
 } as const;
 
 
@@ -61,8 +73,8 @@ export const PERSON_ENDPOINTS = {
  * `READ_GROUPS` / `MODIFY_GROUPS`.
  */
 export const GROUP_ENDPOINTS = {
-	base: '/api/groups',
-	byId: (id: string) => `/api/groups/${ id }`,
+	base: GROUPS,
+	byId: (id: string) => `${ GROUPS }/${ id }`,
 } as const;
 
 
@@ -70,26 +82,35 @@ export const GROUP_ENDPOINTS = {
  * `MODIFY_PERSONS`.
  */
 export const MEMBERSHIP_ENDPOINTS = {
-	byId: (id: string) => `/api/memberships/${ id }`,
-	leave: (id: string) => `/api/memberships/${ id }/leave`,
+	base: MEMBERSHIPS,
+	byId: (id: string) => `${ MEMBERSHIPS }/${ id }`,
+	leave: (id: string) => `${ MEMBERSHIPS }/${ id }/leave`,
 } as const;
 
 
 /** `READ_FAMILIES` / `MODIFY_FAMILIES`. */
 export const FAMILY_ENDPOINTS = {
-	base: '/api/families',
-	byId: (id: string) => `/api/families/${ id }`,
+	base: FAMILIES,
+	byId: (id: string) => `${ FAMILIES }/${ id }`,
 } as const;
 
 
 /**
- * `READ_LISTS` / `MODIFY_LISTS`.
+ * `READ_LISTS` / `MODIFY_LISTS` / `CLOSE_LISTS`.
  */
 export const PAYMENT_LIST_ENDPOINTS = {
-	base: '/api/lists',
-	byId: (id: string) => `/api/lists/${ id }`,
-	yearSummary: (year: number) => `/api/lists/summary/${ year }`,
-	standard: (year: number, month: number) => `/api/lists/standard/${ year }/${ month }`,
+	base: LISTS,
+	byId: (id: string) => `${ LISTS }/${ id }`,
+	yearSummary: (year: number) => `${ LISTS }/summary/${ year }`,
+	standard: (year: number, month: number) => `${ LISTS }/standard/${ year }/${ month }`,
+	report: (id: string) => `${ LISTS }/${ id }/report`,
+	overpayments: (id: string) => `${ LISTS }/${ id }/overpayments`,
+	settleOverpayments: (id: string) => `${ LISTS }/${ id }/overpayments/settle`,
+	repopulate: (id: string) => `${ LISTS }/${ id }/repopulate`,
+	persons: (id: string) => `${ LISTS }/${ id }/persons`,
+	recalculate: (id: string) => `${ LISTS }/${ id }/recalculate`,
+	close: (id: string) => `${ LISTS }/${ id }/close`,
+	reopen: (id: string) => `${ LISTS }/${ id }/reopen`,
 } as const;
 
 
@@ -97,6 +118,23 @@ export const PAYMENT_LIST_ENDPOINTS = {
  * `READ_PAYMENTS` / `MODIFY_PAYMENTS`.
  */
 export const PAYMENT_ENDPOINTS = {
-	forList: (listId: string) => `/api/lists/${ listId }/payments`,
-	byId: (id: string) => `/api/payments/${ id }`,
+	base: PAYMENTS,
+	forList: (listId: string) => `${ LISTS }/${ listId }/payments`,
+	byId: (id: string) => `${ PAYMENTS }/${ id }`,
+	settle: (id: string) => `${ PAYMENTS }/${ id }/settle`,
+	quantity: (id: string) => `${ PAYMENTS }/${ id }/quantity`,
+} as const;
+
+
+/**
+ * `READ_PAYMENTS` / `MODIFY_PAYMENTS`.
+ */
+export const DEPOSIT_ENDPOINTS = {
+	base: DEPOSITS,
+	byId: (id: string) => `${ DEPOSITS }/${ id }`,
+	byCode: (code: string) => `${ DEPOSITS }/by-code/${ encodeURIComponent(code) }`,
+	plan: `${ DEPOSITS }/plan`,
+	credit: (personId: string) => `${ DEPOSITS }/credit/${ personId }`,
+	allocate: (id: string) => `${ DEPOSITS }/${ id }/allocate`,
+	settlement: (id: string, settlementId: string) => `${ DEPOSITS }/${ id }/settlements/${ settlementId }`,
 } as const;

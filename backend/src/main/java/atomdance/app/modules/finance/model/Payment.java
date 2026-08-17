@@ -14,16 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
 /**
  * One billable item on one list: what a person owes for a single group, or a one-off charge added by hand.
  */
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "payments",
-		uniqueConstraints = {
-				@UniqueConstraint(name = "uk_payments_list_person_group", columnNames = {"list_id", "person_id", "group_id"}),
-				@UniqueConstraint(name = "uk_payments_number", columnNames = "number")
-		},
+		uniqueConstraints = @UniqueConstraint(name = "uk_payments_number", columnNames = "number"),
 		indexes = {
 				@Index(name = "idx_payments_list_id", columnList = "list_id"),
 				@Index(name = "idx_payments_person_id", columnList = "person_id"),
@@ -56,7 +54,7 @@ public class Payment {
 	private PaymentChargeKind chargeKind;
 
 	/**
-	 * The group being billed, or {@code null} on a one-off charge.
+	 * The group being billed. Always set on a monthly sheet and {@code null} on an ad-hoc one, whose charges are described rather than derived from a group.
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "group_id")

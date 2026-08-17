@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { paymentListKeys } from '@/modules/paymentLists/api/paymentListKeys';
 import { createMembership, deleteMembership, fetchMemberships, leaveMembership, updateMembership, } from '../api/membershipsApi';
 import { personKeys } from '../api/personKeys';
 import type { CreateMembershipPayload, UpdateMembershipPayload } from '../types/types.ts';
@@ -15,9 +16,11 @@ function membershipsQuery(personId: string) {
 	};
 }
 
+
 export function useMemberships(personId: string) {
 	return useQuery(membershipsQuery(personId));
 }
+
 
 /**
  * Starts one person's membership history on its way before anything asks to see it.
@@ -44,6 +47,7 @@ function useMembershipInvalidation(personId: string) {
 		Promise.all([
 			queryClient.invalidateQueries({ queryKey: personKeys.memberships(personId) }),
 			queryClient.invalidateQueries({ queryKey: personKeys.list() }),
+			queryClient.invalidateQueries({ queryKey: paymentListKeys.all }),
 		]);
 }
 
@@ -63,6 +67,7 @@ export interface UpdateMembershipVariables {
 	payload: UpdateMembershipPayload;
 }
 
+
 export function useUpdateMembership(personId: string) {
 	const invalidate = useMembershipInvalidation(personId);
 
@@ -78,6 +83,7 @@ export interface LeaveMembershipVariables {
 	/** `YYYY-MM-DD`. Defaults to today on the backend. */
 	leftAt?: string;
 }
+
 
 export function useLeaveMembership(personId: string) {
 	const invalidate = useMembershipInvalidation(personId);

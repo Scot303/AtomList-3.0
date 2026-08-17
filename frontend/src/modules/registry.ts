@@ -1,16 +1,17 @@
 import type { ComponentType } from 'react';
-import { ListChecks, type LucideIcon, UserRound, UserShield, UsersRound } from 'lucide-react';
+import { ListChecks, type LucideIcon, UserRound, UserShield, UsersRound, Wallet } from 'lucide-react';
 
 import { paths } from '@/routes/paths';
 import type { Permission } from '@/types/auth';
 
+import { DepositsPage } from './deposits/DepositsPage.tsx';
 import { GroupsPage } from './groups/GroupsPage.tsx';
 import { PaymentListsPage } from './paymentLists/PaymentListsPage.tsx';
 import { PersonsPage } from './persons/PersonsPage.tsx';
 import { UsersPage } from './users/UsersPage.tsx';
 
+
 export interface AppModule {
-	/** Stable identity, independent of the path - which is only ever a URL and may be renamed. */
 	id: string;
 	/** As it appears in the sidebar, and as the page title in the top bar. */
 	label: string;
@@ -22,10 +23,9 @@ export interface AppModule {
 	Component: ComponentType;
 }
 
+
 /**
  * Every module the application has, in the order they appear in the sidebar.
- *
- * Adding a module is a path in routes/paths and an entry here. Nothing else.
  */
 export const MODULES: readonly AppModule[] = [
 	{
@@ -35,6 +35,14 @@ export const MODULES: readonly AppModule[] = [
 		icon: ListChecks,
 		permissions: ['READ_LISTS'],
 		Component: PaymentListsPage,
+	},
+	{
+		id: 'deposits',
+		label: 'Wpłaty',
+		path: paths.deposits,
+		icon: Wallet,
+		permissions: ['READ_PAYMENTS'],
+		Component: DepositsPage,
 	},
 	{
 		id: 'persons',

@@ -10,7 +10,6 @@ import org.hibernate.generator.EventType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.YearMonth;
 import java.util.*;
 
 
@@ -23,7 +22,6 @@ import java.util.*;
 		uniqueConstraints = @UniqueConstraint(name = "uk_deposits_number", columnNames = "number"),
 		indexes = {
 				@Index(name = "idx_deposits_payer_id", columnList = "payer_id"),
-				@Index(name = "idx_deposits_booked", columnList = "booked_year, booked_month"),
 				@Index(name = "idx_deposits_received_at", columnList = "received_at")
 		})
 public class Deposit {
@@ -70,20 +68,11 @@ public class Deposit {
 	private Instant receivedAt;
 
 	/**
-	 * The accounting period this cash belongs to, defaulting to the month it was received in.
+	 * Which account this money was paid into, and so the only charges it is allowed to settle.
 	 */
-	@Column(name = "booked_year", nullable = false)
-	private Integer bookedYear;
-
-	@Column(name = "booked_month", nullable = false)
-	private Integer bookedMonth;
-
-	/**
-	 * Which of the two monthly sheets this money was taken for: {@code true} tournament, {@code false} ordinary
-	 * classes, {@code null} neither - a handover recorded straight against a charge on an ad-hoc sheet.
-	 */
-	@Column(name = "is_for_tournament")
-	private Boolean forTournament;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "scope", nullable = false, length = 16)
+	private DepositScope scope;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 16)
@@ -119,42 +108,8 @@ public class Deposit {
 	}
 
 
-	/**
-	 * How {@link #number} is written and spoken: "D-1234".
-	 */
 	public String getCode() {
 		return DepositCode.format(number);
-	}
-
-
-	public YearMonth bookedFor() {
-		if (bookedYear == null || bookedMonth == null) {
-			return null;
-		}
-
-		return YearMonth.of(bookedYear, bookedMonth);
-	}
-
-
-	public void bookFor(YearMonth month) {
-		bookedYear = month.getYear();
-		bookedMonth = month.getMonthValue();
-	}
-
-
-	/**
-	 * @return whether this deposit's cash counts as income for the given month
-	 */
-	public boolean isBookedFor(YearMonth month) {
-		return month != null && month.equals(bookedFor());
-	}
-
-
-	/**
-	 * The monthly sheet this money may be spent on, or {@code null} when it was not taken for one.
-	 */
-	public ListType scopeType() {
-		return forTournament == null ? null : ListType.standardFor(forTournament);
 	}
 
 
@@ -162,7 +117,7 @@ public class Deposit {
 	 * Whether this money is allowed to settle a charge on the given list.
 	 */
 	public boolean maySettleOn(PaymentList list) {
-		return forTournament == null || list.getType() == scopeType();
+		return scope == list.scope();
 	}
 
 

@@ -1,6 +1,7 @@
 package atomdance.app.modules.finance.service;
 
 import atomdance.app.common.exception.InvalidOperationException;
+import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
@@ -28,7 +29,7 @@ import java.time.YearMonth;
  * <ol>
  *     <li>A payment can never be settled beyond what it charges. Surplus stays on the deposit as credit, so no row ever holds money that belongs to a different debt.</li>
  *     <li>A deposit can never fund more than it holds, so the same złoty cannot be spent twice.</li>
- *     <li>Money booked to a month other than the list's own - or landing on a list already sent to the accountants - is a <em>clearance</em>:
+ *     <li>Money that arrived in a month other than the list's own - or landing on a list already sent to the accountants - is a <em>clearance</em>:
  *         it settles the debt and is counted as income in its own month instead. Recorded once, at write time, and never recomputed.</li>
  * </ol>
  * Writing a settlement is deliberately the one thing allowed to reach a {@code CLOSED} list.
@@ -42,6 +43,7 @@ public class SettlementService {
 	private final PaymentSettlementRepository settlementRepository;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
+	private final AppClock clock;
 
 
 	/**
@@ -72,9 +74,11 @@ public class SettlementService {
 			throw new InvalidOperationException("error.settlement_amount_required");
 		}
 
+		YearMonth cashMonth = clock.monthOf(deposit.getReceivedAt());
+
 		PaymentSettlement settlement = PaymentSettlement.builder()
 				.amount(amount)
-				.isCarryingMoney(booksToOwnList(deposit, payment.getList()))
+				.isCarryingMoney(booksToOwnList(cashMonth, payment.getList()))
 				.settledAt(settledAt != null ? settledAt : Instant.now())
 				.createdByUserId(securityService.getCurrentUserId())
 				.build();
@@ -86,12 +90,12 @@ public class SettlementService {
 
 		log.info("Settled {} of payment {} [{}] out of deposit {}{}",
 				amount, payment.getCode(), payment.getId(), deposit.getCode(),
-				settlement.isClearance() ? " as a clearance - the cash is reported in " + deposit.bookedFor() : "");
+				settlement.isClearance() ? " as a clearance - the cash is reported in " + cashMonth : "");
 
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS,
 				String.format("%s of deposit %s settled %s for %s on list %s%s.",
 						amount, deposit.getCode(), payment.getLabel(), payment.getPerson().getFullName(), PaymentListService.describe(payment.getList()),
-						settlement.isClearance() ? String.format(", as a clearance - the money is reported in %s", deposit.bookedFor()) : ""));
+						settlement.isClearance() ? String.format(", as a clearance - the money is reported in %s", cashMonth) : ""));
 	}
 
 
@@ -121,15 +125,18 @@ public class SettlementService {
 
 
 	/**
-	 * Whether cash from this deposit counts as income on the given list, rather than only clearing a debt there.
+	 * Whether cash that arrived in {@code cashMonth} counts as income on the given list, rather than only clearing a debt there.
+	 *
+	 * @param cashMonth the month the money arrived in, read in the studio's zone
 	 */
-	private static boolean booksToOwnList(Deposit deposit, PaymentList list) {
+	private static boolean booksToOwnList(YearMonth cashMonth, PaymentList list) {
 		if (list.isClosed()) {
 			return false;
 		}
 
 		YearMonth month = list.yearMonth();
 
-		return month == null || deposit.isBookedFor(month);
+		// An ad-hoc sheet bills no month, so there is no other month for its money to belong to.
+		return month == null || month.equals(cashMonth);
 	}
 }

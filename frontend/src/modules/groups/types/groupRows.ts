@@ -1,27 +1,19 @@
+import { COLOR_POOL } from '@/components/dataTable';
 import type { TagOption } from '@/components/ui/tags';
-import type { GroupBillingType, GroupView } from './types.ts';
+import { type ActiveTag, toActiveTag } from '@/types/rowTags.ts';
+import type { GroupBillingType, GroupType, GroupView } from './types.ts';
 
 
 /* ── Kind of group ───────────────────────────────────────────────────────── */
 
-export const OPEN_KIND = 'open';
-export const TOURNAMENT_KIND = 'tournament';
-
-export type GroupKind = typeof OPEN_KIND | typeof TOURNAMENT_KIND;
-
-export const GROUP_KIND_OPTIONS: TagOption[] = [
-	{ id: OPEN_KIND, name: 'OPEN', color: 'blue' },
-	{ id: TOURNAMENT_KIND, name: 'TURNIEJOWE', color: 'red' },
+export const GROUP_TYPE_OPTIONS: TagOption[] = [
+	{ id: 'OPEN', name: 'OPEN', color: 'blue' },
+	{ id: 'TOURNAMENT', name: 'TURNIEJOWE', color: 'red' },
 ];
 
-/** The color each kind's quick-filter chip is tinted with. Six hex digits, as filter tags store them. */
-export const GROUP_KIND_COLORS: Record<GroupKind, string> = {
-	[OPEN_KIND]: '3B82F6',
-	[TOURNAMENT_KIND]: 'EF4444',
-};
 
-export function toGroupKind(tournamentGroup: boolean): GroupKind {
-	return tournamentGroup ? TOURNAMENT_KIND : OPEN_KIND;
+export function groupTypeName(type: GroupType): string {
+	return GROUP_TYPE_OPTIONS.find((option) => option.id === type)?.name ?? type;
 }
 
 
@@ -32,22 +24,10 @@ export const BILLING_TYPE_OPTIONS: TagOption[] = [
 	{ id: 'PER_CLASS', name: 'Za wejście', color: 'amber' },
 ];
 
+
 export function billingTypeName(billingType: GroupBillingType): string {
 	return BILLING_TYPE_OPTIONS.find((option) => option.id === billingType)?.name ?? billingType;
 }
-
-
-/* ── Active ──────────────────────────────────────────────────────────────── */
-
-export const ACTIVE_ID = 'active';
-export const INACTIVE_ID = 'inactive';
-
-export type ActiveTag = typeof ACTIVE_ID | typeof INACTIVE_ID;
-
-export const ACTIVE_TAG_OPTIONS: TagOption[] = [
-	{ id: ACTIVE_ID, name: 'Aktywna', color: 'emerald' },
-	{ id: INACTIVE_ID, name: 'Nieaktywna', color: 'slate' },
-];
 
 
 /* ── Row ─────────────────────────────────────────────────────────────────── */
@@ -59,7 +39,7 @@ export interface GroupRow {
 	id: string;
 	name: string;
 	color: string;
-	kind: GroupKind;
+	type: GroupType;
 	costForAttending: number;
 	billingType: GroupBillingType;
 	activeTag: ActiveTag;
@@ -72,23 +52,16 @@ export function toGroupRow(group: GroupView): GroupRow {
 		id: group.id,
 		name: group.name,
 		color: resolveGroupColor(group),
-		kind: toGroupKind(group.tournamentGroup),
+		type: group.type,
 		costForAttending: group.costForAttending,
 		billingType: group.billingType,
-		activeTag: group.active ? ACTIVE_ID : INACTIVE_ID,
+		activeTag: toActiveTag(group.active),
 		group,
 	};
 }
 
 
 /* ── Group colors ────────────────────────────────────────────────────────── */
-
-const COLOR_POOL = [
-	'EF4444', 'F97316', 'F59E0B', 'EAB308', '84CC16',
-	'22C55E', '10B981', '14B8A6', '06B6D4', '0EA5E9',
-	'3B82F6', '6366F1', '8B5CF6', 'A855F7', 'D946EF',
-	'EC4899', 'F43F5E',
-] as const;
 
 /**
  * The group's own color, or a stable one derived from its id so a group without one still reads as itself.
@@ -101,11 +74,12 @@ export function resolveGroupColor(group: Pick<GroupView, 'id' | 'color'>): strin
 	let hash = 0;
 
 	for (const character of group.id) {
-		hash = (hash * 31 + character.charCodeAt(0)) | 0;
+		hash = ( hash * 31 + character.charCodeAt(0) ) | 0;
 	}
 
 	return `#${ COLOR_POOL[Math.abs(hash) % COLOR_POOL.length] }`;
 }
+
 
 /**
  * The loaded groups keyed by id, as every row needs them.
@@ -113,6 +87,7 @@ export function resolveGroupColor(group: Pick<GroupView, 'id' | 'color'>): strin
 export function indexGroups(groups: GroupView[]): Map<string, GroupView> {
 	return new Map(groups.map((group) => [group.id, group]));
 }
+
 
 /**
  * Tag options for a column that holds group ids, from the loaded groups.
@@ -122,10 +97,10 @@ export function indexGroups(groups: GroupView[]): Map<string, GroupView> {
 export function buildGroupOptions(groups: GroupView[]): TagOption[] {
 	return [...groups]
 		.sort((left, right) => left.name.localeCompare(right.name))
-		.map((group) => ({
+		.map((group) => ( {
 			id: group.id,
 			name: group.name,
 			color: resolveGroupColor(group),
-			hint: group.tournamentGroup ? 'turniejowa' : undefined,
-		}));
+			hint: group.type === 'TOURNAMENT' ? 'turniejowa' : undefined,
+		} ));
 }

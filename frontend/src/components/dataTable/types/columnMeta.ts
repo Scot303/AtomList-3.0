@@ -3,11 +3,13 @@ import type { TagOption } from '@/components/ui/tags';
 import type { SelectAddNew } from '@/components/ui/select';
 import type { ExtendedSelectOption } from '@/components/ui/extendedSelect';
 
+
 /**
  * What kind of value a column holds. Drives the cell editor, the filter operators offered for it,
  * and how {@link applyCustomSorts} compares two of its values.
  */
 export type FieldType = 'text' | 'number' | 'date' | 'tag' | 'select' | 'boolean';
+
 
 /**
  * Per-column configuration.
@@ -35,8 +37,12 @@ export interface AppColumnMeta {
 	addNewTag?: SelectAddNew;
 	addNewSelectOption?: SelectAddNew;
 	/**
-	 * Overrides what a non-editing cell shows, without changing the value that gets filtered or sorted.
-	 * The toolbar's search box matches the text this produces as well as the stored value.
+	 * How this column's value is seen, where that is not the value itself.
 	 */
 	displayFormatter?: (value: unknown) => React.ReactNode;
+	/**
+	 * What the toolbar's search box matches, on top of the stored value - never instead of it, so a
+	 * column carrying one of these can only become easier to find.
+	 */
+	searchText?: (value: unknown) => string;
 }

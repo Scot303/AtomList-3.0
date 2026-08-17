@@ -1,10 +1,11 @@
 import { type GroupFormValues, parseCost } from '../schemas/groupSchemas';
 import type { CreateGroupPayload, GroupView, UpdateGroupPayload } from '../types/types.ts';
 
+
 export function blankGroupForm(): GroupFormValues {
 	return {
 		name: '',
-		tournamentGroup: false,
+		type: 'OPEN',
 		costForAttending: '',
 		billingType: 'MONTHLY',
 		active: true,
@@ -13,10 +14,11 @@ export function blankGroupForm(): GroupFormValues {
 	};
 }
 
+
 export function groupToForm(group: GroupView): GroupFormValues {
 	return {
 		name: group.name,
-		tournamentGroup: group.tournamentGroup,
+		type: group.type,
 		costForAttending: String(group.costForAttending),
 		billingType: group.billingType,
 		active: group.active,
@@ -25,13 +27,14 @@ export function groupToForm(group: GroupView): GroupFormValues {
 	};
 }
 
+
 /**
  * A whole new group. An emptied field is left out rather than sent blank.
  */
 export function buildCreatePayload(values: GroupFormValues): CreateGroupPayload {
 	const payload: CreateGroupPayload = {
 		name: values.name,
-		tournamentGroup: values.tournamentGroup,
+		type: values.type,
 		costForAttending: parseCost(values.costForAttending),
 		billingType: values.billingType,
 	};
@@ -47,6 +50,7 @@ export function buildCreatePayload(values: GroupFormValues): CreateGroupPayload 
 	return payload;
 }
 
+
 /**
  * Only what the user actually changed. An empty object means there is nothing to save.
  */
@@ -58,8 +62,8 @@ export function buildUpdatePayload(values: GroupFormValues, group: GroupView): U
 		payload.name = values.name;
 	}
 
-	if (values.tournamentGroup !== before.tournamentGroup) {
-		payload.tournamentGroup = values.tournamentGroup;
+	if (values.type !== before.type) {
+		payload.type = values.type;
 	}
 
 	// Compared as numbers, so re-typing `50.00` over `50` is not a change worth sending.

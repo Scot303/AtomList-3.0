@@ -1,6 +1,5 @@
 /**
- * Mirrors of the auth payloads the backend sends. Kept in one place because permissions decide what
- * the navigation shows, not just what the auth module does.
+ * Mirrors of the auth payloads the backend sends.
  */
 
 export const PERMISSIONS = [
@@ -26,13 +25,16 @@ export const PERMISSIONS = [
 	'MODIFY_PERSONS',
 	'READ_FAMILIES',
 	'MODIFY_FAMILIES',
+	'READ_SMS',
+	'SEND_SMS',
 ] as const;
 
-export type Permission = (typeof PERMISSIONS)[number];
+export type Permission = ( typeof PERMISSIONS )[number];
 
 export const ROLES = ['BASIC', 'RECEPTIONIST', 'EMPLOYEE', 'MANAGER', 'ADMIN'] as const;
 
-export type Role = (typeof ROLES)[number];
+export type Role = ( typeof ROLES )[number];
+
 
 /** GET /api/auth/me */
 export interface UserInfo {
@@ -44,11 +46,13 @@ export interface UserInfo {
 	emailVerified: boolean;
 }
 
+
 /** POST /api/auth/otp/verify */
 export interface LoginResponse {
 	token: string;
 	user: UserInfo;
 }
+
 
 /** POST /api/auth/refresh */
 export interface TokenResponse {

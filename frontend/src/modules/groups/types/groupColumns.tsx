@@ -1,7 +1,9 @@
 import type { AppColumnDef } from '@/components/dataTable';
 import { TagBadge, TagBadgeSingle } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
-import { ACTIVE_TAG_OPTIONS, BILLING_TYPE_OPTIONS, GROUP_KIND_OPTIONS, type GroupRow } from './groupRows.ts';
+import { ACTIVE_TAG_OPTIONS } from '@/types/rowTags.ts';
+import { BILLING_TYPE_OPTIONS, GROUP_TYPE_OPTIONS, type GroupRow } from './groupRows.ts';
+
 
 /**
  * The groups table's columns.
@@ -17,12 +19,12 @@ export function buildGroupColumns(): AppColumnDef<GroupRow>[] {
 			cell: ({ row, getValue }) => <TagBadge label={ getValue<string>() } color={ row.original.color }/>,
 		},
 		{
-			accessorKey: 'kind',
+			accessorKey: 'type',
 			header: 'Rodzaj grupy',
 			fieldType: 'tag',
 			size: 180,
-			meta: { groupable: true, tagOptions: GROUP_KIND_OPTIONS, globalSearch: false },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ GROUP_KIND_OPTIONS }/>,
+			meta: { groupable: true, tagOptions: GROUP_TYPE_OPTIONS, globalSearch: false },
+			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ GROUP_TYPE_OPTIONS }/>,
 		},
 		{
 			accessorKey: 'costForAttending',

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
+
 public enum ListType {
 
 	/**
@@ -28,28 +29,50 @@ public enum ListType {
 
 	private static final Set<ListType> STANDARD_TYPES = Collections.unmodifiableSet(EnumSet.of(STANDARD, STANDARD_TOURNAMENT));
 
+
 	public static Set<ListType> standardTypes() {
 		return STANDARD_TYPES;
 	}
 
-	/**
-	 * The monthly list that bills a given kind of group.
-	 */
-	public static ListType standardFor(boolean tournament) {
-		return tournament ? STANDARD_TOURNAMENT : STANDARD;
+
+	public static ListType standardFor(DepositScope scope) {
+		return switch (scope) {
+			case OPEN -> STANDARD;
+			case TOURNAMENT -> STANDARD_TOURNAMENT;
+		};
 	}
+
+
+	/**
+	 * The account to which money billed on this kind of list is paid into.
+	 */
+	public DepositScope scope() {
+		return switch (this) {
+			case STANDARD, CUSTOM -> DepositScope.OPEN;
+			case STANDARD_TOURNAMENT, CAMP -> DepositScope.TOURNAMENT;
+		};
+	}
+
 
 	public boolean isStandard() {
 		return this == STANDARD || this == STANDARD_TOURNAMENT;
 	}
 
+
+	public boolean requiresGroup() {
+		return isStandard();
+	}
+
+
 	public boolean isTournament() {
 		return this == STANDARD_TOURNAMENT;
 	}
 
+
 	public boolean requiresCustomName() {
 		return !isStandard();
 	}
+
 
 	public boolean tracksContracts() {
 		return this == CAMP;

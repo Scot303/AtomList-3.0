@@ -18,9 +18,6 @@ public interface PaymentListRepository extends JpaRepository<PaymentList, UUID> 
 
 	List<PaymentList> findByYearAndTypeIn(Integer year, Collection<ListType> types);
 
-	@Query("SELECT l FROM PaymentList l LEFT JOIN FETCH l.sourceList WHERE l.id = :id")
-	Optional<PaymentList> findByIdWithSource(@Param("id") UUID id);
-
 	/**
 	 * The monthly sheets still being worked on, oldest first.
 	 */

@@ -6,11 +6,13 @@ import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.group.dto.CreateGroupRequest;
 import atomdance.app.modules.group.dto.GroupView;
 import atomdance.app.modules.group.dto.UpdateGroupRequest;
 import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.model.GroupBillingType;
+import atomdance.app.modules.group.model.GroupType;
 import atomdance.app.modules.group.repository.GroupRepository;
 import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.user.service.SecurityService;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -32,23 +35,28 @@ public class GroupService {
 
 	private final GroupRepository groupRepository;
 	private final MembershipRepository membershipRepository;
+	private final PaymentRepository paymentRepository;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
+
 
 	public Group getOrThrow(UUID id) {
 		return groupRepository.findById(id)
 				.orElseThrow(() -> new NotFoundException("entity.group"));
 	}
 
+
 	@Transactional(readOnly = true)
 	public List<GroupView> getAll() {
 		return groupRepository.findAll(BY_NAME).stream().map(GroupView::from).toList();
 	}
 
+
 	@Transactional(readOnly = true)
 	public GroupView get(UUID id) {
 		return GroupView.from(getOrThrow(id));
 	}
+
 
 	@Transactional
 	public GroupView create(CreateGroupRequest request) {
@@ -60,7 +68,7 @@ public class GroupService {
 
 		Group group = groupRepository.saveAndFlush(Group.builder()
 				.name(name)
-				.isTournamentGroup(request.tournamentGroup() != null && request.tournamentGroup())
+				.type(request.type() != null ? request.type() : GroupType.OPEN)
 				.costForAttending(request.costForAttending())
 				.billingType(request.billingType() != null ? request.billingType() : GroupBillingType.MONTHLY)
 				.isActive(request.active() == null || request.active())
@@ -74,6 +82,7 @@ public class GroupService {
 
 		return GroupView.from(group);
 	}
+
 
 	@Transactional
 	public GroupView update(UUID id, UpdateGroupRequest request) {
@@ -105,8 +114,12 @@ public class GroupService {
 			group.setBillingType(request.billingType());
 		}
 
-		if (request.tournamentGroup() != null) {
-			group.setTournamentGroup(request.tournamentGroup());
+		if (request.type() != null && request.type() != group.getType()) {
+			log.info("Changed type on group {} from {} to {}", group.getId(), group.getType(), request.type());
+			auditLogger.recordOnCommit(securityService.getCurrentUserId(), group.getId(), AuditEventType.GROUP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Group %s type changed from %s to %s.",
+					group.getName(), group.getType(), request.type()));
+
+			group.setType(request.type());
 		}
 
 		if (request.active() != null) {
@@ -128,14 +141,12 @@ public class GroupService {
 		return GroupView.from(group);
 	}
 
-	/**
-	 * Refused once anybody has ever attended, because the memberships are what past lists were built from. Deactivate instead.
-	 */
+
 	@Transactional
 	public void delete(UUID id) {
 		Group group = getOrThrow(id);
 
-		if (membershipRepository.countByGroupId(id) > 0) {
+		if (membershipRepository.countByGroupId(id) > 0 || paymentRepository.existsByGroupId(id)) {
 			throw new InvalidOperationException("error.group_in_use");
 		}
 

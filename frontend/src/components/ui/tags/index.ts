@@ -7,4 +7,4 @@ export { TagCellSelect } from './TagCellSelect';
 export type { TagCellSelectProps } from './TagCellSelect';
 export { buildTagPanelOptions } from './tagPanelOptions';
 export type { TagColor, TagOption } from './tagTypes';
-export { TAG_COLOR_CLASSES } from './tagTypes';
+export { resolveTagHex, TAG_COLOR_CLASSES, TAG_COLOR_HEX } from './tagTypes';

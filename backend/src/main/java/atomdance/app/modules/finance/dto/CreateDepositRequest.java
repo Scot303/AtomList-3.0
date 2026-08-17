@@ -1,5 +1,6 @@
 package atomdance.app.modules.finance.dto;
 
+import atomdance.app.modules.finance.model.DepositScope;
 import atomdance.app.modules.finance.model.PaymentMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -14,11 +15,11 @@ import java.util.UUID;
  * Confirms what a plan proposed.
  *
  * @param payerPersonId who handed the money over. Defaults to the first of {@code personIds}.
- * @param tournament    which of the two monthly sheets this money is for. Recorded on the deposit, so leftover
- *                      credit spent weeks later is still confined to the same sheet.
+ * @param scope         which account this money was paid into. Recorded on the deposit, so leftover credit spent
+ *                      weeks later is still confined to the charges that account pays for.
+ * @param receivedAt    when the cash arrived, which is also the month that reports it as income.
  * @param expected      what the manager was shown, echoed back. The plan is worked out again on the server and
- *                      compared against this, so a debt that changed in the meantime is rejected rather than
- *                      settled behind their back. Omit it to accept whatever the fresh plan says.
+ *                      compared against this, so a debt that changed in the meantime is rejected rather than settled behind their back.
  */
 public record CreateDepositRequest(
 
@@ -33,16 +34,12 @@ public record CreateDepositRequest(
 		@NotEmpty(message = "At least one person is required")
 		List<UUID> personIds,
 
-		@NotNull(message = "Say whether this is for the tournament sheet or the regular one")
-		Boolean tournament,
+		@NotNull(message = "Say which account this money was paid into")
+		DepositScope scope,
 
 		UUID payerPersonId,
 
 		Instant receivedAt,
-
-		Integer bookedYear,
-
-		Integer bookedMonth,
 
 		Integer monthsAhead,
 

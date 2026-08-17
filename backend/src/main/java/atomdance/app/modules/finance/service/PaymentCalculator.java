@@ -12,6 +12,7 @@ import atomdance.app.modules.person.model.Person;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.YearMonth;
 import java.util.*;
 
 
@@ -43,6 +44,8 @@ public class PaymentCalculator {
 	 */
 	public Recalculation recalculate(PaymentList list, Collection<Payment> existing, Collection<Membership> billableMemberships, Collection<Membership> monthMemberships, DiscountRules rules) {
 
+		YearMonth month = list.yearMonth();
+
 		Map<UUID, List<Membership>> billableByPerson = FamilyPositions.byPerson(billableMemberships);
 		Map<UUID, List<Membership>> monthByPerson = FamilyPositions.byPerson(monthMemberships);
 
@@ -65,7 +68,7 @@ public class PaymentCalculator {
 					created.add(payment);
 				}
 
-				refresh(payment, membership);
+				refresh(payment, membership, month);
 
 				current.add(payment);
 			}
@@ -98,8 +101,10 @@ public class PaymentCalculator {
 
 	/**
 	 * Brings a payment up to date with the membership it bills, preserving what a manager entered by hand.
+	 *
+	 * @param month the month being billed, which decides whether this is the joiner's part-month rate or their standing one
 	 */
-	private static void refresh(Payment payment, Membership membership) {
+	private static void refresh(Payment payment, Membership membership, YearMonth month) {
 		Group group = membership.getGroup();
 		boolean perClass = group.isPerClass();
 
@@ -107,7 +112,7 @@ public class PaymentCalculator {
 		payment.setMembership(membership);
 		payment.setGroup(group);
 		payment.setDescription(group.getName());
-		payment.setUnitCost(Money.normalize(membership.resolveUnitCost()));
+		payment.setUnitCost(Money.normalize(membership.resolveUnitCostFor(month)));
 
 		// A per-class count is attendance a manager recorded, so a recalculation must leave it be.
 		if (!perClass) {
