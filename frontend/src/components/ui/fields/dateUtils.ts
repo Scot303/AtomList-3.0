@@ -81,6 +81,33 @@ export function formatInstantDate(value: string | null | undefined): string {
 
 
 /**
+ * The month an `Instant` fell in, read in the studio's time-zone - "Sierpień 2026".
+ */
+const instantMonthFormat = new Intl.DateTimeFormat(LOCALE, {
+	timeZone: TIME_ZONE,
+	month: 'long',
+	year: 'numeric',
+});
+
+
+export function formatInstantMonth(value: string | null | undefined): string {
+	if (value === null || value === undefined || value === '') {
+		return '';
+	}
+
+	const date = new Date(value);
+
+	if (Number.isNaN(date.getTime())) {
+		return '';
+	}
+
+	const label = instantMonthFormat.format(date);
+
+	return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+
+/**
  * Month and weekday names from `Intl` rather than from translation keys.
  */
 export const MONTH_NAMES: string[] = Array.from({ length: 12 }, (_, month) =>

@@ -185,13 +185,13 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 				continue;
 			}
 
-			const read = sortResolution.sortValues.get(id) ?? ((row: T) => (row as Record<string, unknown>)[id]);
+			const read = sortResolution.sortValues.get(id) ?? ( (row: T) => ( row as Record<string, unknown> )[id] );
 
 			if (column.meta?.globalSearch !== true && !holdsSearchableText(data, read)) {
 				continue;
 			}
 
-			fields.push({ read, names: sortResolution.optionNames.get(id), format: displayFormat(column) });
+			fields.push({ read, names: sortResolution.optionNames.get(id), format: searchFormat(column) });
 		}
 
 		return fields;
@@ -212,7 +212,7 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 	/* ── Table instance ───────────────────────────────────────────────────── */
 
 	const rowId = useMemo(
-		() => (getRowId ? (row: T) => getRowId(row) : undefined),
+		() => ( getRowId ? (row: T) => getRowId(row) : undefined ),
 		[getRowId],
 	);
 
@@ -271,24 +271,24 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 
 					return Boolean(definition.fieldType ?? column.columnDef.meta?.tagOptions?.length ?? column.columnDef.meta?.selectOptions?.length);
 				})
-				.map((column) => ({
+				.map((column) => ( {
 					id: column.id,
 					label: columnLabel(column),
-					fieldType: (column.columnDef as AppColumnDef<T>).fieldType ?? 'text',
+					fieldType: ( column.columnDef as AppColumnDef<T> ).fieldType ?? 'text',
 					tagOptions: column.columnDef.meta?.tagOptions,
 					selectOptions: column.columnDef.meta?.selectOptions,
-				})),
+				} )),
 		[visibleLeafColumns],
 	);
 
 	const visibilityColumns = useMemo(
 		() =>
-			allLeafColumns.map((column) => ({
+			allLeafColumns.map((column) => ( {
 				id: column.id,
 				label: columnLabel(column),
 				visible: isVisible(column.id),
 				toggle: () => column.toggleVisibility(),
-			})),
+			} )),
 		[allLeafColumns, isVisible],
 	);
 
@@ -296,7 +296,7 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 		() =>
 			allLeafColumns
 				.filter((column) => isVisible(column.id) && column.columnDef.meta?.groupable)
-				.map((column) => ({ id: column.id, label: columnLabel(column) })),
+				.map((column) => ( { id: column.id, label: columnLabel(column) } )),
 		[allLeafColumns, isVisible],
 	);
 
@@ -328,7 +328,7 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 
 	/* ── Render inputs ────────────────────────────────────────────────────── */
 
-	const visibleColumns = visibleLeafColumns.map((column) => ({ id: column.id, size: column.getSize() }));
+	const visibleColumns = visibleLeafColumns.map((column) => ( { id: column.id, size: column.getSize() } ));
 	const orderedColumnIds = visibleColumns.map((column) => column.id);
 	const totalWidth = visibleColumns.reduce((sum, column) => sum + column.size, 0);
 	const bodyRows = table.getRowModel().rows;
@@ -395,10 +395,10 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 	 * edge.
 	 */
 	const popoverClip = useCallback<PopoverClip>(
-		() => ({
+		() => ( {
 			boundary: scrollRef.current ?? 'clippingAncestors',
 			padding: { top: headRef.current?.offsetHeight ?? 0 },
-		}),
+		} ),
 		[],
 	);
 
@@ -428,15 +428,20 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 
 
 /**
- * How a column's cells render their value, where that is not the value itself.
+ * The text a column offers the search box beyond its stored value.
  */
-function displayFormat<T extends object>(column: AppColumnDef<T>): ((value: unknown) => ReactNode) | undefined {
+function searchFormat<T extends object>(column: AppColumnDef<T>): ( (value: unknown) => ReactNode ) | undefined {
+	if (column.meta?.searchText) {
+		return column.meta.searchText;
+	}
+
 	if (column.meta?.displayFormatter) {
 		return column.meta.displayFormatter;
 	}
 
 	return column.fieldType === 'date' ? (value) => formatLongDate(String(value ?? '')) : undefined;
 }
+
 
 /**
  * A column definition's id, whether it was given one outright or is implied by a string accessor or header.
