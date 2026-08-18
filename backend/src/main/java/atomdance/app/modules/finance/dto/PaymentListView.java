@@ -5,6 +5,7 @@ import atomdance.app.modules.finance.model.ListStatus;
 import atomdance.app.modules.finance.model.ListType;
 import atomdance.app.modules.finance.model.PaymentList;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -26,6 +27,7 @@ public record PaymentListView(
 		boolean tracksContracts,
 		boolean requiresGroup,
 		ListPopulationMode populationMode,
+		BigDecimal fixedPrice,
 		String note,
 		Instant createdAt
 ) {
@@ -45,6 +47,7 @@ public record PaymentListView(
 				list.tracksContracts(),
 				list.requiresGroup(),
 				list.getPopulationMode(),
+				list.getFixedPrice(),
 				list.getNote(),
 				list.getCreatedAt()
 		);

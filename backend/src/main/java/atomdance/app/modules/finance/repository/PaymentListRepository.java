@@ -2,6 +2,7 @@ package atomdance.app.modules.finance.repository;
 
 import atomdance.app.modules.finance.model.ListType;
 import atomdance.app.modules.finance.model.PaymentList;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +17,9 @@ public interface PaymentListRepository extends JpaRepository<PaymentList, UUID> 
 
 	Optional<PaymentList> findByYearAndMonthAndType(Integer year, Integer month, ListType type);
 
-	List<PaymentList> findByYearAndTypeIn(Integer year, Collection<ListType> types);
+	List<PaymentList> findByYearInAndTypeIn(Collection<Integer> years, Collection<ListType> types);
+
+	List<PaymentList> findByTypeIn(Collection<ListType> types, Sort sort);
 
 	/**
 	 * The monthly sheets still being worked on, oldest first.

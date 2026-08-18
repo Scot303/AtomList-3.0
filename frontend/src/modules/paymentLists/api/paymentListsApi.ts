@@ -1,10 +1,20 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { PAYMENT_LIST_ENDPOINTS } from '@/api/endpoints';
-import type { AddPersonsPayload, CreditSweepResultView, CreditSweepView, ListReportView, MonthSummaryView, PaymentListView, SettleCreditPayload, } from '../types/types.ts';
+import type {
+	AddPersonsPayload,
+	CreateCustomListPayload,
+	CreditSweepResultView,
+	CreditSweepView,
+	ListReportView,
+	MonthSummaryView,
+	PaymentListView,
+	SettleCreditPayload,
+	UpdateCustomListPayload,
+} from '../types/types.ts';
 
 
-export async function fetchPaymentLists(): Promise<PaymentListView[]> {
-	const { data } = await axiosInstance.get<PaymentListView[]>(PAYMENT_LIST_ENDPOINTS.base);
+export async function fetchCustomLists(): Promise<PaymentListView[]> {
+	const { data } = await axiosInstance.get<PaymentListView[]>(PAYMENT_LIST_ENDPOINTS.custom);
 
 	return data;
 }
@@ -17,8 +27,11 @@ export async function fetchPaymentList(id: string): Promise<PaymentListView> {
 }
 
 
-export async function fetchYearSummary(year: number): Promise<MonthSummaryView[]> {
-	const { data } = await axiosInstance.get<MonthSummaryView[]>(PAYMENT_LIST_ENDPOINTS.yearSummary(year));
+/**
+ * One season of monthly sheets - September of `startYear` to the following August, in that order.
+ */
+export async function fetchSeasonSummary(startYear: number): Promise<MonthSummaryView[]> {
+	const { data } = await axiosInstance.get<MonthSummaryView[]>(PAYMENT_LIST_ENDPOINTS.seasonSummary(startYear));
 
 	return data;
 }
@@ -31,6 +44,20 @@ export async function openStandardList(year: number, month: number, tournament: 
 	const { data } = await axiosInstance.get<PaymentListView>(PAYMENT_LIST_ENDPOINTS.standard(year, month), {
 		params: { tournament, create: true },
 	});
+
+	return data;
+}
+
+
+export async function createCustomList(payload: CreateCustomListPayload): Promise<PaymentListView> {
+	const { data } = await axiosInstance.post<PaymentListView>(PAYMENT_LIST_ENDPOINTS.custom, payload);
+
+	return data;
+}
+
+
+export async function updateCustomList(id: string, payload: UpdateCustomListPayload): Promise<PaymentListView> {
+	const { data } = await axiosInstance.patch<PaymentListView>(PAYMENT_LIST_ENDPOINTS.byId(id), payload);
 
 	return data;
 }

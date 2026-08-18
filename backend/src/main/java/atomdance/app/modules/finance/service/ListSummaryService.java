@@ -21,13 +21,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.YearMonth;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 /**
- * A year of standard lists at a glance: what each month billed, what it has settled, and what surrounds it.
+ * A season of standard lists at a glance: what each month billed, what it has settled, and what surrounds it.
  */
 @Slf4j
 @Service
@@ -36,6 +38,11 @@ public class ListSummaryService {
 
 	private static final int MONTHS = 12;
 
+	/**
+	 * The month a season opens with. Everything else follows it.
+	 */
+	private static final int SEASON_START_MONTH = 9;
+
 	private final PaymentListRepository paymentListRepository;
 	private final PaymentRepository paymentRepository;
 	private final PaymentSettlementRepository settlementRepository;
@@ -43,9 +50,16 @@ public class ListSummaryService {
 	private final SecurityService securityService;
 
 
+	/**
+	 * The twelve months of one season, in the order they happen: September of {@code startYear} through to August of the year after it.
+	 *
+	 * @param startYear the calendar year the season opens in - 2026 for the 2026/2027 season
+	 */
 	@Transactional(readOnly = true)
-	public List<MonthSummaryView> summariseYear(int year) {
-		List<PaymentList> lists = paymentListRepository.findByYearAndTypeIn(year, ListType.standardTypes());
+	public List<MonthSummaryView> summariseSeason(int startYear) {
+		List<YearMonth> season = seasonMonths(startYear);
+
+		List<PaymentList> lists = paymentListRepository.findByYearInAndTypeIn(List.of(startYear, startYear + 1), ListType.standardTypes());
 
 		Set<TransactionType> readable = readableTypes();
 
@@ -56,25 +70,32 @@ public class ListSummaryService {
 		Map<UUID, BigDecimal> outstanding = outstandingTotals(lists);
 		Map<UUID, Map<TransactionType, BigDecimal>> transactions = transactionTotals(lists, readable);
 
-		Map<Integer, List<PaymentList>> byMonth = lists.stream().collect(Collectors.groupingBy(PaymentList::getMonth));
+		Map<YearMonth, List<PaymentList>> byMonth = lists.stream().collect(Collectors.groupingBy(PaymentList::yearMonth));
 
 		List<MonthSummaryView> months = new ArrayList<>(MONTHS);
 
-		for (int month = 1; month <= MONTHS; month++) {
-			months.add(summarise(year, month, byMonth.getOrDefault(month, List.of()), counts, billed, collected, cleared, outstanding, transactions, readable));
+		for (YearMonth month : season) {
+			months.add(summarise(month, byMonth.getOrDefault(month, List.of()), counts, billed, collected, cleared, outstanding, transactions, readable));
 		}
 
 		return months;
 	}
 
 
-	private MonthSummaryView summarise(int year, int month, List<PaymentList> lists, Map<UUID, PaymentCounts> counts, Map<UUID, BigDecimal> billed, Map<UUID, BigDecimal> collected, Map<UUID, BigDecimal> cleared, Map<UUID, BigDecimal> outstanding, Map<UUID, Map<TransactionType, BigDecimal>> transactions, Set<TransactionType> readable) {
+	private static List<YearMonth> seasonMonths(int startYear) {
+		YearMonth first = YearMonth.of(startYear, SEASON_START_MONTH);
+
+		return IntStream.range(0, MONTHS).mapToObj(first::plusMonths).toList();
+	}
+
+
+	private MonthSummaryView summarise(YearMonth month, List<PaymentList> lists, Map<UUID, PaymentCounts> counts, Map<UUID, BigDecimal> billed, Map<UUID, BigDecimal> collected, Map<UUID, BigDecimal> cleared, Map<UUID, BigDecimal> outstanding, Map<UUID, Map<TransactionType, BigDecimal>> transactions, Set<TransactionType> readable) {
 		PaymentList tournament = firstMatching(lists, true);
 		PaymentList open = firstMatching(lists, false);
 
 		return new MonthSummaryView(
-				year,
-				month,
+				month.getYear(),
+				month.getMonthValue(),
 				slot(tournament, counts),
 				slot(open, counts),
 				sumOver(lists, billed),

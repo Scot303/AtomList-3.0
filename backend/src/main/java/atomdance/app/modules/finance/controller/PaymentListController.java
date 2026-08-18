@@ -33,10 +33,20 @@ public class PaymentListController {
 	}
 
 
-	@GetMapping("/summary/{year}")
+	@GetMapping("/custom")
 	@PreAuthorize("hasAuthority('READ_LISTS')")
-	public List<MonthSummaryView> summariseYear(@PathVariable int year) {
-		return listSummaryService.summariseYear(year);
+	public List<PaymentListView> getCustom() {
+		return paymentListService.getCustom();
+	}
+
+
+	/**
+	 * One season of monthly sheets: September of {@code startYear} through to August of the year after it, in that order.
+	 */
+	@GetMapping("/summary/{startYear}")
+	@PreAuthorize("hasAuthority('READ_LISTS')")
+	public List<MonthSummaryView> summariseSeason(@PathVariable int startYear) {
+		return listSummaryService.summariseSeason(startYear);
 	}
 
 
@@ -93,6 +103,13 @@ public class PaymentListController {
 	@PreAuthorize("hasAuthority('MODIFY_LISTS')")
 	public PaymentListView createCustom(@RequestBody @Valid CreateCustomListRequest request) {
 		return paymentListService.createCustom(request);
+	}
+
+
+	@PatchMapping("/{id}")
+	@PreAuthorize("hasAuthority('MODIFY_LISTS')")
+	public PaymentListView updateCustom(@PathVariable UUID id, @RequestBody @Valid UpdateCustomListRequest request) {
+		return paymentListService.updateCustom(id, request);
 	}
 
 

@@ -29,9 +29,16 @@ public enum ListType {
 
 	private static final Set<ListType> STANDARD_TYPES = Collections.unmodifiableSet(EnumSet.of(STANDARD, STANDARD_TOURNAMENT));
 
+	private static final Set<ListType> CUSTOM_TYPES = Collections.unmodifiableSet(EnumSet.of(CUSTOM, CAMP));
+
 
 	public static Set<ListType> standardTypes() {
 		return STANDARD_TYPES;
+	}
+
+
+	public static Set<ListType> customTypes() {
+		return CUSTOM_TYPES;
 	}
 
 
@@ -66,11 +73,6 @@ public enum ListType {
 
 	public boolean isTournament() {
 		return this == STANDARD_TOURNAMENT;
-	}
-
-
-	public boolean requiresCustomName() {
-		return !isStandard();
 	}
 
 
