@@ -44,6 +44,11 @@ export interface PaymentListView {
 	 */
 	requiresGroup: boolean;
 	populationMode: ListPopulationMode | null;
+	/**
+	 * What one charge on this list costs by default - the camp fee everybody pays.
+	 * Custom and camp lists only, and null when nobody set one. Only ever a starting point: each charge holds its own `unitCost` and can be set away from it.
+	 */
+	fixedPrice: number | null;
 	note: string | null;
 	createdAt: string;
 }
@@ -211,6 +216,30 @@ export interface SaveOneOffPaymentPayload {
 	description?: string;
 	unitCost: number;
 	quantity?: number;
+}
+
+
+/**
+ * Mirror of the backend's `CreateCustomListRequest`.
+ */
+export interface CreateCustomListPayload {
+	name: string;
+	campList?: boolean;
+	populationMode: ListPopulationMode;
+	groupIds?: string[];
+	personIds?: string[];
+	fixedPrice?: number;
+	note?: string;
+}
+
+
+/**
+ * Mirror of the backend's `UpdateCustomListRequest`.
+ */
+export interface UpdateCustomListPayload {
+	name?: string;
+	fixedPrice?: number;
+	note?: string;
 }
 
 

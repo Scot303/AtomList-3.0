@@ -128,6 +128,13 @@ export const MODAL_REGISTRY = {
 		dismissible: false
 	}),
 
+	'lists.customForm': defineModal({
+		load: () => import('@/modules/paymentLists/modals/CustomListFormModal.tsx'),
+		title: ({ list }) => ( list === undefined ? 'Nowa lista' : 'Szczegóły listy' ),
+		size: 'lg',
+		dismissible: false
+	}),
+
 	'lists.addPersons': defineModal({
 		load: () => import('@/modules/paymentLists/modals/AddPersonsModal.tsx'),
 		title: 'Dodaj osoby do listy',
