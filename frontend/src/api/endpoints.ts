@@ -101,7 +101,8 @@ export const FAMILY_ENDPOINTS = {
 export const PAYMENT_LIST_ENDPOINTS = {
 	base: LISTS,
 	byId: (id: string) => `${ LISTS }/${ id }`,
-	yearSummary: (year: number) => `${ LISTS }/summary/${ year }`,
+	custom: `${ LISTS }/custom`,
+	seasonSummary: (startYear: number) => `${ LISTS }/summary/${ startYear }`,
 	standard: (year: number, month: number) => `${ LISTS }/standard/${ year }/${ month }`,
 	report: (id: string) => `${ LISTS }/${ id }/report`,
 	overpayments: (id: string) => `${ LISTS }/${ id }/overpayments`,

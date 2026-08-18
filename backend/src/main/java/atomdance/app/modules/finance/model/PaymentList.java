@@ -1,9 +1,11 @@
 package atomdance.app.modules.finance.model;
 
+import atomdance.app.common.utils.Money;
 import atomdance.app.modules.finance.exception.ListClosedException;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.YearMonth;
 import java.util.HashSet;
@@ -55,6 +57,13 @@ public class PaymentList {
 
 	@Column(name = "closed_by_user_id")
 	private UUID closedByUserId;
+
+	/**
+	 * What one charge on this list costs by default, for custom and camp lists only.
+	 * Null on a monthly sheet, whose amounts come from the groups it bills.
+	 */
+	@Column(name = "fixed_price", precision = 12, scale = 2)
+	private BigDecimal fixedPrice;
 
 	/**
 	 * How a custom list chose its people, so a repopulate can repeat the same choice.
@@ -125,12 +134,6 @@ public class PaymentList {
 	}
 
 
-	//TODO this will need to be changed after instructor can store multiple contracts
-	public boolean carriesInstructorPay() {
-		return isStandard() && !isTournament();
-	}
-
-
 	/**
 	 * @return the month this list bills, or {@code null} if it is not a standard list.
 	 */
@@ -147,5 +150,10 @@ public class PaymentList {
 		if (isClosed()) {
 			throw new ListClosedException();
 		}
+	}
+
+
+	public BigDecimal defaultUnitCost() {
+		return fixedPrice == null ? Money.ZERO : Money.normalize(fixedPrice);
 	}
 }

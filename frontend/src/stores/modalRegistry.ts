@@ -61,14 +61,12 @@ export const MODAL_REGISTRY = {
 		load: () => import('@/modules/persons/modals/PersonGroupsModal.tsx'),
 		title: ({ personName }) => `Grupy osoby - ${ personName }`,
 		size: 'xl',
-		dismissible: false
 	}),
 
 	'persons.discounts': defineModal({
 		load: () => import('@/modules/persons/modals/PersonDiscountsModal.tsx'),
 		title: ({ personName }) => `Zniżki osoby - ${ personName }`,
 		size: 'xl',
-		dismissible: false
 	}),
 
 	'groups.form': defineModal({
@@ -87,7 +85,6 @@ export const MODAL_REGISTRY = {
 		load: () => import('@/modules/groups/modals/GroupMembersModal.tsx'),
 		title: ({ groupName }) => `Członkowie grupy - ${ groupName }`,
 		size: 'lg',
-		dismissible: false
 	}),
 
 	'payments.deposit': defineModal({
@@ -100,7 +97,7 @@ export const MODAL_REGISTRY = {
 	'payments.settle': defineModal({
 		load: () => import('@/modules/paymentLists/modals/SettlePaymentModal.tsx'),
 		title: 'Rozlicz płatność',
-		size: 'lg',
+		size: 'md',
 		dismissible: false
 	}),
 
@@ -108,7 +105,6 @@ export const MODAL_REGISTRY = {
 		load: () => import('@/modules/paymentLists/modals/PaymentDetailsModal.tsx'),
 		title: 'Szczegóły płatności',
 		size: 'lg',
-		dismissible: false
 	}),
 
 	'payments.oneOff': defineModal({

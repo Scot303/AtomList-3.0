@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,6 +42,7 @@ public class TransactionService {
 	private final InstructorService instructorService;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
+
 
 	@Transactional(readOnly = true)
 	public List<TransactionView> getAllForList(UUID listId) {
@@ -55,6 +57,7 @@ public class TransactionService {
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), listId, AuditEventType.TRANSACTION_PREVIEW, AuditOutcome.SUCCESS, "Previewed transactions for list");
 		return transactionRepository.findByListIdAndTypeIn(listId, readable).stream().map(TransactionView::from).toList();
 	}
+
 
 	@Transactional
 	public TransactionView create(UUID listId, CreateTransactionRequest request) {
@@ -85,6 +88,7 @@ public class TransactionService {
 
 		return TransactionView.from(transaction);
 	}
+
 
 	@Transactional
 	public TransactionView update(UUID id, UpdateTransactionRequest request) {
@@ -118,6 +122,7 @@ public class TransactionService {
 		return TransactionView.from(transaction);
 	}
 
+
 	@Transactional
 	public void delete(UUID id) {
 		Transaction transaction = getOrThrow(id);
@@ -129,6 +134,7 @@ public class TransactionService {
 
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), id, AuditEventType.TRANSACTION_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%s transaction of %s removed from list %s.", transaction.getType(), transaction.getTotal(), PaymentListService.describe(transaction.getList())));
 	}
+
 
 	/**
 	 * Adds instructors to a list as expense rows with zero hours.
@@ -142,13 +148,11 @@ public class TransactionService {
 
 		boolean named = request != null && request.instructorIds() != null && !request.instructorIds().isEmpty();
 
-		if (!named && !list.carriesInstructorPay()) {
+		if (!named) {
 			throw new InvalidOperationException("error.instructors_must_be_named");
 		}
 
-		List<Instructor> instructors = named
-				? instructorService.findAllOrThrow(request.instructorIds())
-				: instructorService.findActive();
+		List<Instructor> instructors = instructorService.findAllOrThrow(request.instructorIds()).stream().filter(Instructor::isActive).toList();
 
 		int created = instructorExpenseService.seed(list, instructors);
 
@@ -162,6 +166,7 @@ public class TransactionService {
 		return transactionRepository.findByIdWithRelations(id)
 				.orElseThrow(() -> new NotFoundException("entity.transaction"));
 	}
+
 
 	private Set<TransactionType> readableTypes() {
 		Set<TransactionType> readable = EnumSet.noneOf(TransactionType.class);

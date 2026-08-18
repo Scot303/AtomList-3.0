@@ -3,7 +3,7 @@ import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { MonthCardTabs } from './MonthCardTabs.tsx';
-import { monthName } from '../../types/listLabels.ts';
+import { monthName } from '@/components/ui/fields/dateUtils';
 import type { ListSummaryView, MonthSummaryView } from '../../types/types.ts';
 
 
@@ -88,13 +88,14 @@ const Counter = ({ label, list }: { label: string; list: ListSummaryView | null 
 /**
  * A money line. A null amount is one this user may not read, which is not the same as zero and must not read as one.
  */
-const Figure = ({ label, amount }: { label: string; amount: string | null }) => (
+const Figure = ({ label, amount }: { label: string; amount: number | null }) => (
 	<div className="flex items-baseline justify-between gap-2">
 		<span className="truncate text-os-text-muted">{ label }</span>
 
 		<span className={ cn('shrink-0 tabular-nums', amount === null ? 'text-os-text-muted' : 'text-os-text') }>{ amount === null ? NOTHING : formatCurrency(amount) }</span>
 	</div>
 );
+
 
 /**
  * Whether to mark the month as closed.

@@ -1,10 +1,9 @@
 package atomdance.app.modules.finance.dto;
 
 import atomdance.app.modules.finance.model.ListPopulationMode;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +28,10 @@ public record CreateCustomListRequest(
 		 * BY_PERSONS: exactly these people.
 		 */
 		List<UUID> personIds,
+
+		@DecimalMin(value = "0.00", message = "Fixed price cannot be negative")
+		@Digits(integer = 10, fraction = 2, message = "Fixed price may have at most 2 decimal places")
+		BigDecimal fixedPrice,
 
 		@Size(max = 512, message = "Note is too long")
 		String note

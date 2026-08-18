@@ -10,6 +10,7 @@ import atomdance.app.modules.discount.service.DiscountService;
 import atomdance.app.modules.finance.dto.AddPersonsRequest;
 import atomdance.app.modules.finance.dto.CreateCustomListRequest;
 import atomdance.app.modules.finance.dto.PaymentListView;
+import atomdance.app.modules.finance.dto.UpdateCustomListRequest;
 import atomdance.app.modules.finance.model.*;
 import atomdance.app.modules.finance.repository.PaymentListRepository;
 import atomdance.app.modules.finance.repository.PaymentRepository;
@@ -18,6 +19,7 @@ import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.model.Membership;
 import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.group.service.GroupService;
+import atomdance.app.modules.instructor.model.ContractType;
 import atomdance.app.modules.instructor.service.InstructorService;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.PersonRepository;
@@ -72,6 +74,15 @@ public class PaymentListService {
 	}
 
 
+	/**
+	 * Every ad-hoc list, newest first.
+	 */
+	@Transactional(readOnly = true)
+	public List<PaymentListView> getCustom() {
+		return paymentListRepository.findByTypeIn(ListType.customTypes(), NEWEST_FIRST).stream().map(PaymentListView::from).toList();
+	}
+
+
 	@Transactional(readOnly = true)
 	public PaymentListView get(UUID id) {
 		auditLogger.record(currentUserOrSystem(), id, AuditEventType.LIST_PREVIEW, AuditOutcome.SUCCESS, "List previewed.");
@@ -108,9 +119,7 @@ public class PaymentListService {
 
 		syncStandardPayments(list);
 
-		if (list.carriesInstructorPay()) {
-			instructorExpenseService.seed(list, instructorService.findActive());
-		}
+		instructorExpenseService.seed(list, instructorService.findActive(ContractType.valueOf(list.scope().name())));
 
 		log.info("Created {} list {} for {}", list.getType(), list.getId(), ym);
 		auditLogger.recordOnCommit(null, list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Monthly list for %s has been created.", describe(list)));
@@ -152,6 +161,7 @@ public class PaymentListService {
 				.name(request.name().trim())
 				.status(ListStatus.OPEN)
 				.populationMode(request.populationMode())
+				.fixedPrice(request.fixedPrice() == null ? null : Money.normalize(request.fixedPrice()))
 				.note(request.note())
 				.build());
 
@@ -159,6 +169,34 @@ public class PaymentListService {
 
 		log.info("Created {} list {} ({}) with {} person(s) via {}", list.getType(), list.getId(), list.getName(), added, request.populationMode());
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%s list '%s' has been created with %d person(s) via %s.", list.getType(), list.getName(), added, request.populationMode()));
+
+		return PaymentListView.from(list);
+	}
+
+
+	@Transactional
+	public PaymentListView updateCustom(UUID id, UpdateCustomListRequest request) {
+		PaymentList list = getOrThrow(id);
+
+		if (list.isStandard()) {
+			throw new InvalidOperationException("error.cannot_edit_standard_list");
+		}
+
+		list.assertOpen();
+
+		if (request.name() != null) {
+			list.setName(request.name().trim());
+		}
+
+		if (request.fixedPrice() != null) {
+			list.setFixedPrice(Money.normalize(request.fixedPrice()));
+		}
+
+		if (request.note() != null) {
+			list.setNote(request.note());
+		}
+
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s has been edited.", describe(list)));
 
 		return PaymentListView.from(list);
 	}
@@ -314,7 +352,7 @@ public class PaymentListService {
 	 */
 	@Transactional
 	public void delete(UUID id) {
-		//TODO: admin bypass needed - cascade all
+		//TODO: admin bypass needed - cascade all (only for custom / camp lists)
 		PaymentList list = getOrThrow(id);
 		list.assertOpen();
 
@@ -439,9 +477,6 @@ public class PaymentListService {
 	}
 
 
-	/**
-	 * A charge nothing derives, for amounts decided by hand.
-	 */
 	private static Payment handAddedCharge(PaymentList list, Person person, Group group) {
 		boolean perClass = group != null && group.isPerClass();
 
@@ -451,7 +486,7 @@ public class PaymentListService {
 				.chargeKind(PaymentChargeKind.ONE_TIME)
 				.group(group)
 				.description(group == null ? list.getName() : group.getName())
-				.unitCost(Money.normalize(group == null ? Money.ZERO : group.getCostForAttending()))
+				.unitCost(group == null ? list.defaultUnitCost() : Money.normalize(group.getCostForAttending()))
 				.quantity(perClass ? Money.ZERO : BigDecimal.ONE)
 				.build();
 

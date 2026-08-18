@@ -2,7 +2,8 @@ export const personKeys = {
 	all: ['persons'] as const,
 	list: () => [...personKeys.all, 'list'] as const,
 	memberships: (personId: string) => [...personKeys.all, 'memberships', personId] as const,
-	discounts: (personId: string) => [...personKeys.all, 'discounts', personId] as const,
+	discounts: () => [...personKeys.all, 'discounts'] as const,
+	discount: (personId: string) => [...personKeys.discounts(), personId] as const,
 };
 
 export const familyKeys = {
