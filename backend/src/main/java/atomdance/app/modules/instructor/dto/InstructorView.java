@@ -1,10 +1,12 @@
 package atomdance.app.modules.instructor.dto;
 
+import atomdance.app.modules.instructor.model.ContractType;
 import atomdance.app.modules.instructor.model.Instructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+
 
 public record InstructorView(
 		UUID id,
@@ -14,6 +16,7 @@ public record InstructorView(
 		BigDecimal costPerHour,
 		LocalDate contractSignedDate,
 		String contractNumber,
+		ContractType contractType,
 		boolean active,
 		String note
 ) {
@@ -27,6 +30,7 @@ public record InstructorView(
 				instructor.getCostPerHour(),
 				instructor.getContractSignedDate(),
 				instructor.getContractNumber(),
+				instructor.getContractType(),
 				instructor.isActive(),
 				instructor.getNote()
 		);

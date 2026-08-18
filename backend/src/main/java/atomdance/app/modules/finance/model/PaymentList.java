@@ -125,12 +125,6 @@ public class PaymentList {
 	}
 
 
-	//TODO this will need to be changed after instructor can store multiple contracts
-	public boolean carriesInstructorPay() {
-		return isStandard() && !isTournament();
-	}
-
-
 	/**
 	 * @return the month this list bills, or {@code null} if it is not a standard list.
 	 */

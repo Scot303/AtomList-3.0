@@ -18,6 +18,7 @@ import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.model.Membership;
 import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.group.service.GroupService;
+import atomdance.app.modules.instructor.model.ContractType;
 import atomdance.app.modules.instructor.service.InstructorService;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.PersonRepository;
@@ -108,9 +109,7 @@ public class PaymentListService {
 
 		syncStandardPayments(list);
 
-		if (list.carriesInstructorPay()) {
-			instructorExpenseService.seed(list, instructorService.findActive());
-		}
+		instructorExpenseService.seed(list, instructorService.findActive(ContractType.valueOf(list.scope().name())));
 
 		log.info("Created {} list {} for {}", list.getType(), list.getId(), ym);
 		auditLogger.recordOnCommit(null, list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Monthly list for %s has been created.", describe(list)));

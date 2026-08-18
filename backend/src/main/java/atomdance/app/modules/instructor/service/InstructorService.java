@@ -7,6 +7,7 @@ import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.instructor.dto.CreateInstructorRequest;
 import atomdance.app.modules.instructor.dto.InstructorView;
 import atomdance.app.modules.instructor.dto.UpdateInstructorRequest;
+import atomdance.app.modules.instructor.model.ContractType;
 import atomdance.app.modules.instructor.model.Instructor;
 import atomdance.app.modules.instructor.repository.InstructorRepository;
 import atomdance.app.modules.user.service.SecurityService;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,10 +32,12 @@ public class InstructorService {
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
+
 	public Instructor getOrThrow(UUID id) {
 		return instructorRepository.findById(id)
 				.orElseThrow(() -> new NotFoundException("entity.instructor"));
 	}
+
 
 	@Transactional(readOnly = true)
 	public List<InstructorView> getAll() {
@@ -41,15 +45,18 @@ public class InstructorService {
 		return instructorRepository.findAll(BY_NAME).stream().map(InstructorView::from).toList();
 	}
 
+
 	@Transactional(readOnly = true)
 	public InstructorView get(UUID id) {
 		auditLogger.record(securityService.getCurrentUserId(), id, AuditEventType.INSTRUCTOR_PREVIEW, AuditOutcome.SUCCESS, "Previewed instructor data.");
 		return InstructorView.from(getOrThrow(id));
 	}
 
-	public List<Instructor> findActive() {
-		return instructorRepository.findByIsActiveTrue(BY_NAME);
+
+	public List<Instructor> findActive(ContractType contractType) {
+		return instructorRepository.findByIsActiveTrueAndContractType(contractType, BY_NAME);
 	}
+
 
 	/**
 	 * @throws NotFoundException if any id does not resolve, rather than silently seeding a shorter list
@@ -64,6 +71,7 @@ public class InstructorService {
 		return instructors;
 	}
 
+
 	@Transactional
 	public InstructorView create(CreateInstructorRequest request) {
 		Instructor instructor = instructorRepository.saveAndFlush(Instructor.builder()
@@ -72,6 +80,7 @@ public class InstructorService {
 				.costPerHour(request.costPerHour())
 				.contractSignedDate(request.contractSignedDate())
 				.contractNumber(request.contractNumber())
+				.contractType(request.contractType() == null ? ContractType.OPEN : request.contractType())
 				.isActive(request.active() == null || request.active())
 				.note(request.note())
 				.build());
@@ -82,6 +91,7 @@ public class InstructorService {
 
 		return InstructorView.from(instructor);
 	}
+
 
 	/**
 	 * Partial update - a {@code null} field is left alone.
@@ -114,6 +124,10 @@ public class InstructorService {
 			instructor.setContractNumber(request.contractNumber());
 		}
 
+		if (request.contractType() != null) {
+			instructor.setContractType(request.contractType());
+		}
+
 		if (request.active() != null) {
 			instructor.setActive(request.active());
 		}
@@ -126,6 +140,7 @@ public class InstructorService {
 
 		return InstructorView.from(instructor);
 	}
+
 
 	@Transactional
 	public void delete(UUID id) {
