@@ -10,6 +10,7 @@ import { FilterBar } from './filters/FilterBar';
 import type { DataTableProps } from './types/dataTableTypes';
 import { useDataTable } from './useDataTable';
 
+
 /**
  * Space kept below the last row so a cell editor opening near the bottom has somewhere to hang.
  */
@@ -28,7 +29,7 @@ export const DataTable = <T extends object>(props: DataTableProps<T>) => {
 		onCellEdit, onRowClick, onRowContextMenu,
 		contextRowId, setContextRowId,
 		emptyMessage, isLoading,
-		sensors, handleDragEnd, orderedColumnIds, headerGroups,
+		sensors, handleDragEnd, orderedColumnIds, columnKey, headerGroups,
 		totalWidth, bodyRows,
 		scrollRef, headRef, popoverClip,
 		virtualRows, paddingTop, paddingBottom, measureRow,
@@ -63,7 +64,7 @@ export const DataTable = <T extends object>(props: DataTableProps<T>) => {
 					maxAdvancedRules={ maxAdvancedRules }
 					onAddTag={ (tag) => setFilterTags((tags) => [...tags, tag]) }
 					onRemoveTag={ (id) => setFilterTags((tags) => tags.filter((tag) => tag.id !== id)) }
-					onUpdateTag={ (updated) => setFilterTags((tags) => tags.map((tag) => (tag.id === updated.id ? updated : tag))) }
+					onUpdateTag={ (updated) => setFilterTags((tags) => tags.map((tag) => ( tag.id === updated.id ? updated : tag ))) }
 					onSortChange={ setSortTags }
 				/>
 			) }
@@ -108,6 +109,7 @@ export const DataTable = <T extends object>(props: DataTableProps<T>) => {
 								paddingBottom={ paddingBottom }
 								measureRow={ measureRow }
 								visibleColumnCount={ orderedColumnIds.length }
+								columnKey={ columnKey }
 								isLoading={ isLoading }
 								emptyMessage={ emptyMessage }
 								onCellEdit={ onCellEdit }

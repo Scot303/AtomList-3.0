@@ -336,6 +336,7 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 
 	const visibleColumns = visibleLeafColumns.map((column) => ( { id: column.id, size: column.getSize() } ));
 	const orderedColumnIds = visibleColumns.map((column) => column.id);
+	const columnKey = orderedColumnIds.join('|');
 	const totalWidth = visibleColumns.reduce((sum, column) => sum + column.size, 0);
 	const bodyRows = table.getRowModel().rows;
 
@@ -419,8 +420,8 @@ export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 		onCellEdit, onRowClick, onRowContextMenu,
 		contextRowId, setContextRowId,
 		emptyMessage, isLoading,
-		sensors, handleDragEnd, orderedColumnIds,
-		headerGroups: table.getHeaderGroups(),
+		sensors, handleDragEnd, orderedColumnIds, columnKey,
+		headerGroups: [...table.getHeaderGroups()],
 		totalWidth, bodyRows,
 		scrollRef, headRef, popoverClip,
 		virtualRows, paddingTop, paddingBottom,

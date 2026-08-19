@@ -5,14 +5,19 @@ import { flexRender, type Header } from '@tanstack/react-table';
 import { cn } from '@/lib/cn';
 import type { DataTableFeatures } from '../tableFeatures';
 
+
 /** How far one arrow-key press nudges a column's width. */
 const RESIZE_STEP = 2;
+
 
 interface DataTableHeaderCellProps<T extends object> {
 	header: Header<DataTableFeatures, T, unknown>;
 }
 
+
 export const DataTableHeaderCell = <T extends object>({ header }: DataTableHeaderCellProps<T>) => {
+	'use no memo';
+
 	const { column } = header;
 
 	const sortable = useSortable({ id: column.id });
@@ -29,7 +34,7 @@ export const DataTableHeaderCell = <T extends object>({ header }: DataTableHeade
 		<th
 			ref={ setNodeRef }
 			scope="col"
-			aria-sort={ canSort ? (sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none') : undefined }
+			aria-sort={ canSort ? ( sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none' ) : undefined }
 			style={ {
 				transform: CSS.Translate.toString(transform),
 				transition,
@@ -90,7 +95,7 @@ export const DataTableHeaderCell = <T extends object>({ header }: DataTableHeade
 						const { minSize = 0, maxSize = Number.MAX_SAFE_INTEGER } = column.columnDef;
 						const next = Math.min(maxSize, Math.max(minSize, header.getSize() + delta));
 
-						column.table.setColumnSizing((sizing) => ({ ...sizing, [column.id]: next }));
+						column.table.setColumnSizing((sizing) => ( { ...sizing, [column.id]: next } ));
 					} }
 					className="group/resize absolute right-0 top-0 z-20 flex h-full w-[5px] cursor-col-resize items-center justify-center outline-none"
 				>

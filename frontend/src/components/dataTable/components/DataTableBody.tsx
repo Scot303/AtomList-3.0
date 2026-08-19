@@ -14,6 +14,7 @@ interface DataTableBodyProps<T extends object> {
 	paddingBottom: number;
 	measureRow: (node: HTMLTableRowElement | null) => void;
 	visibleColumnCount: number;
+	columnKey: string;
 	isLoading: boolean;
 	emptyMessage?: string;
 	onCellEdit?: (rowId: string, columnId: string, value: unknown) => void;
@@ -27,7 +28,7 @@ interface DataTableBodyProps<T extends object> {
 export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) => {
 	const {
 		rows, virtualRows, paddingTop, paddingBottom, measureRow,
-		visibleColumnCount, isLoading, emptyMessage,
+		visibleColumnCount, columnKey, isLoading, emptyMessage,
 		onCellEdit, onRowClick, onRowContextMenu,
 		contextRowId, onContextRowChange,
 	} = props;
@@ -60,6 +61,7 @@ export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) =>
 							row={ row }
 							virtualIndex={ virtualRow.index }
 							measureRow={ measureRow }
+							columnKey={ columnKey }
 						/>
 					)
 					: (
@@ -68,6 +70,7 @@ export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) =>
 							row={ row }
 							virtualIndex={ virtualRow.index }
 							measureRow={ measureRow }
+							columnKey={ columnKey }
 							onCellEdit={ onCellEdit }
 							onRowClick={ onRowClick }
 							onRowContextMenu={ onRowContextMenu }
