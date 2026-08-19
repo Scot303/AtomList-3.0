@@ -1,25 +1,24 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
+
 
 /**
  * Tracks a media query.
  */
 export function useMediaQuery(query: string): boolean {
-	// Stable per query, or React would tear down and re-add the listener on every render.
-	const subscribe = useCallback(
-		(onChange: () => void) => {
-			const list = window.matchMedia(query);
 
-			list.addEventListener('change', onChange);
+	const subscribe = (onChange: () => void) => {
+		const list = window.matchMedia(query);
 
-			return () => list.removeEventListener('change', onChange);
-		},
-		[query],
-	);
+		list.addEventListener('change', onChange);
 
-	const getSnapshot = useCallback(() => window.matchMedia(query).matches, [query]);
+		return () => list.removeEventListener('change', onChange);
+	};
+
+	const getSnapshot = () => window.matchMedia(query).matches;
 
 	return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
+
 
 /** Matches Tailwind's lg breakpoint, the point at which the sidebar stops being an overlay. */
 export function useIsDesktop(): boolean {

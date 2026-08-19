@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+
 
 /**
  * Defers a call until the caller stops making it for `delay` ms.
@@ -20,14 +21,14 @@ export function useDebouncedCallback<A extends unknown[]>(callback: (...args: A)
 		}
 	}, []);
 
-	const cancel = useCallback(() => {
+	const cancel = () => {
 		if (timer.current !== null) {
 			clearTimeout(timer.current);
 			timer.current = null;
 		}
-	}, []);
+	};
 
-	const run = useCallback((...args: A) => {
+	const run = (...args: A) => {
 		if (timer.current !== null) {
 			clearTimeout(timer.current);
 		}
@@ -36,13 +37,13 @@ export function useDebouncedCallback<A extends unknown[]>(callback: (...args: A)
 			timer.current = null;
 			latest.current(...args);
 		}, delay);
-	}, [delay]);
+	};
 
 	/** Runs immediately, dropping anything still pending. For a commit that must not wait. */
-	const flush = useCallback((...args: A) => {
+	const flush = (...args: A) => {
 		cancel();
 		latest.current(...args);
-	}, [cancel]);
+	};
 
 	return { run, flush, cancel };
 }

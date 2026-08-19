@@ -10,6 +10,7 @@ import { AuthContext, type AuthContextValue, type AuthStatus } from './AuthConte
 import { bootstrapSession, endSession, onSessionEnded, signOut as endSessionOnServer, startSession, watchSession, } from './session';
 import { useAuthStore } from './stores/authStore';
 
+
 /**
  * Holds the answer to "who is using this, and are they still allowed to".
  *
@@ -116,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}, [queryClient]);
 
 	const value = useMemo<AuthContextValue>(
-		() => ({
+		() => ( {
 			status,
 			user,
 			isAuthenticated: status === 'authenticated',
@@ -127,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			signOut,
 			signOutEverywhere,
 			reloadUser,
-		}),
+		} ),
 		[permissions, reloadUser, signIn, signOut, signOutEverywhere, status, user],
 	);
 
