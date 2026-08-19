@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { cn } from '@/lib/cn';
@@ -18,9 +18,11 @@ const SORT_OPTIONS = [
 
 type MemberSort = typeof SORT_OPTIONS[number]['id'];
 
+
 function byLastName(left: PersonView, right: PersonView): number {
 	return left.lastName.localeCompare(right.lastName, LOCALE) || left.name.localeCompare(right.name, LOCALE);
 }
+
 
 function byAge(left: PersonView, right: PersonView): number {
 	const leftAge = calculateAge(left.dateOfBirth);
@@ -42,6 +44,7 @@ interface GroupMembersModalProps {
 	groupId: string;
 	groupName: string;
 }
+
 
 /**
  * Who is in the opened group right now.
@@ -65,12 +68,9 @@ function MemberList({ groupId }: { groupId: string }) {
 	/* Subscribed to but not read. Keeping data fresh for the person details modal a row can open. */
 	useFamilies();
 
-	const members = useMemo(
-		() => (persons.data ?? [])
-			.filter((person) => person.groupIds.includes(groupId))
-			.sort(sort === 'age' ? byAge : byLastName),
-		[persons.data, groupId, sort],
-	);
+	const members = ( persons.data ?? [] )
+		.filter((person) => person.groupIds.includes(groupId))
+		.sort(sort === 'age' ? byAge : byLastName);
 
 	if (persons.isPending) {
 		return (
