@@ -45,6 +45,12 @@ const ROW_OVERSCAN = 15;
 const columnLabel = (column: Column<DataTableFeatures, never, never> | { id: string; columnDef: { header?: unknown } }): string =>
 	typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id;
 
+/**
+ * React Compiler skips this hook entirely - `useVirtualizer()` returns functions it will not memoise, so it reports
+ * "Use of incompatible library" and leaves the whole body alone. Every useMemo and useCallback below is therefore
+ * load-bearing: without them the sort/filter/search pipeline re-runs over the full dataset on every render.
+ * Do not delete them on the assumption the compiler has this covered. `npm run lint` reports the skip.
+ */
 export const useDataTable = <T extends object>(props: DataTableProps<T>) => {
 	const {
 		data,
