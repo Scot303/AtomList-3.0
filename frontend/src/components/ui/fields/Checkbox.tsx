@@ -1,5 +1,5 @@
 import type React from 'react';
-import { type Ref, useCallback, useEffect, useId, useRef } from 'react';
+import { type Ref, useEffect, useId, useRef } from 'react';
 import { AlertCircle, Check, Minus } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { fieldError, fieldErrorIconSize, fieldFocusRing, type FieldSize } from './fieldStyles';
@@ -17,6 +17,7 @@ interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>
 	ref?: Ref<HTMLInputElement>;
 }
 
+
 /**
  * A checkbox drawn from a hidden native input, so it keeps real checkbox semantics and keyboard behavior while the box beside it can be styled.
  */
@@ -27,7 +28,7 @@ export const Checkbox = (props: CheckboxProps) => {
 	const innerRef = useRef<HTMLInputElement>(null);
 	const small = size === 'sm';
 
-	const setRef = useCallback((element: HTMLInputElement | null) => {
+	const setRef = (element: HTMLInputElement | null) => {
 		innerRef.current = element;
 
 		if (typeof ref === 'function') {
@@ -35,7 +36,7 @@ export const Checkbox = (props: CheckboxProps) => {
 		} else if (ref) {
 			ref.current = element;
 		}
-	}, [ref]);
+	};
 
 	// `indeterminate` exists only on the DOM node; there is no attribute for it.
 	useEffect(() => {

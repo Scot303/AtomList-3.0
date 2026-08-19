@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Cake } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { parseISODate, todayInTimeZone } from '@/components/ui/fields/dateUtils';
@@ -23,23 +22,21 @@ interface Birthday {
 
 /** Shows the people whose birthday is today, using the studio's time zone. */
 export function BirthdayIndicator({ persons, className }: BirthdayIndicatorProps) {
-	const birthdays = useMemo(() => {
-		const today = todayInTimeZone();
+	const today = todayInTimeZone();
 
-		return persons.reduce<Birthday[]>((matches, person) => {
-			const dateOfBirth = parseISODate(person.dateOfBirth ?? '');
-			const age = calculateAge(person.dateOfBirth);
+	const birthdays = persons.reduce<Birthday[]>((matches, person) => {
+		const dateOfBirth = parseISODate(person.dateOfBirth ?? '');
+		const age = calculateAge(person.dateOfBirth);
 
-			if (dateOfBirth !== null && age !== null
-				&& dateOfBirth.getMonth() === today.getMonth()
-				&& dateOfBirth.getDate() === today.getDate()
-			) {
-				matches.push({ id: person.id, fullName: person.fullName, age });
-			}
+		if (dateOfBirth !== null && age !== null
+			&& dateOfBirth.getMonth() === today.getMonth()
+			&& dateOfBirth.getDate() === today.getDate()
+		) {
+			matches.push({ id: person.id, fullName: person.fullName, age });
+		}
 
-			return matches;
-		}, []).sort((left, right) => left.fullName.localeCompare(right.fullName, LOCALE));
-	}, [persons]);
+		return matches;
+	}, []).sort((left, right) => left.fullName.localeCompare(right.fullName, LOCALE));
 
 	if (birthdays.length === 0) {
 		return null;

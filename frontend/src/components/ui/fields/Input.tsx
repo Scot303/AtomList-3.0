@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { type ReactNode, type Ref, useCallback, useId, useRef } from 'react';
+import { type ReactNode, type Ref, useId, useRef } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { FieldShell } from './FieldShell';
 import { fieldControl, fieldControlWithLeftIcon, fieldLeftIcon, fieldRightAdornment, type FieldSize } from './fieldStyles';
+
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
 	label: string;
@@ -14,6 +15,7 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, '
 	ref?: Ref<HTMLInputElement>;
 }
 
+
 export const Input = (props: InputProps) => {
 	const { className, label, error, hint, icon, size = 'default', disabled, ref, ...rest } = props;
 
@@ -21,7 +23,7 @@ export const Input = (props: InputProps) => {
 	const innerRef = useRef<HTMLInputElement>(null);
 	const isNumber = rest.type === 'number';
 
-	const setRef = useCallback((element: HTMLInputElement | null) => {
+	const setRef = (element: HTMLInputElement | null) => {
 		innerRef.current = element;
 
 		if (typeof ref === 'function') {
@@ -29,7 +31,7 @@ export const Input = (props: InputProps) => {
 		} else if (ref) {
 			ref.current = element;
 		}
-	}, [ref]);
+	};
 
 	const stepBy = (input: HTMLInputElement | null, direction: 'up' | 'down') => {
 		if (direction === 'up') {
@@ -70,7 +72,7 @@ export const Input = (props: InputProps) => {
 					'peer',
 					fieldControl(size, { hasError: Boolean(error), disabled }),
 					icon && fieldControlWithLeftIcon[size],
-					isNumber && (size === 'sm' ? 'pr-7' : 'pr-8'),
+					isNumber && ( size === 'sm' ? 'pr-7' : 'pr-8' ),
 					className,
 				) }
 			/>

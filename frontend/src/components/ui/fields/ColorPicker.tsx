@@ -1,5 +1,5 @@
 import type React from 'react';
-import { type Ref, useId, useMemo, useState } from 'react';
+import { type Ref, useId, useState } from 'react';
 import { Pipette } from 'lucide-react';
 import { HexColorPicker } from 'react-colorful';
 import { cn } from '@/lib/cn';
@@ -23,6 +23,7 @@ const SWATCH_ROW_HEIGHT = 80;
 /** The transparency check pattern, for a value that is not yet a complete color. */
 const NO_COLOUR = 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px)';
 
+
 interface ColorPickerProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange' | 'value' | 'size'> {
 	label: string;
 	error?: string;
@@ -38,6 +39,7 @@ interface ColorPickerProps extends Omit<React.InputHTMLAttributes<HTMLInputEleme
 	/** Adds 10 most recently piked colors under the picker, and records what this field settles on among them. */
 	recent?: boolean;
 }
+
 
 declare global {
 	interface Window {
@@ -72,7 +74,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
 
 	const popover = usePopover({
 		width: '16rem',
-		maxHeight: PANEL_HEIGHT + (shades ? SWATCH_ROW_HEIGHT : 0) + (recent ? SWATCH_ROW_HEIGHT : 0),
+		maxHeight: PANEL_HEIGHT + ( shades ? SWATCH_ROW_HEIGHT : 0 ) + ( recent ? SWATCH_ROW_HEIGHT : 0 ),
 		align: 'end',
 		onBlur: remember,
 	});
@@ -82,7 +84,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
 	const isComplete = value.length === HEX_LENGTH;
 	const hex = isComplete ? `#${ value }` : '#000000';
 
-	const ramp = useMemo(() => (shades && isComplete ? buildColorRamp(value) : []), [shades, isComplete, value]);
+	const ramp = shades && isComplete ? buildColorRamp(value) : [];
 
 	const emit = (next: string) => onChange?.(next.replace('#', '').toUpperCase());
 
@@ -165,7 +167,7 @@ export const ColorPicker = (props: ColorPickerProps) => {
 				>
 					<HexColorPicker color={ hex } onChange={ emit } className="!w-full"/>
 
-					{ (shades || recent) && (
+					{ ( shades || recent ) && (
 						<div className="mt-3 space-y-3">
 							{ shades && (
 								<ColorSwatchRow
