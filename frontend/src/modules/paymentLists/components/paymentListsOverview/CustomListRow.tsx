@@ -4,16 +4,24 @@ import { formatInstantDate } from '@/components/ui/fields/dateUtils.ts';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { paymentListDetailPath } from '@/routes/paths.ts';
+import { useContextMenu } from '@/stores/menuStore.ts';
+import { usePrefetchList } from '../../hooks/usePaymentLists.ts';
+import type { CustomListMenuBuilder } from '../../hooks/useCustomListMenu.ts';
 import type { PaymentListView } from '../../types/types.ts';
 
 
 interface CustomListRowProps {
 	list: PaymentListView;
+	/** What right-clicking this row offers. */
+	buildMenu: CustomListMenuBuilder;
 }
 
 
-export const CustomListRow = ({ list }: CustomListRowProps) => {
+export const CustomListRow = ({ list, buildMenu }: CustomListRowProps) => {
 	const navigate = useNavigate();
+
+	const openContextMenu = useContextMenu();
+	const prefetchList = usePrefetchList();
 
 	const camp = list.type === 'CAMP';
 
@@ -21,6 +29,9 @@ export const CustomListRow = ({ list }: CustomListRowProps) => {
 		<button
 			type="button"
 			onClick={ () => void navigate(paymentListDetailPath(list.id)) }
+			onContextMenu={ (event) => openContextMenu(event, buildMenu(list)) }
+			onPointerEnter={ () => prefetchList(list.id) }
+			onFocus={ () => prefetchList(list.id) }
 			className={ cn(
 				'flex h-full w-full cursor-pointer flex-col justify-center gap-0.5 rounded-xl px-3 py-1 text-left',
 				'2xl:gap-1 2xl:px-4 2xl:py-2 3xl:px-5 3xl:py-3',

@@ -1,48 +1,41 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Alert } from '@/components/feedback/Alert';
 import { FullPageLoader } from '@/components/feedback/FullPageLoader';
 import { BirthdayIndicator } from '@/components/shared/BirthdayIndicator';
 import { useIsDesktop, useMediaQuery } from '@/hooks/useMediaQuery';
-import { LOCALE, TIME_ZONE } from '@/lib/locale';
 import { cn } from '@/lib/cn';
 import { usePersons } from '@/modules/persons/hooks/usePersons';
 import { CustomListsPanel } from './components/paymentListsOverview/CustomListsPanel.tsx';
-import { YearSwitcher } from './components/paymentListsOverview/YearSwitcher.tsx';
-import { usePaymentLists } from './hooks/usePaymentLists';
-import { usePrefetchYearSummary, useYearSummary } from './hooks/useYearSummary';
-import { isCustomList } from './types/listLabels.ts';
+import { SeasonSwitcher } from './components/paymentListsOverview/SeasonSwitcher.tsx';
+import { useCustomLists } from './hooks/usePaymentLists';
+import { usePrefetchSeasonSummary, useSeasonSummary } from './hooks/useSeasonSummary';
+import { currentSeasonStart } from './types/seasons.ts';
 import { MonthCard } from '@/modules/paymentLists/components/paymentListsOverview/MonthCard.tsx';
 import { useUiStore } from '@/stores/uiStore';
 
 
-function currentYear(): number {
-	return Number(new Intl.DateTimeFormat(LOCALE, { timeZone: TIME_ZONE, year: 'numeric' }).format(new Date()));
-}
-
-
 export function PaymentListsPage() {
-	const [year, setYear] = useState(currentYear);
-	const [yearDirection, setYearDirection] = useState(0);
+	const [seasonStart, setSeasonStart] = useState(currentSeasonStart);
+	const [seasonDirection, setSeasonDirection] = useState(0);
 
 	const isDesktop = useIsDesktop();
-	const is2xl = useMediaQuery('(min-width: 1536px)');
+	const is2xl = useMediaQuery('(min-width: 1900px)');
 	const sidebarOpen = useUiStore((state) => ( isDesktop ? state.sidebarOpen : state.mobileNavOpen ));
 
-	const summary = useYearSummary(year);
-	//TODO should query no all lists but first standard one from this year, and then all custom lists.
-	const lists = usePaymentLists();
+	const summary = useSeasonSummary(seasonStart);
+	const lists = useCustomLists();
 	const persons = usePersons();
-	const prefetchYear = usePrefetchYearSummary();
+	const prefetchSeason = usePrefetchSeasonSummary();
 
-	const months = useMemo(() => summary.data ?? [], [summary.data]);
-	const personList = useMemo(() => persons.data ?? [], [persons.data]);
-	const customLists = useMemo(() => ( lists.data ?? [] ).filter(isCustomList), [lists.data]);
+	const months = summary.data ?? [];
+	const personList = persons.data ?? [];
+
 	const showCustomLists = is2xl || !sidebarOpen;
 
-	const handleYearChange = (nextYear: number) => {
-		setYearDirection(Math.sign(nextYear - year));
-		setYear(nextYear);
+	const handleSeasonChange = (nextStart: number) => {
+		setSeasonDirection(Math.sign(nextStart - seasonStart));
+		setSeasonStart(nextStart);
 	};
 
 	return (
@@ -54,7 +47,7 @@ export function PaymentListsPage() {
 				<div className="relative flex w-full items-center justify-center">
 					<BirthdayIndicator persons={ personList } className="absolute left-0 ml-1"/>
 
-					<YearSwitcher year={ year } onChange={ handleYearChange } onPrime={ prefetchYear }/>
+					<SeasonSwitcher startYear={ seasonStart } onChange={ handleSeasonChange } onPrime={ prefetchSeason }/>
 				</div>
 
 				{ summary.isPending ? (
@@ -68,10 +61,10 @@ export function PaymentListsPage() {
 				) : (
 					<AnimatePresence mode="wait" initial={ false }>
 						<motion.div
-							key={ year }
-							initial={ { opacity: 0, x: yearDirection * 24 } }
+							key={ seasonStart }
+							initial={ { opacity: 0, x: seasonDirection * 24 } }
 							animate={ { opacity: 1, x: 0 } }
-							exit={ { opacity: 0, x: yearDirection * -18, transition: { duration: 0.25, ease: 'easeOut' } } }
+							exit={ { opacity: 0, x: seasonDirection * -18, transition: { duration: 0.25, ease: 'easeOut' } } }
 							transition={ { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }
 							className={ cn(
 								'grid min-h-0 flex-1 overflow-y-auto lg:overflow-visible themed-scrollbar grid-cols-4 grid-rows-3',
@@ -93,7 +86,7 @@ export function PaymentListsPage() {
 					inert={ !showCustomLists || undefined }
 					className={ cn('h-full w-60 2xl:w-[20rem] 3xl:w-120 transition-opacity duration-200', showCustomLists ? 'opacity-100' : 'pointer-events-none opacity-0') }
 				>
-					<CustomListsPanel lists={ customLists } isLoading={ lists.isLoading }/>
+					<CustomListsPanel lists={ lists.data ?? [] } isLoading={ lists.isLoading }/>
 				</div>
 			</div>
 		</div>

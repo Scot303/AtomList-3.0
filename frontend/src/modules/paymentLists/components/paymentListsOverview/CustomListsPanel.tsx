@@ -1,8 +1,13 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { Plus } from 'lucide-react';
 
+import { Button } from '@/components/ui/buttons/Button.tsx';
 import { useMediaQuery } from '@/hooks/useMediaQuery.ts';
+import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { useModalStore } from '@/stores/modalStore.ts';
 import { CustomListRow } from './CustomListRow.tsx';
+import { useCustomListMenu } from '../../hooks/useCustomListMenu.ts';
 import type { PaymentListView } from '../../types/types.ts';
 
 
@@ -27,6 +32,11 @@ export const CustomListsPanel = ({ lists, isLoading }: CustomListsPanelProps) =>
 	const is3xl = useMediaQuery('(min-width: 130rem)');
 	const rowHeight = is3xl ? ROW_HEIGHT['3xl'] : is2xl ? ROW_HEIGHT['2xl'] : ROW_HEIGHT.default;
 
+	const { hasPermission } = useAuth();
+	const openModal = useModalStore((state) => state.openModal);
+
+	const buildMenu = useCustomListMenu();
+
 	const rowVirtualizer = useVirtualizer({
 		count: lists.length,
 		getScrollElement: () => scrollRef.current,
@@ -34,8 +44,6 @@ export const CustomListsPanel = ({ lists, isLoading }: CustomListsPanelProps) =>
 		overscan: ROW_OVERSCAN,
 		getItemKey: (index) => lists[index]?.id ?? index,
 	});
-
-	// TODO Add context menu delete list, details for renaming etc
 
 	useLayoutEffect(() => {
 		rowVirtualizer.measure();
@@ -66,12 +74,26 @@ export const CustomListsPanel = ({ lists, isLoading }: CustomListsPanelProps) =>
 									transform: `translateY(${ item.start }px)`,
 								} }
 							>
-								<CustomListRow list={ lists[item.index] }/>
+								<CustomListRow list={ lists[item.index] } buildMenu={ buildMenu }/>
 							</div>
 						)) }
 					</div>
 				) }
 			</div>
+
+			{ hasPermission('MODIFY_LISTS') && (
+				<footer className="mt-2 shrink-0 border-t border-os-border/60 p-2 2xl:p-3">
+					<Button
+						size="md"
+						variant="secondary"
+						className="w-full"
+						leftIcon={ <Plus size={ 16 }/> }
+						onClick={ () => void openModal('lists.customForm', {}) }
+					>
+						Dodaj listę
+					</Button>
+				</footer>
+			) }
 		</section>
 	);
 };
