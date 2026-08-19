@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Info, Plus } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert.tsx';
 import { Button } from '@/components/ui/buttons/Button.tsx';
@@ -9,7 +9,7 @@ import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils.ts'
 import { formatCurrency } from '@/lib/locale.ts';
 import { notifySuccess } from '@/lib/toast.ts';
 import type { GroupView } from '@/modules/groups/types/types.ts';
-import { useCreateMembership } from '../../hooks/useMemberships.ts';
+import { useCreateMembership } from '../../hooks/useMembershipMutations.ts';
 import type { MembershipView } from '../../types/types.ts';
 
 
@@ -37,20 +37,18 @@ export function AddMembershipForm({ personId, groups, memberships, groupsUnavail
 	/**
 	 * Groups the person could still join: active ones they are not already attending.
 	 */
-	const options = useMemo(() => {
-		const alreadyIn = new Set(
-			memberships.filter((membership) => membership.active).map((membership) => membership.groupId),
-		);
+	const alreadyIn = new Set(
+		memberships.filter((membership) => membership.active).map((membership) => membership.groupId),
+	);
 
-		return groups
-			.filter((group) => group.active && !alreadyIn.has(group.id))
-			.map((group) => ( {
-				id: group.id,
-				name: group.name,
-				icon: group.type === 'TOURNAMENT' ? <TournamentMarker/> : undefined,
-				hint: formatCurrency(group.costForAttending),
-			} ));
-	}, [groups, memberships]);
+	const options = groups
+		.filter((group) => group.active && !alreadyIn.has(group.id))
+		.map((group) => ( {
+			id: group.id,
+			name: group.name,
+			icon: group.type === 'TOURNAMENT' ? <TournamentMarker/> : undefined,
+			hint: formatCurrency(group.costForAttending),
+		} ));
 
 	const selectedGroup = groups.find((group) => group.id === groupId);
 

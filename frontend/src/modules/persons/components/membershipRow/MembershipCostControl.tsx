@@ -4,7 +4,7 @@ import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { notifyApiError } from '@/lib/toast.ts';
-import { useUpdateMembership } from '../../hooks/useMemberships.ts';
+import { useUpdateMembership } from '../../hooks/useMembershipMutations.ts';
 import type { MembershipView, UpdateMembershipPayload } from '../../types/types.ts';
 
 

@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Users } from 'lucide-react';
 import { TagBadge } from '@/components/ui/tags';
 import { formatCurrency, pluralise } from '@/lib/locale';
@@ -14,6 +13,7 @@ interface GroupCountDiscountSectionProps {
 	component: DiscountComponent;
 	memberships: CountedMembership[];
 }
+
 
 /**
  * The part that comes from how many groups this person is charged for.
@@ -39,12 +39,13 @@ export function GroupCountDiscountSection({ component, memberships }: GroupCount
 	);
 }
 
+
 /**
  * Every membership that ran at any point this month counts, whether or not it is still running, because the month was charged for it.
  */
 function CountedMembershipList({ memberships }: { memberships: CountedMembership[] }) {
 	const groups = useGroups();
-	const groupsById = useMemo(() => indexGroups(groups.data ?? []), [groups.data]);
+	const groupsById = indexGroups(groups.data ?? []);
 
 	return (
 		<ul className="overflow-hidden rounded-xl border border-os-border">
@@ -76,6 +77,7 @@ function CountedMembershipList({ memberships }: { memberships: CountedMembership
 function membershipColor(membership: CountedMembership, groupsById: Map<string, GroupView>): string {
 	return resolveGroupColor({ id: membership.groupId, color: groupsById.get(membership.groupId)?.color ?? null });
 }
+
 
 function groupWord(count: number): string {
 	return pluralise(count, 'grupy', 'grup', 'grup');

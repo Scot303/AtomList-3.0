@@ -1,4 +1,4 @@
-import { type MouseEvent, useCallback, useMemo } from 'react';
+import { type MouseEvent } from 'react';
 import { Info, Percent, Plus, Users } from 'lucide-react';
 import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
@@ -57,17 +57,13 @@ export function PersonsPage() {
 
 	const filterTags = useTableFilterTags(TABLE_KEY);
 
-	const personList = useMemo(() => persons.data ?? [], [persons.data]);
-	const groupList = useMemo(() => groups.data ?? [], [groups.data]);
+	const personList = persons.data ?? [];
+	const groupList = groups.data ?? [];
 
-	const groupsById = useMemo(() => indexGroups(groupList), [groupList]);
+	const groupsById = indexGroups(groupList);
 
-	const rows = useMemo(
-		() => personList.map((person) => toPersonRow(person, groupsById)),
-		[personList, groupsById],
-	);
-
-	const columns = useMemo(() => buildPersonColumns(buildGroupOptions(groupList)), [groupList]);
+	const rows = personList.map((person) => toPersonRow(person, groupsById));
+	const columns = buildPersonColumns(buildGroupOptions(groupList));
 
 	const HIDDEN_COLS: ColumnVisibilityState = {
 		groupKinds: false
@@ -76,63 +72,58 @@ export function PersonsPage() {
 	const isLoading = persons.isPending || groups.isLoading;
 
 
-	const handleCellEdit = useCallback(
-		(rowId: string, columnId: string, value: unknown) => {
-			const payload = toUpdatePayload(columnId, value);
+	const handleCellEdit = (rowId: string, columnId: string, value: unknown) => {
+		const payload = toUpdatePayload(columnId, value);
 
-			if (payload === null) {
-				return;
-			}
+		if (payload === null) {
+			return;
+		}
 
-			updatePerson.mutate(
-				{
-					id: rowId,
-					payload
-				},
-				{ onError: notifyApiError });
-		},
-		[updatePerson],
-	);
+		updatePerson.mutate(
+			{
+				id: rowId,
+				payload
+			},
+			{ onError: notifyApiError }
+		);
+	};
 
-	const handleRowContextMenu = useCallback(
-		(event: MouseEvent, row: PersonRow) => {
-			preloadModal('persons.form');
-			preloadModal('persons.discounts');
-			preloadModal('persons.groups');
+	const handleRowContextMenu = (event: MouseEvent, row: PersonRow) => {
+		preloadModal('persons.form');
+		preloadModal('persons.discounts');
+		preloadModal('persons.groups');
 
-			prefetchMemberships(row.id);
-			prefetchDiscounts(row.id);
+		prefetchMemberships(row.id);
+		prefetchDiscounts(row.id);
 
-			openContextMenu(event, [
-				{
-					id: 'details',
-					label: 'Szczegóły',
-					icon: Info,
-					onSelect: () => void openModal('persons.form', { personId: row.id }),
-				},
-				{
-					id: 'discounts',
-					label: 'Zobacz zniżki',
-					icon: Percent,
-					onSelect: () => void openModal('persons.discounts', {
-						personId: row.id,
-						personName: row.person.fullName,
-					}),
-				},
-				{
-					id: 'groups',
-					label: 'Zobacz grupy',
-					icon: Users,
-					separatorBefore: true,
-					onSelect: () => void openModal('persons.groups', {
-						personId: row.id,
-						personName: row.person.fullName,
-					}),
-				},
-			]);
-		},
-		[openContextMenu, openModal, prefetchMemberships, prefetchDiscounts],
-	);
+		openContextMenu(event, [
+			{
+				id: 'details',
+				label: 'Szczegóły',
+				icon: Info,
+				onSelect: () => void openModal('persons.form', { personId: row.id }),
+			},
+			{
+				id: 'discounts',
+				label: 'Zobacz zniżki',
+				icon: Percent,
+				onSelect: () => void openModal('persons.discounts', {
+					personId: row.id,
+					personName: row.person.fullName,
+				}),
+			},
+			{
+				id: 'groups',
+				label: 'Zobacz grupy',
+				icon: Users,
+				separatorBefore: true,
+				onSelect: () => void openModal('persons.groups', {
+					personId: row.id,
+					personName: row.person.fullName,
+				}),
+			},
+		]);
+	};
 
 	const toolbar = (
 		<div className="flex items-center">

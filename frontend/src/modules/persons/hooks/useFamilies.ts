@@ -3,6 +3,7 @@ import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { fetchFamilies } from '../api/familiesApi';
 import { familyKeys } from '../api/personKeys';
 
+
 export function useFamilies() {
 	const { hasPermission } = useAuth();
 
