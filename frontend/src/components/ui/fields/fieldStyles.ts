@@ -55,14 +55,9 @@ export const fieldControl = (size: FieldSize, state: FieldStateOptions = {}) =>
 	);
 
 /**
- * Vertical padding for a control whose value is drawn as a badge rather than as bare text.
- *
- * A `default` badge is 4px taller than the `text-sm` line box the fields are sized around, so the box gives that 4px back and the control keeps the kit's height.
+ * The content box inside a select trigger: one `text-sm` line tall, whatever it holds.
  */
-export const fieldControlBadgeValue: Record<FieldSize, string> = {
-	sm: 'py-1.5',
-	default: 'py-2',
-};
+export const fieldControlValueLine = 'flex h-5 min-w-0 items-center';
 
 
 /* ── Adornments ──────────────────────────────────────────────────────────── */

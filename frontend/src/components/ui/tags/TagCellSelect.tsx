@@ -25,6 +25,7 @@ interface TagCellSelectOwnProps {
 	className?: string;
 }
 
+
 export type TagCellSelectProps = TagCellSelectOwnProps & SelectValueProps;
 
 /**

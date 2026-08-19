@@ -12,6 +12,7 @@ export { FormSection } from './FormSection';
 export type { FieldSize, FieldStateOptions } from './fieldStyles';
 export {
 	fieldControl,
+	fieldControlValueLine,
 	fieldControlWithLeftIcon,
 	fieldControlWithRightAdornment,
 	fieldError,
