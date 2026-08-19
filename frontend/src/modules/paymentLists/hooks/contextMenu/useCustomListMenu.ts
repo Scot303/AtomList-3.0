@@ -1,12 +1,12 @@
 import { Eye, Trash2 } from 'lucide-react';
-import { notifyApiError, notifySuccess } from '@/lib/toast';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { useConfirm } from '@/stores/dialogStore';
-import type { ContextMenuItem } from '@/stores/menuStore';
-import { useModalStore } from '@/stores/modalStore';
-import { useDeletePaymentList } from './usePaymentListMutations';
-import { describeList } from '../types/listLabels';
-import type { PaymentListView } from '../types/types.ts';
+import { notifyApiError, notifySuccess } from '@/lib/toast.ts';
+import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { useConfirm } from '@/stores/dialogStore.ts';
+import type { ContextMenuItem } from '@/stores/menuStore.ts';
+import { useModalStore } from '@/stores/modalStore.ts';
+import { useDeletePaymentList } from '../usePaymentListMutations.ts';
+import { describeList } from '../../types/listLabels.ts';
+import type { PaymentListView } from '../../types/types.ts';
 
 
 export type CustomListMenuBuilder = (list: PaymentListView) => ContextMenuItem[];
