@@ -1,6 +1,6 @@
 import { Lock, TreePalm } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { formatInstantDate } from '@/components/ui/fields/dateUtils.ts';
+import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { paymentListDetailPath } from '@/routes/paths.ts';

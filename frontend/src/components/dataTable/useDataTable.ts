@@ -14,7 +14,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { formatLongDate } from '@/components/ui/fields/dateUtils';
+import { formatLongDate } from '@/utils/dateUtils.ts';
 import type { PopoverClip } from '@/hooks/usePopoverClip';
 import { useContextMenuStore } from '@/stores/menuStore';
 import type { FilterableColumn } from './types/filterTypes';

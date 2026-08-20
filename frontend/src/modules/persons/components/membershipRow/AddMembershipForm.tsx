@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/buttons/Button.tsx';
 import { ExtendedSelect } from '@/components/ui/extendedSelect';
 import { DatePicker, Input, parseISODate } from '@/components/ui/fields';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
-import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils.ts';
+import { dateToISO, todayInTimeZone } from '@/utils/dateUtils.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { notifySuccess } from '@/lib/toast.ts';
 import type { GroupView } from '@/modules/groups/types/types.ts';

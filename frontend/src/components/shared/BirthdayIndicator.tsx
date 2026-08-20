@@ -1,6 +1,6 @@
 import { Cake } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip';
-import { parseISODate, todayInTimeZone } from '@/components/ui/fields/dateUtils';
+import { parseISODate, todayInTimeZone } from '@/utils/dateUtils.ts';
 import { cn } from '@/lib/cn';
 import { LOCALE } from '@/lib/locale';
 import type { PersonView } from '@/modules/persons/types/types';

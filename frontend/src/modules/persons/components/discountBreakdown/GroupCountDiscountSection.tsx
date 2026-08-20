@@ -80,5 +80,5 @@ function membershipColor(membership: CountedMembership, groupsById: Map<string, 
 
 
 function groupWord(count: number): string {
-	return pluralise(count, 'grupy', 'grup', 'grup');
+	return pluralise(count, 'grupa', 'grupy', 'grup');
 }

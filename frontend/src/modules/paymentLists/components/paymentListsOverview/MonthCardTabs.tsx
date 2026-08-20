@@ -7,7 +7,7 @@ import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
 import { paymentListDetailPath } from '@/routes/paths.ts';
 import { useConfirm } from '@/stores/dialogStore.ts';
 import { useOpenStandardList } from '../../hooks/useOpenStandardList.ts';
-import { monthHasEnded, monthName } from '@/components/ui/fields/dateUtils';
+import { monthHasEnded, monthName } from '@/utils/dateUtils.ts';
 import type { ListSummaryView, MonthSummaryView } from '../../types/types.ts';
 
 

@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { LOCALE } from '@/lib/locale';
-import { addDays, addMonths, dateToISO, daysInMonth, isSameDay, isWithin, leadingBlanks, MONTH_NAMES, todayInTimeZone, WEEKDAY_NAMES, } from './dateUtils';
+import { addDays, addMonths, dateToISO, daysInMonth, isSameDay, isWithin, leadingBlanks, MONTH_NAMES, todayInTimeZone, WEEKDAY_NAMES, } from '@/utils/dateUtils.ts';
 
 
 /** Years shown at once in the year grid. */
 const YEAR_PAGE = 12;
+
 
 interface CalendarProps {
 	/** The currently selected date, or null when nothing is chosen. */
@@ -16,6 +17,7 @@ interface CalendarProps {
 	onSelect: (iso: string) => void;
 	onDismiss: () => void;
 }
+
 
 /**
  * A month grid with keyboard navigation.
@@ -84,7 +86,7 @@ export const Calendar = ({ selected, min, max, onSelect, onDismiss }: CalendarPr
 
 	if (pickingYear) {
 		// Anchored so the current view year keeps its position as the pages move.
-		const start = year - ((year - today.getFullYear() + YEAR_PAGE * 100) % YEAR_PAGE);
+		const start = year - ( ( year - today.getFullYear() + YEAR_PAGE * 100 ) % YEAR_PAGE );
 		const years = Array.from({ length: YEAR_PAGE }, (_, offset) => start + offset);
 
 		return (
@@ -131,7 +133,7 @@ export const Calendar = ({ selected, min, max, onSelect, onDismiss }: CalendarPr
 
 	const blanks = leadingBlanks(year, month);
 	const total = daysInMonth(year, month);
-	const cells: (number | null)[] = [
+	const cells: ( number | null )[] = [
 		...Array<null>(blanks).fill(null),
 		...Array.from({ length: total }, (_, index) => index + 1),
 	];

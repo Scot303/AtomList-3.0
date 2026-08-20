@@ -5,7 +5,7 @@ import { usePopover } from '@/hooks/usePopover';
 import { Popover } from '@/components/ui/popover';
 import { Calendar } from './Calendar';
 import { FieldShell } from './FieldShell';
-import { formatLongDate, parseISODate } from './dateUtils';
+import { formatLongDate, parseISODate } from '@/utils/dateUtils.ts';
 import { fieldControl, fieldControlWithLeftIcon, fieldLeftIcon, type FieldSize, } from './fieldStyles';
 
 
@@ -25,6 +25,7 @@ interface DatePickerProps {
 	max?: string;
 	size?: FieldSize;
 }
+
 
 /**
  * A date field that opens a calendar.
