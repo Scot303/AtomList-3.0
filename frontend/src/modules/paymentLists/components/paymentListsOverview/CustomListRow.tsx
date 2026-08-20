@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn.ts';
 import { paymentListDetailPath } from '@/routes/paths.ts';
 import { useContextMenu } from '@/stores/menuStore.ts';
 import { usePrefetchList } from '../../hooks/usePaymentLists.ts';
-import type { CustomListMenuBuilder } from '../../hooks/useCustomListMenu.ts';
+import type { CustomListMenuBuilder } from '../../hooks/contextMenu/useCustomListMenu.ts';
 import type { PaymentListView } from '../../types/types.ts';
 
 

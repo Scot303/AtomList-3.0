@@ -7,11 +7,15 @@ import { cn } from '@/lib/cn';
 import { formatCurrency } from '@/lib/locale';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
+import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
 import { paths } from '@/routes/paths';
 import { useConfirm } from '@/stores/dialogStore';
+import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { useCreditSweep } from '../hooks/useCreditSweep';
 import { useCloseList, useDeletePaymentList, useRecalculateList, useReopenList, useRepopulateList, } from '../hooks/usePaymentListMutations';
+import { usePrefetchListReport } from '../hooks/useListReport';
 import { describeList, isCustomList } from '../types/listLabels';
 import type { PaymentListView } from '../types/types.ts';
 
@@ -29,6 +33,10 @@ export function PaymentListToolbar({ list }: PaymentListToolbarProps) {
 	const { hasPermission } = useAuth();
 	const openModal = useModalStore((state) => state.openModal);
 	const confirm = useConfirm();
+
+	const prefetchPersons = usePrefetchPersons();
+	const prefetchGroups = usePrefetchGroups();
+	const prefetchListReport = usePrefetchListReport();
 
 	const recalculate = useRecalculateList();
 	const repopulate = useRepopulateList();
@@ -49,6 +57,25 @@ export function PaymentListToolbar({ list }: PaymentListToolbarProps) {
 
 	const closed = list.closed;
 	const listName = describeList(list);
+
+	const prefetchActionModals = () => {
+		preloadModal(isCustomList(list) ? 'payments.oneOff' : 'lists.addPersons');
+		preloadModal('lists.overpayments');
+		preloadModal('lists.report');
+
+		prefetchPersons();
+
+		if (list.requiresGroup) {
+			prefetchGroups();
+		}
+
+		prefetchListReport(list.id);
+	};
+
+	const prefetchDepositModal = () => {
+		preloadModal('payments.deposit');
+		prefetchPersons();
+	};
 
 	const busy = recalculate.isPending
 		|| repopulate.isPending
@@ -226,6 +253,8 @@ export function PaymentListToolbar({ list }: PaymentListToolbarProps) {
 					aria-haspopup="true"
 					aria-expanded={ open }
 					{ ...getReferenceProps() }
+					onMouseEnter={ prefetchActionModals }
+					onFocus={ prefetchActionModals }
 					className={ cn(
 						'flex cursor-pointer items-center gap-1.5 rounded-xl border px-4 py-1.5 text-sm font-bold',
 						'border-os-border-highlight bg-os-surface/25 text-os-text-muted shadow-md transition-all',
@@ -245,6 +274,8 @@ export function PaymentListToolbar({ list }: PaymentListToolbarProps) {
 				className="shrink-0 py-1.5"
 				disabled={ !canModifyPayments }
 				leftIcon={ <Wallet size={ 16 }/> }
+				onMouseEnter={ prefetchDepositModal }
+				onFocus={ prefetchDepositModal }
 				onClick={ () => void openModal('payments.deposit', { list }) }
 			>
 				Wpłata

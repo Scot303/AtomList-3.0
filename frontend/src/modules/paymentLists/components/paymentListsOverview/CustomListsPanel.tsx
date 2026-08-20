@@ -7,7 +7,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
 import { useModalStore } from '@/stores/modalStore.ts';
 import { CustomListRow } from './CustomListRow.tsx';
-import { useCustomListMenu } from '../../hooks/useCustomListMenu.ts';
+import { useCustomListMenu } from '../../hooks/contextMenu/useCustomListMenu.ts';
 import type { PaymentListView } from '../../types/types.ts';
 
 
