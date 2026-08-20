@@ -1,5 +1,4 @@
-import { type MouseEvent } from 'react';
-import { Info, Percent, Plus, Users } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { BirthdayIndicator } from '@/components/shared/BirthdayIndicator';
@@ -12,8 +11,7 @@ import { useContextMenu } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { useFamilies } from './hooks/useFamilies';
-import { usePrefetchMemberships } from './hooks/useMemberships';
-import { usePrefetchPersonDiscounts } from './hooks/usePersonDiscounts';
+import { usePersonRowMenu } from './hooks/contextMenu/usePersonRowMenu.ts';
 import { usePersons } from './hooks/usePersons';
 import { useUpdatePerson } from './hooks/usePersonMutations';
 import { buildPersonColumns } from './types/personColumns.tsx';
@@ -27,6 +25,9 @@ import type { ColumnVisibilityState } from "@tanstack/react-table";
  */
 const TABLE_KEY = 'persons';
 
+const HIDDEN_COLS: ColumnVisibilityState = {
+	groupKinds: false
+};
 
 /** The id the kind chips keep their filter under, and the column they filter. */
 const KIND_FILTER_ID = 'persons-quick-group-kind';
@@ -48,12 +49,11 @@ export function PersonsPage() {
 	/* Subscribed to but not read. Keeping data fresh for details modal. */
 	useFamilies();
 
-	const prefetchMemberships = usePrefetchMemberships();
-	const prefetchDiscounts = usePrefetchPersonDiscounts();
 	const updatePerson = useUpdatePerson();
 
 	const openModal = useModalStore((state) => state.openModal);
 	const openContextMenu = useContextMenu();
+	const buildRowMenu = usePersonRowMenu();
 
 	const filterTags = useTableFilterTags(TABLE_KEY);
 
@@ -65,9 +65,6 @@ export function PersonsPage() {
 	const rows = personList.map((person) => toPersonRow(person, groupsById));
 	const columns = buildPersonColumns(buildGroupOptions(groupList));
 
-	const HIDDEN_COLS: ColumnVisibilityState = {
-		groupKinds: false
-	};
 
 	const isLoading = persons.isPending || groups.isLoading;
 
@@ -86,43 +83,6 @@ export function PersonsPage() {
 			},
 			{ onError: notifyApiError }
 		);
-	};
-
-	const handleRowContextMenu = (event: MouseEvent, row: PersonRow) => {
-		preloadModal('persons.form');
-		preloadModal('persons.discounts');
-		preloadModal('persons.groups');
-
-		prefetchMemberships(row.id);
-		prefetchDiscounts(row.id);
-
-		openContextMenu(event, [
-			{
-				id: 'details',
-				label: 'Szczegóły',
-				icon: Info,
-				onSelect: () => void openModal('persons.form', { personId: row.id }),
-			},
-			{
-				id: 'discounts',
-				label: 'Zobacz zniżki',
-				icon: Percent,
-				onSelect: () => void openModal('persons.discounts', {
-					personId: row.id,
-					personName: row.person.fullName,
-				}),
-			},
-			{
-				id: 'groups',
-				label: 'Zobacz grupy',
-				icon: Users,
-				separatorBefore: true,
-				onSelect: () => void openModal('persons.groups', {
-					personId: row.id,
-					personName: row.person.fullName,
-				}),
-			},
-		]);
 	};
 
 	const toolbar = (
@@ -167,7 +127,7 @@ export function PersonsPage() {
 				enableGrouping
 				emptyMessage="Brak osób do wyświetlenia"
 				onCellEdit={ canModify ? handleCellEdit : undefined }
-				onRowContextMenu={ handleRowContextMenu }
+				onRowContextMenu={ (event, row: PersonRow) => openContextMenu(event, buildRowMenu(row)) }
 				toolbarStart={ toolbarStart }
 				toolbar={ toolbar }
 				initialColumnVisibility={ HIDDEN_COLS }
