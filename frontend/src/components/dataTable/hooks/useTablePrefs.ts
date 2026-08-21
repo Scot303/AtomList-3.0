@@ -44,36 +44,3 @@ export function useTablePrefs(moduleKey: string): TablePrefsBinding {
 	return { prefs, read, bind, reset };
 }
 
-
-/**
- * Reconciles a stored column order against the columns that actually exist now.
- *
- * Unknown ids are dropped and new ones are appended in their defined position relative to the columns already placed.
- */
-export function reconcileColumnOrder(stored: string[], available: string[]): string[] {
-	const live = new Set(available);
-	const kept = stored.filter((id) => live.has(id));
-
-	if (kept.length === available.length) {
-		return kept;
-	}
-
-	const placed = new Set(kept);
-	const result = [...kept];
-
-	// Insert each new column where it sits among the columns already present, so a column added in
-	// the middle of the definitions does not always land at the far right.
-	available.forEach((id, index) => {
-		if (placed.has(id)) {
-			return;
-		}
-
-		const previous = available.slice(0, index).reverse().find((candidate) => placed.has(candidate));
-		const at = previous === undefined ? 0 : result.indexOf(previous) + 1;
-
-		result.splice(at, 0, id);
-		placed.add(id);
-	});
-
-	return result;
-}

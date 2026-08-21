@@ -1,9 +1,6 @@
-import type { FilterActiveTag } from './types/filterTypes';
+import type { FilterActiveTag } from '../types/filterTypes';
+import { NO_FILTER_TAGS } from './prefsFallbacks';
 import { useTablePrefs } from './useTablePrefs';
-
-
-/** A stable fallback: a fresh literal per render would re-identify the tags every render. */
-const NO_FILTER_TAGS: FilterActiveTag[] = [];
 
 
 export interface TableFilterTagsBinding {

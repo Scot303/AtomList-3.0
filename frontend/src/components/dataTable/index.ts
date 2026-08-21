@@ -1,8 +1,8 @@
 export { DataTable } from './DataTable';
-export { useTableFilterTags } from './useTableFilterTags';
-export type { TableFilterTagsBinding } from './useTableFilterTags';
-export { dataTableFeatures } from './tableFeatures';
-export type { DataTableFeatures } from './tableFeatures';
+export { useTableFilterTags } from './hooks/useTableFilterTags';
+export type { TableFilterTagsBinding } from './hooks/useTableFilterTags';
+export { dataTableFeatures } from './config/tableFeatures';
+export type { DataTableFeatures } from './config/tableFeatures';
 export type { AppColumnDef, AppColumnMeta, DataTableProps, FieldType } from './types/dataTableTypes';
 export type { AdvancedFilterRule, AdvancedFilterTag, FilterActiveTag, FilterOperator, FilterTag, FilterableColumn, SortDirection, SortTag, } from './types/filterTypes';
 export { dataTableStrings, operatorStrings } from './config/dataTableStrings';

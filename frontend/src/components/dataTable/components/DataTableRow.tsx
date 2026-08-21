@@ -4,17 +4,15 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { popoverAnchorProps } from '@/lib/popoverAnchor';
 import { EditableCell } from '../cells/EditableCell';
-import type { AppColumnDef } from '@/components/dataTable';
-import type { DataTableFeatures } from '../tableFeatures';
+import type { AppColumnDef, DataTableFeatures } from '@/components/dataTable';
 
 
 interface DataTableRowProps<T extends object> {
 	row: Row<DataTableFeatures, T>;
+	cells: Cell<DataTableFeatures, T>[];
 	/** This row's place in the virtual list. `data-index` is how the measurer identifies it. */
 	virtualIndex: number;
 	measureRow: (node: HTMLTableRowElement | null) => void;
-	/** Which columns are on screen and in what order. Never read in the body - it is here so `memo` lets a re-render through when a column is hidden or moved. */
-	columnKey: string;
 	onCellEdit?: (rowId: string, columnId: string, value: unknown) => void;
 	onRowClick?: (row: T) => void;
 	onRowContextMenu?: (event: MouseEvent, row: T) => void;
@@ -30,7 +28,7 @@ interface DataTableRowProps<T extends object> {
 const DataTableRowInner = <T extends object>(props: DataTableRowProps<T>) => {
 	'use no memo';
 
-	const { row, virtualIndex, measureRow, onCellEdit, onRowClick, onRowContextMenu, isContextTarget, onContextRowChange } = props;
+	const { row, cells, virtualIndex, measureRow, onCellEdit, onRowClick, onRowContextMenu, isContextTarget, onContextRowChange } = props;
 
 	const [editingCellId, setEditingCellId] = useState<string | null>(null);
 
@@ -54,7 +52,7 @@ const DataTableRowInner = <T extends object>(props: DataTableRowProps<T>) => {
 				: undefined
 			}
 		>
-			{ row.getVisibleCells().map((cell) => {
+			{ cells.map((cell) => {
 				const definition = cell.column.columnDef as AppColumnDef<T>;
 				const meta = definition.meta ?? {};
 				const isEditing = editingCellId === cell.id;
@@ -96,16 +94,16 @@ export const DataTableRow = memo(DataTableRowInner) as typeof DataTableRowInner;
 
 interface DataTableGroupRowProps<T extends object> {
 	row: Row<DataTableFeatures, T>;
+	cells: Cell<DataTableFeatures, T>[];
 	virtualIndex: number;
 	measureRow: (node: HTMLTableRowElement | null) => void;
-	columnKey: string;
 }
 
 
 /**
  * A grouping header: the grouped value, a count of what is under it, and a disclosure arrow.
  */
-export const DataTableGroupRow = <T extends object>({ row, virtualIndex, measureRow }: DataTableGroupRowProps<T>) => {
+export const DataTableGroupRow = <T extends object>({ row, cells, virtualIndex, measureRow }: DataTableGroupRowProps<T>) => {
 	'use no memo';
 
 	return (
@@ -116,7 +114,7 @@ export const DataTableGroupRow = <T extends object>({ row, virtualIndex, measure
 			className="cursor-pointer border-b border-os-border/40 bg-os-surface/60 transition-colors hover:bg-os-surface/80"
 			onClick={ row.getToggleExpandedHandler() }
 		>
-			{ row.getVisibleCells().map((cell) => (
+			{ cells.map((cell) => (
 				<td
 					key={ cell.id }
 					style={ { width: cell.column.getSize() } }
