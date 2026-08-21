@@ -72,7 +72,7 @@ export const oneOffFormSchema: z.ZodType<OneOffFormValues, OneOffFormValues> = z
 	personId: z.string(),
 	groupId: z.string(),
 	description: z.string().trim().max(255, 'Opis może mieć najwyżej 255 znaków.'),
-	unitCost: amountValue(0, 'kwota'),
+	unitCost: amountValue(0, 'kwotę'),
 	quantity: quantityValue,
 });
 
@@ -115,7 +115,7 @@ export interface SettleFormValues {
 
 export const settleFormSchema: z.ZodType<SettleFormValues, SettleFormValues> = z.object({
 	receivedAt: dateValue,
-	amount: amountValue(0.01, 'kwota'),
+	amount: amountValue(0.01, 'kwotę'),
 	paymentMethod: paymentMethodValue,
 	note: noteValue,
 });
@@ -135,7 +135,7 @@ export interface DepositFormValues {
 export const depositFormSchema: z.ZodType<DepositFormValues, DepositFormValues> = z.object({
 	personIds: z.array(z.string()).min(1, 'Wybierz co najmniej jedną osobę.'),
 	payerPersonId: z.string(),
-	amount: amountValue(0.01, 'kwota'),
+	amount: amountValue(0.01, 'kwotę'),
 	paymentMethod: paymentMethodValue,
 	receivedAt: dateValue,
 	monthsAhead: z
@@ -156,7 +156,7 @@ export interface AllocateFormValues {
 
 export const allocateFormSchema: z.ZodType<AllocateFormValues, AllocateFormValues> = z.object({
 	depositId: z.string().min(1, 'Wybierz wpłatę, z której rozliczyć tą pozycję.'),
-	amount: amountValue(0.01, 'kwota'),
+	amount: amountValue(0.01, 'kwotę'),
 });
 
 
