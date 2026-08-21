@@ -95,7 +95,7 @@ export const Input = (props: InputProps) => {
 							size === 'sm' ? 'h-3 w-4' : 'h-5 w-5',
 						) }
 					>
-						<ChevronUp size={ size === 'sm' ? 10 : 12 } strokeWidth={ 2.5 }/>
+						<ChevronUp className="translate-y-0.5" size={ size === 'sm' ? 10 : 12 } strokeWidth={ 2.5 }/>
 					</button>
 
 					<button
@@ -108,7 +108,7 @@ export const Input = (props: InputProps) => {
 							size === 'sm' ? 'h-3 w-4' : 'h-5 w-5',
 						) }
 					>
-						<ChevronDown size={ size === 'sm' ? 10 : 12 } strokeWidth={ 2.5 }/>
+						<ChevronDown className="-translate-y-0.5" size={ size === 'sm' ? 10 : 12 } strokeWidth={ 2.5 }/>
 					</button>
 				</div>
 			) }
