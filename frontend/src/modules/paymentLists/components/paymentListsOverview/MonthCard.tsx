@@ -7,6 +7,7 @@ import { MonthCardTabs } from './MonthCardTabs.tsx';
 import { monthName } from '@/utils/dateUtils.ts';
 import { usePrefetchList } from '../../hooks/usePaymentLists.ts';
 import type { ListSummaryView, MonthSummaryView } from '../../types/types.ts';
+import { usePrefetchGroups } from "@/modules/groups/hooks/useGroups.ts";
 
 
 const NOTHING = '—';
@@ -89,6 +90,8 @@ export const MonthCard = ({ summary }: MonthCardProps) => {
  */
 function useWarmLists(summary: MonthSummaryView) {
 	const prefetchList = usePrefetchList();
+	const prefetchGroups = usePrefetchGroups();
+
 	const timer = useRef<number | null>(null);
 
 	const cancel = () => {
@@ -104,6 +107,7 @@ function useWarmLists(summary: MonthSummaryView) {
 		for (const list of [summary.tournament, summary.open]) {
 			if (list !== null) {
 				prefetchList(list.id);
+				prefetchGroups();
 			}
 		}
 	};
