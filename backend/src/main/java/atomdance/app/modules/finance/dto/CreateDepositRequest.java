@@ -14,12 +14,11 @@ import java.util.UUID;
 /**
  * Confirms what a plan proposed.
  *
- * @param payerPersonId who handed the money over. Defaults to the first of {@code personIds}.
- * @param scope         which account this money was paid into. Recorded on the deposit, so leftover credit spent
- *                      weeks later is still confined to the charges that account pays for.
- * @param receivedAt    when the cash arrived, which is also the month that reports it as income.
- * @param expected      what the manager was shown, echoed back. The plan is worked out again on the server and
- *                      compared against this, so a debt that changed in the meantime is rejected rather than settled behind their back.
+ * @param personIds  everybody the money is for. The handover belongs to all of them.
+ * @param scope      which account this money was paid into. Recorded on the deposit, so leftover credit spent weeks later is still confined to the charges that account pays for.
+ * @param receivedAt when the cash arrived, which is also the month that reports it as income.
+ * @param expected   what the manager was shown, echoed back. The plan is worked out again on the server and
+ *                   compared against this, so a debt that changed in the meantime is rejected rather than settled behind their back.
  */
 public record CreateDepositRequest(
 
@@ -36,8 +35,6 @@ public record CreateDepositRequest(
 
 		@NotNull(message = "Say which account this money was paid into")
 		DepositScope scope,
-
-		UUID payerPersonId,
 
 		Instant receivedAt,
 

@@ -5,6 +5,7 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.finance.dto.CoveredPersonView;
 import atomdance.app.modules.finance.dto.ListReportView;
 import atomdance.app.modules.finance.dto.PaymentView;
 import atomdance.app.modules.finance.model.Deposit;
@@ -244,8 +245,7 @@ public class ListReportService {
 				deposit.getId(),
 				deposit.getCode(),
 				ref,
-				deposit.getPayer().getId(),
-				deposit.getPayer().getFullName(),
+				deposit.getCoveredPersonsInDisplayOrder().stream().map(CoveredPersonView::from).toList(),
 				deposit.getPaymentMethod(),
 				deposit.getReceivedAt(),
 				deposit.getOrigin().isDirect(),
