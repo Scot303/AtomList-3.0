@@ -4,18 +4,18 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+
 /**
  * One person's discount for the current month, together with everything it was worked out from.
  * <p>
  * This is a <em>preview</em>, computed on read from the memberships running now and the ladders configured now.
- * It is not a record of anything: what somebody was actually charged is snapshotted onto their payment lines when
- * the sheet is built, and editing a ladder afterwards does not move it. A closed month can therefore disagree with
- * this quite legitimately.
+ * It is not a record of anything: what somebody was actually charged is snapshotted onto their payment lines when the sheet is built,
+ * and editing a ladder afterwards does not move it. A closed month can therefore disagree with this quite legitimately.
  *
- * @param billed       whether anything is being charged for this person this month. False leaves both parts at zero: somebody inactive,
- *                     or with no membership running, takes up no slot in their household's ladder and so does not push their siblings down either.
+ * @param billed       whether anything is being charged for this person this month. False leaves both parts at zero: somebody inactive, with no membership
+ *                     running, or with nothing but free ones, takes up no slot in their household's ladder and so does not push their siblings down either.
  * @param household    the household ladder this person sits in, or null when they have no family - in which case they are positioned as the first person.
- * @param memberships  the memberships {@code groupCountDiscount.input} was counted off.
+ * @param memberships  every membership running this month, counted towards {@code groupCountDiscount.input} or not - a group that charges nothing is shown but does not count.
  * @param totalPercent the two parts added together and capped, which is what a sheet built now would apply.
  * @param capped       whether the cap actually bit, meaning the parts summed past 100%.
  */
@@ -49,6 +49,7 @@ public record PersonDiscountView(
 	) {
 	}
 
+
 	/**
 	 * One configured step of a ladder.
 	 *
@@ -57,11 +58,13 @@ public record PersonDiscountView(
 	public record Rung(int threshold, BigDecimal percent, boolean applied) {
 	}
 
+
 	/**
 	 * @param members the household in ladder order, everybody who takes up no slot last.
 	 */
 	public record Household(UUID familyId, String familyName, List<Sibling> members) {
 	}
+
 
 	/**
 	 * One member of the household as the ladder sees them.
@@ -79,11 +82,13 @@ public record PersonDiscountView(
 	) {
 	}
 
+
 	/**
-	 * One membership counted toward the group-count discount.
+	 * One membership the group-count discount was worked out from.
 	 *
 	 * @param monthlyCost the agreed rate, or null for a per-class group, which has no monthly figure.
 	 * @param current     false for a membership that ended mid-month: it still counts here, because the month was charged for it, but it is no longer running.
+	 * @param counted     whether it counted towards the group count. False for a group this person pays nothing for this month, which is shown for the explanation but adds nothing to the total.
 	 */
 	public record CountedMembership(
 			UUID membershipId,
@@ -91,7 +96,8 @@ public record PersonDiscountView(
 			String groupName,
 			boolean perClass,
 			BigDecimal monthlyCost,
-			boolean current
+			boolean current,
+			boolean counted
 	) {
 	}
 }

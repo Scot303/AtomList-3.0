@@ -1,6 +1,7 @@
 package atomdance.app.modules.finance.service;
 
 import atomdance.app.common.utils.Money;
+import atomdance.app.modules.discount.service.ChargedMemberships;
 import atomdance.app.modules.discount.service.DiscountRules;
 import atomdance.app.modules.discount.service.FamilyPositions;
 import atomdance.app.modules.finance.model.Payment;
@@ -74,7 +75,7 @@ public class PaymentCalculator {
 			}
 		}
 
-		applyDiscounts(current, monthByPerson, persons, rules);
+		applyDiscounts(current, monthByPerson, persons, rules, month);
 
 		return new Recalculation(current, created, obsoleteAmong(existing, current));
 	}
@@ -82,9 +83,11 @@ public class PaymentCalculator {
 
 	/**
 	 * Applies the month's two discount ladders. A one-off charge is left alone - it is a figure somebody typed, not a fee a rule applies to.
+	 * <p>
+	 * Neither ladder counts a group somebody pays nothing for, so a free membership neither deepens their own discount nor moves a sibling down the household ladder.
 	 */
-	private void applyDiscounts(Collection<Payment> payments, Map<UUID, List<Membership>> monthByPerson, Map<UUID, Person> persons, DiscountRules rules) {
-		Map<UUID, Integer> familyPositions = FamilyPositions.resolve(orderedForPositioning(payments, persons, monthByPerson), monthByPerson);
+	private void applyDiscounts(Collection<Payment> payments, Map<UUID, List<Membership>> monthByPerson, Map<UUID, Person> persons, DiscountRules rules, YearMonth month) {
+		Map<UUID, Integer> familyPositions = FamilyPositions.resolve(orderedForPositioning(payments, persons, monthByPerson), monthByPerson, month);
 		Map<UUID, BigDecimal> percentByPerson = new HashMap<>();
 
 		for (Payment payment : payments) {
@@ -92,7 +95,7 @@ public class PaymentCalculator {
 
 			BigDecimal percent = percentByPerson.computeIfAbsent(personId, key -> rules.combinedPercent(
 					familyPositions.getOrDefault(key, 1),
-					groupCount(monthByPerson.get(key))));
+					ChargedMemberships.groupCount(monthByPerson.get(key), month)));
 
 			payment.applyDiscount(payment.getChargeKind().isMembershipDerived() ? percent : Money.ZERO);
 		}
@@ -188,24 +191,6 @@ public class PaymentCalculator {
 		int byJoined = left.getJoinedAt().compareTo(right.getJoinedAt());
 
 		return byJoined >= 0 ? left : right;
-	}
-
-
-	/**
-	 * How many groups somebody attends this month, counting a group once however many memberships of it they have held.
-	 */
-	private static int groupCount(List<Membership> memberships) {
-		if (memberships == null) {
-			return 0;
-		}
-
-		Set<UUID> groups = new HashSet<>();
-
-		for (Membership membership : memberships) {
-			groups.add(membership.getGroup().getId());
-		}
-
-		return groups.size();
 	}
 
 
