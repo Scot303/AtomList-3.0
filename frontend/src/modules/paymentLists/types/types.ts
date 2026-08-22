@@ -1,5 +1,5 @@
 import type { PlannedSettlementView } from '@/modules/deposits/types/types.ts';
-import type { PaymentMethod } from '@/types/finance.ts';
+import type { CoveredPersonView, PaymentMethod } from '@/types/finance.ts';
 
 
 /** Mirror of the backend's `ListType`. */
@@ -166,8 +166,7 @@ export interface CreditSweepView {
 export interface CreditSweepEntryView {
 	depositId: string;
 	depositCode: string;
-	payerId: string;
-	payerName: string;
+	coveredPersons: CoveredPersonView[];
 	paymentMethod: PaymentMethod;
 	receivedAt: string;
 	creditAvailable: number;
@@ -309,8 +308,7 @@ export interface ReportDepositView {
 	depositCode: string;
 	/** The deposit's number within this report - "#1", "#2" - so paper references stay short. */
 	ref: number;
-	payerId: string;
-	payerName: string;
+	coveredPersons: CoveredPersonView[];
 	paymentMethod: PaymentMethod;
 	receivedAt: string;
 	direct: boolean;

@@ -10,7 +10,7 @@ import type { DepositPlanView } from '@/modules/deposits/types/types.ts';
 
 interface DepositPlanReviewProps {
 	plan: DepositPlanView;
-	payerPersonId: string | undefined;
+	personIds: string[];
 	busy: boolean;
 	replanning: boolean;
 	error: string | null;
@@ -23,10 +23,13 @@ interface DepositPlanReviewProps {
 /**
  * What the money would settle, for approval.
  */
-export function DepositPlanReview({ plan, payerPersonId, busy, replanning, error, onReplan, onConfirm, onCancel }: DepositPlanReviewProps) {
+export function DepositPlanReview({ plan, personIds, busy, replanning, error, onReplan, onConfirm, onCancel }: DepositPlanReviewProps) {
 	const persons = usePersons();
 	const settlesNothing = plan.settlements.length === 0;
-	const payerName = persons.data?.find((person) => person.id === payerPersonId)?.fullName ?? 'wybranej osoby';
+
+	const byId = new Map(( persons.data ?? [] ).map((person) => [person.id, `${ person.name } ${ person.lastName }`]));
+	const names = personIds.map((id) => byId.get(id)).filter((name) => name !== undefined).join(', ');
+	const coveredNames = names === '' ? 'wybranych osób' : names;
 
 	return (
 		<section className="space-y-4 border-t border-os-border/70 pt-5">
@@ -62,7 +65,7 @@ export function DepositPlanReview({ plan, payerPersonId, busy, replanning, error
 
 			{ plan.unallocatedAmount > 0 && !settlesNothing && (
 				<Alert tone="info" contentClassName="text-sm">
-					{ formatCurrency(plan.unallocatedAmount) } zostanie jako nadpłata przypisana do osoby: { payerName }.<br/>
+					{ formatCurrency(plan.unallocatedAmount) } zostanie jako nadpłata do wykorzystania dla: { coveredNames }.<br/>
 					Można ją później wykorzystać, na tym samym rodzaju listy, poprzez „Rozlicz → Z poprzednich wpłat” lub poprzez opcję „Rozlicz nadpłaty” dostępną w menu akcji na liście.
 				</Alert>
 			) }

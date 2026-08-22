@@ -78,7 +78,6 @@ export function useDepositPlanForm({ list, defaultPersonIds }: DepositPlanFormOp
 			{
 				...toPlanPayload(input),
 				paymentMethod: input.paymentMethod,
-				payerPersonId: input.personIds[0],
 				note: optionalText(input.note),
 				// Echoing the plan back is what makes the server refuse to settle anything else.
 				expected: current.settlements.map((line) => ( { paymentId: line.paymentId, amount: line.amount } )),

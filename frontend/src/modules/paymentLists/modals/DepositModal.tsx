@@ -68,7 +68,7 @@ export default function DepositModal({ list, defaultPersonIds }: DepositModalPro
 			{ current !== null && (
 				<DepositPlanReview
 					plan={ current }
-					payerPersonId={ form.getValues('personIds')[0] }
+					personIds={ form.getValues('personIds') }
 					busy={ busy }
 					replanning={ deposit.planning }
 					error={ deposit.saveError }
