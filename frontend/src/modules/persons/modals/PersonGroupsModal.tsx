@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
@@ -14,6 +13,7 @@ interface PersonGroupsModalProps {
 	personName: string;
 }
 
+
 /**
  * Every group one person has ever attended.
  */
@@ -24,9 +24,9 @@ export default function PersonGroupsModal({ personId, personName }: PersonGroups
 	const memberships = useMemberships(personId);
 	const groups = useGroups();
 
-	const rows = useMemo(() => memberships.data ?? [], [memberships.data]);
-	const groupList = useMemo(() => groups.data ?? [], [groups.data]);
-	const groupsById = useMemo(() => indexGroups(groupList), [groupList]);
+	const rows = memberships.data ?? [];
+	const groupList = groups.data ?? [];
+	const groupsById = indexGroups(groupList);
 
 	if (memberships.isPending) {
 		return (

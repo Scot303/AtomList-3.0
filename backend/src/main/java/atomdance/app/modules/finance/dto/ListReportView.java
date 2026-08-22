@@ -103,7 +103,7 @@ public record ListReportView(
 	 *
 	 * @param countedOnThisList what of it is this sheet's income
 	 * @param spentElsewhere    what of it cleared debts on other sheets - or on this one after it was closed
-	 * @param unallocated       what of it is still credit in the payer's name
+	 * @param unallocated       what of it is still credit in the covered persons' names
 	 * @param overpaid          whether any of it went beyond this sheet: arrears, a month ahead, or credit still
 	 *                          in hand. This is the row a manager is looking for when they ask where an
 	 *                          overpayment went, and {@link #allocations} says exactly where.
@@ -115,8 +115,7 @@ public record ListReportView(
 			UUID depositId,
 			String depositCode,
 			int ref,
-			UUID payerId,
-			String payerName,
+			List<CoveredPersonView> coveredPersons,
 			PaymentMethod paymentMethod,
 			Instant receivedAt,
 			boolean direct,

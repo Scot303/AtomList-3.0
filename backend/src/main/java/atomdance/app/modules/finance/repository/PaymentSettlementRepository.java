@@ -31,7 +31,7 @@ public interface PaymentSettlementRepository extends JpaRepository<PaymentSettle
 			LEFT JOIN FETCH payment.group
 			JOIN FETCH payment.list
 			WHERE s.deposit.id = :depositId
-			ORDER BY payment.list.year ASC, payment.list.month ASC, person.lastName ASC, person.name ASC, s.number ASC
+			ORDER BY payment.list.year ASC, payment.list.month ASC, person.lastName ASC, person.name ASC, payment.number ASC, s.number ASC
 			""")
 	List<PaymentSettlement> findByDepositId(@Param("depositId") UUID depositId);
 

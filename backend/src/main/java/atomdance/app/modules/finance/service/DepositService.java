@@ -93,7 +93,7 @@ public class DepositService {
 	 */
 	@Transactional(readOnly = true)
 	public List<DepositView> getCreditFor(UUID personId) {
-		return depositRepository.findWithCreditFor(personId).stream()
+		return depositRepository.findWithCreditForPersons(List.of(personId)).stream()
 				.map(DepositView::withoutSettlements)
 				.toList();
 	}
@@ -136,19 +136,11 @@ public class DepositService {
 		List<UUID> personIds = distinct(request.personIds());
 		Map<UUID, Person> persons = requirePersonsExist(personIds);
 
-		UUID payerId = request.payerPersonId() != null ? request.payerPersonId() : personIds.getFirst();
-		Person payer = persons.get(payerId);
-
-		if (payer == null) {
-			payer = personRepository.findById(payerId).orElseThrow(() -> new NotFoundException("entity.person"));
-		}
-
 		Instant receivedAt = request.receivedAt() != null ? request.receivedAt() : Instant.now();
 		YearMonth reference = referenceMonth(receivedAt);
 
 		Deposit deposit = Deposit.builder()
-				.payer(payer)
-				.coveredPersonIds(new LinkedHashSet<>(personIds))
+				.coveredPersons(new LinkedHashSet<>(persons.values()))
 				.totalAmount(Money.normalize(request.amount()))
 				.paymentMethod(request.paymentMethod())
 				.receivedAt(receivedAt)
@@ -169,12 +161,12 @@ public class DepositService {
 			settlementService.settle(deposit, planned.payment(), planned.amount(), receivedAt);
 		}
 
-		log.info("Recorded deposit {} of {} from {} via {}, settling {} payment(s) and leaving {} as credit",
-				deposit.getCode(), deposit.getTotalAmount(), payer.getFullName(), deposit.getPaymentMethod(), plan.settlements().size(), deposit.getUnallocatedAmount());
+		log.info("Recorded deposit {} of {} for {} via {}, settling {} payment(s) and leaving {} as credit",
+				deposit.getCode(), deposit.getTotalAmount(), describeCoveredPersons(deposit), deposit.getPaymentMethod(), plan.settlements().size(), deposit.getUnallocatedAmount());
 
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), deposit.getId(), AuditEventType.DEPOSIT_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("Deposit %s of %s taken from %s via %s, settling %d payment(s); %s left as credit.",
-						deposit.getCode(), deposit.getTotalAmount(), payer.getFullName(), deposit.getPaymentMethod(), plan.settlements().size(), deposit.getUnallocatedAmount()));
+				String.format("Deposit %s of %s taken for %s via %s, settling %d payment(s); %s left as credit.",
+						deposit.getCode(), deposit.getTotalAmount(), describeCoveredPersons(deposit), deposit.getPaymentMethod(), plan.settlements().size(), deposit.getUnallocatedAmount()));
 
 		return withSettlementDetail(deposit);
 	}
@@ -191,8 +183,7 @@ public class DepositService {
 		Instant receivedAt = request.receivedAt() != null ? request.receivedAt() : Instant.now();
 
 		Deposit deposit = Deposit.builder()
-				.payer(payment.getPerson())
-				.coveredPersonIds(new LinkedHashSet<>(List.of(payment.getPerson().getId())))
+				.coveredPersons(new LinkedHashSet<>(List.of(payment.getPerson())))
 				.totalAmount(Money.normalize(request.amount()))
 				.paymentMethod(request.paymentMethod())
 				.receivedAt(receivedAt)
@@ -239,7 +230,7 @@ public class DepositService {
 		} else {
 			List<UUID> personIds = request.personIds() != null && !request.personIds().isEmpty()
 					? distinct(request.personIds())
-					: List.copyOf(deposit.getCoveredPersonIds());
+					: deposit.getCoveredPersonIds();
 
 			if (personIds.isEmpty()) {
 				throw new InvalidOperationException("error.list_population_requires_persons");
@@ -301,7 +292,7 @@ public class DepositService {
 
 		log.info("Deleted deposit {} [{}] of {}", deposit.getCode(), id, deposit.getTotalAmount());
 		auditLogger.recordOnCommit(securityService.getCurrentUserId(), id, AuditEventType.DEPOSIT_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("Deposit %s of %s from %s has been deleted.", deposit.getCode(), deposit.getTotalAmount(), deposit.getPayer().getFullName()));
+				String.format("Deposit %s of %s for %s has been deleted.", deposit.getCode(), deposit.getTotalAmount(), describeCoveredPersons(deposit)));
 	}
 
 
@@ -365,6 +356,22 @@ public class DepositService {
 
 	private int monthsAhead(Integer requested) {
 		return requested != null && requested >= 0 ? requested : DEFAULT_MONTHS_AHEAD;
+	}
+
+
+	/**
+	 * How a handover names its people in a log line: the one name, or the first and how many more.
+	 */
+	private static String describeCoveredPersons(Deposit deposit) {
+		List<Person> covered = deposit.getCoveredPersonsInDisplayOrder();
+
+		if (covered.isEmpty()) {
+			return "nobody";
+		}
+
+		String first = covered.getFirst().getFullName();
+
+		return covered.size() == 1 ? first : String.format("%s and %d other(s)", first, covered.size() - 1);
 	}
 
 

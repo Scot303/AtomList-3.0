@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle, CalendarOff } from 'lucide-react';
 import { DateCellPicker } from '@/components/ui/fields/DateCellPicker.tsx';
-import { dateToISO, todayInTimeZone } from '@/components/ui/fields/dateUtils.ts';
+import { dateToISO, todayInTimeZone } from '@/utils/dateUtils.ts';
 import { TagBadge } from '@/components/ui/tags';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';

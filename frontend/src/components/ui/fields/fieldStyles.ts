@@ -55,14 +55,9 @@ export const fieldControl = (size: FieldSize, state: FieldStateOptions = {}) =>
 	);
 
 /**
- * Vertical padding for a control whose value is drawn as a badge rather than as bare text.
- *
- * A `default` badge is 4px taller than the `text-sm` line box the fields are sized around, so the box gives that 4px back and the control keeps the kit's height.
+ * The content box inside a select trigger: one `text-sm` line tall, whatever it holds.
  */
-export const fieldControlBadgeValue: Record<FieldSize, string> = {
-	sm: 'py-1.5',
-	default: 'py-2',
-};
+export const fieldControlValueLine = 'flex h-5 min-w-0 items-center';
 
 
 /* ── Adornments ──────────────────────────────────────────────────────────── */
@@ -112,3 +107,17 @@ export const fieldFocusRing = 'ring-offset-2 ring-offset-os-bg ring-os-primary';
 /* ── Help text ───────────────────────────────────────────────────────────── */
 
 export const fieldHint = 'mt-1.5 block px-1 text-xs text-os-text-muted';
+
+
+/* ── Message row ─────────────────────────────────────────────────────────── */
+
+/**
+ * The row under a control that holds either the error or the hint.
+ *
+ * `flex` so the message keeps its own top margin instead of collapsing it out of the row.
+ * `min-h` so a form that opts in with {@link fieldMessageReserve} keeps the row standing while there is nothing to show - an error appearing then costs no height.
+ */
+export const fieldMessage = 'flex flex-col min-h-[var(--field-message-h,0px)]';
+
+/** Put on a form to hold one line of space under every field inside it, so errors cannot resize it. */
+export const fieldMessageReserve = '[--field-message-h:1.75rem]';

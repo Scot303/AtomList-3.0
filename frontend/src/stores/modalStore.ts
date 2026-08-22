@@ -11,16 +11,19 @@ export interface ModalOptions {
 	dismissible?: boolean;
 }
 
+
 interface OpenModal {
 	key: ModalKey;
 	props: Record<string, unknown>;
 	options: ModalOptions;
 }
 
+
 /** Props stay optional at keys whose component does not require any. */
 type OpenArgs<K extends ModalKey> = Record<string, never> extends ModalProps<K>
 	? [props?: ModalProps<K>, options?: ModalOptions]
 	: [props: ModalProps<K>, options?: ModalOptions];
+
 
 interface ModalState {
 	isOpen: boolean;
@@ -29,14 +32,16 @@ interface ModalState {
 	/** Opens once the modal's code is in hand, so the panel never appears as a bare header with the body arriving a moment later. */
 	openModal: <K extends ModalKey>(key: K, ...args: OpenArgs<K>) => Promise<void>;
 	setModalTitle: (title: string, key: ModalKey) => void;
+	setModalSize: (size: ModalSize, key: ModalKey) => void;
 	closeModal: () => void;
 	resetModal: () => void;
 }
 
+
 /** Discards the result of an open that something else has already superseded. */
 let openTicket = 0;
 
-export const useModalStore = create<ModalState>((set, get) => ({
+export const useModalStore = create<ModalState>((set, get) => ( {
 	isOpen: false,
 	current: null,
 
@@ -54,7 +59,7 @@ export const useModalStore = create<ModalState>((set, get) => ({
 			isOpen: true,
 			current: {
 				key,
-				props: (props ?? {}) as Record<string, unknown>,
+				props: ( props ?? {} ) as Record<string, unknown>,
 				options: options ?? {},
 			},
 		});
@@ -70,6 +75,16 @@ export const useModalStore = create<ModalState>((set, get) => ({
 		set({ current: { ...current, options: { ...current.options, title } } });
 	},
 
+	setModalSize: (size, key) => {
+		const { current } = get();
+
+		if (current === null || current.key !== key) {
+			return;
+		}
+
+		set({ current: { ...current, options: { ...current.options, size } } });
+	},
+
 	closeModal: () => set({ isOpen: false }),
 
 	resetModal: () => {
@@ -80,4 +95,4 @@ export const useModalStore = create<ModalState>((set, get) => ({
 
 		set({ current: null });
 	},
-}));
+} ));

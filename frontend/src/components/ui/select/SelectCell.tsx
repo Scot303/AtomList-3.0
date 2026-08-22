@@ -17,6 +17,7 @@ interface SelectCellProps {
 	className?: string;
 }
 
+
 /**
  * A select with no field around it: the value itself is the trigger.
  */

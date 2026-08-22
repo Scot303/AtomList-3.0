@@ -31,8 +31,7 @@ public record CreditSweepView(
 	public record Entry(
 			UUID depositId,
 			String depositCode,
-			UUID payerId,
-			String payerName,
+			List<CoveredPersonView> coveredPersons,
 			PaymentMethod paymentMethod,
 			Instant receivedAt,
 			BigDecimal creditAvailable,

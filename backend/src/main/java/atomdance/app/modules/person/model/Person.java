@@ -2,11 +2,13 @@ package atomdance.app.modules.person.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Locale;
 import java.util.UUID;
+
 
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -52,6 +54,7 @@ public class Person {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "family_id")
+	@BatchSize(size = 64)
 	private Family family;
 
 	@Column(length = 512)
@@ -60,12 +63,14 @@ public class Person {
 	@Column(nullable = false)
 	private Instant createdAt;
 
+
 	@PrePersist
 	void onCreate() {
 		if (createdAt == null) {
 			createdAt = Instant.now();
 		}
 	}
+
 
 	public String getEffectivePhone() {
 		if (phone != null && !phone.isBlank()) {
@@ -75,9 +80,11 @@ public class Person {
 		return family == null ? null : family.getPhone();
 	}
 
+
 	public String getFullName() {
 		return name + " " + lastName;
 	}
+
 
 	public static String normalizePhone(String phone) {
 		if (phone == null) {
@@ -88,6 +95,7 @@ public class Person {
 
 		return stripped.isEmpty() ? null : stripped;
 	}
+
 
 	public static String normalizeEmail(String email) {
 		if (email == null) {

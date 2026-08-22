@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 
@@ -17,10 +16,7 @@ public record DepositView(
 		UUID id,
 		Long number,
 		String code,
-		UUID payerId,
-		String payerName,
-		String payerPhone,
-		Set<UUID> coveredPersonIds,
+		List<CoveredPersonView> coveredPersons,
 		BigDecimal totalAmount,
 		BigDecimal allocatedAmount,
 		BigDecimal unallocatedAmount,
@@ -34,7 +30,7 @@ public record DepositView(
 ) {
 
 	public DepositView {
-		coveredPersonIds = coveredPersonIds == null ? Set.of() : Set.copyOf(coveredPersonIds);
+		coveredPersons = coveredPersons == null ? List.of() : List.copyOf(coveredPersons);
 	}
 
 
@@ -69,10 +65,7 @@ public record DepositView(
 				deposit.getId(),
 				deposit.getNumber(),
 				deposit.getCode(),
-				deposit.getPayer().getId(),
-				deposit.getPayer().getFullName(),
-				deposit.getPayer().getEffectivePhone(),
-				deposit.getCoveredPersonIds(),
+				deposit.getCoveredPersonsInDisplayOrder().stream().map(CoveredPersonView::from).toList(),
 				deposit.getTotalAmount(),
 				deposit.getAllocatedAmount(),
 				deposit.getUnallocatedAmount(),

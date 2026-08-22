@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import type { Placement } from '@floating-ui/react';
 import { autoUpdate, flip, FloatingFocusManager, FloatingPortal, shift, useDismiss, useFloating, useInteractions, useListNavigation, useRole, useTransitionStyles, } from '@floating-ui/react';
 import { useCloseOnNavigate } from '@/hooks/useCloseOnNavigate';
@@ -93,7 +93,7 @@ export const GlobalContextMenu = () => {
 		}
 
 		setPositionReference({
-			getBoundingClientRect: () => ({
+			getBoundingClientRect: () => ( {
 				width: 0,
 				height: 0,
 				x: anchor.x,
@@ -102,15 +102,12 @@ export const GlobalContextMenu = () => {
 				bottom: anchor.y,
 				left: anchor.x,
 				right: anchor.x,
-			}),
+			} ),
 		});
 	}, [anchor, setPositionReference]);
 
 	// Arrow keys walk past what cannot be picked.
-	const disabledIndices = useMemo(
-		() => items.flatMap((item, index) => (item.disabled ? [index] : [])),
-		[items],
-	);
+	const disabledIndices = items.flatMap((item, index) => ( item.disabled ? [index] : [] ));
 
 	const { getFloatingProps, getItemProps } = useInteractions([
 		useDismiss(context, { outsidePressEvent: 'pointerdown' }),
@@ -134,7 +131,7 @@ export const GlobalContextMenu = () => {
 		open: { opacity: 1, transform: 'scale(1)' },
 
 		// Grow out of the corner the cursor is on, so the menu appears to come from the pointer wherever it opened.
-		common: ({ placement }) => ({ transformOrigin: cursorCorner(placement) }),
+		common: ({ placement }) => ( { transformOrigin: cursorCorner(placement) } ),
 	});
 
 	/**

@@ -47,6 +47,7 @@ public class ScheduledSmsService {
 
 	// TODO templates in English?
 	private static final String STANDARD_TEMPLATE = "Przypominamy o uregulowaniu płatności za zajęcia: %s zł.";
+	private static final String STANDARD_TEMPLATE_SIMPLE = "Przypominamy o uregulowaniu płatności za zajęcia. Dziękujemy!";
 
     @Scheduled(cron = "${app.sms.schedule.reminder.cron}", zone = "${app.time-zone}")
     public void scheduleSms() {
@@ -128,9 +129,11 @@ public class ScheduledSmsService {
                 .map(sumOfOwedPaymentsInFamily -> {
                     List<Person> persons = sumOfOwedPaymentsInFamily.persons;
                     if (persons.size() == 1) {
-                        return new Sms(persons.getFirst(), formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment));
+	                    return new Sms(persons.getFirst(), STANDARD_TEMPLATE_SIMPLE);
+                        //return new Sms(persons.getFirst(), formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment));
                     } else {
-                        return new Sms(persons.getFirst().getFamily(), formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment));
+	                    return new Sms(persons.getFirst().getFamily(), STANDARD_TEMPLATE_SIMPLE);
+                        //return new Sms(persons.getFirst().getFamily(), formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment));
                     }
                 })
                 .toList());

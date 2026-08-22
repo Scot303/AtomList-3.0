@@ -1,8 +1,9 @@
 import { DateCellPicker } from '@/components/ui/fields/DateCellPicker';
-import { formatLongDate } from '@/components/ui/fields/dateUtils';
+import { formatLongDate } from '@/utils/dateUtils.ts';
 import { CellPlaceholder } from './CellPlaceholder';
 import type { CellEditorProps } from './cellTypes';
 import { useOptimisticCellValue } from './useOptimisticCellValue';
+
 
 /**
  * A date edited in place.

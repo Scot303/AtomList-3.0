@@ -1,8 +1,10 @@
-import { parseISODate, todayInTimeZone } from '@/components/ui/fields/dateUtils';
+import { parseISODate, todayInTimeZone } from '@/utils/dateUtils.ts';
 import { LOCALE } from '@/lib/locale';
 import type { FamilyView } from '../types/types.ts';
 
+
 const shortDateFormat = new Intl.DateTimeFormat(LOCALE, { day: '2-digit', month: '2-digit', year: 'numeric' });
+
 
 /** `'2002-03-12'` → `'12.03.2002'`. */
 export function formatShortDate(iso: string | null | undefined): string {
@@ -10,6 +12,7 @@ export function formatShortDate(iso: string | null | undefined): string {
 
 	return date === null ? '' : shortDateFormat.format(date);
 }
+
 
 /**
  * Completed years between a date of birth and today, or null when there is no usable date.
@@ -26,7 +29,7 @@ export function calculateAge(dateOfBirth: string | null | undefined): number | n
 
 	// Completed years, so a birthday still ahead this year has not been lived through yet.
 	const beforeBirthday = today.getMonth() < born.getMonth()
-		|| (today.getMonth() === born.getMonth() && today.getDate() < born.getDate());
+		|| ( today.getMonth() === born.getMonth() && today.getDate() < born.getDate() );
 
 	if (beforeBirthday) {
 		age -= 1;
@@ -34,6 +37,7 @@ export function calculateAge(dateOfBirth: string | null | undefined): number | n
 
 	return age < 0 ? null : age;
 }
+
 
 /**
  * Polish needs three forms: 1 rok, 2-4 lata, 5-21 lat, 22-24 lata.
@@ -46,12 +50,13 @@ export function formatYears(age: number): string {
 		return '1 rok';
 	}
 
-	if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) {
+	if (last >= 2 && last <= 4 && ( lastTwo < 12 || lastTwo > 14 )) {
 		return `${ age } lata`;
 	}
 
 	return `${ age } lat`;
 }
+
 
 /**
  * How the Wiek column reads: the age, with the date it is worked out from after it.
@@ -73,10 +78,12 @@ export function formatAge(dateOfBirth: string | null | undefined): string {
 /** How many digits go in one group of a phone number. */
 const PHONE_GROUP_SIZE = 3;
 
+
 /** Digits alone - what the backend stores, and what two numbers have to be compared on. */
 export function phoneDigits(value: string | null | undefined): string {
-	return (value ?? '').replace(/\D/g, '');
+	return ( value ?? '' ).replace(/\D/g, '');
 }
+
 
 /**
  * `'123456789'` → `'123 456 789'`.
@@ -93,6 +100,7 @@ export function formatPhone(value: string | null | undefined): string {
 
 	return groups.join(' ');
 }
+
 
 /**
  * How a household reads where one has to be picked out: its name, with the first names of the members after it.

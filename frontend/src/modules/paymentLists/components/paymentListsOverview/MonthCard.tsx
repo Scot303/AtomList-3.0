@@ -1,13 +1,21 @@
+import { useEffect, useRef } from 'react';
 import { Lock } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { MonthCardTabs } from './MonthCardTabs.tsx';
-import { monthName } from '@/components/ui/fields/dateUtils';
+import { monthName } from '@/utils/dateUtils.ts';
+import { usePrefetchList } from '../../hooks/usePaymentLists.ts';
 import type { ListSummaryView, MonthSummaryView } from '../../types/types.ts';
+import { usePrefetchGroups } from "@/modules/groups/hooks/useGroups.ts";
 
 
 const NOTHING = '—';
+
+/**
+ * How long the pointer has to stay on a card before its lists are fetched.
+ */
+const HOVER_INTENT_MS = 150;
 
 
 interface MonthCardProps {
@@ -20,9 +28,15 @@ interface MonthCardProps {
  */
 export const MonthCard = ({ summary }: MonthCardProps) => {
 	const lock = describeLock(summary);
+	const warm = useWarmLists(summary);
 
 	return (
-		<div className="group/card relative flex min-h-0 self-start flex-col w-50 2xl:w-70 3xl:w-87">
+		<div
+			className="group/card relative flex min-h-0 self-start flex-col w-50 2xl:w-70 3xl:w-87"
+			onPointerEnter={ warm.schedule }
+			onPointerLeave={ warm.cancel }
+			onFocus={ warm.now }
+		>
 			<div className={ cn(
 				'styled-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl',
 				'max-h-25 2xl:max-h-48 3xl:max-h-60',
@@ -30,6 +44,8 @@ export const MonthCard = ({ summary }: MonthCardProps) => {
 			) }>
 				<h3 className="flex items-center justify-center gap-1.5 font-bold text-os-text text-xs 2xl:text-lg 3xl:text-xl">
 					{ monthName(summary.month) }
+
+					<span className="font-normal tabular-nums text-os-text-muted">{ summary.year }</span>
 
 					{ lock !== null && (
 						<>
@@ -67,6 +83,49 @@ export const MonthCard = ({ summary }: MonthCardProps) => {
 		</div>
 	);
 };
+
+
+/**
+ * Fetches this month's lists while the pointer is still on the card, so opening one of them has nothing left to wait for.
+ */
+function useWarmLists(summary: MonthSummaryView) {
+	const prefetchList = usePrefetchList();
+	const prefetchGroups = usePrefetchGroups();
+
+	const timer = useRef<number | null>(null);
+
+	const cancel = () => {
+		if (timer.current !== null) {
+			window.clearTimeout(timer.current);
+			timer.current = null;
+		}
+	};
+
+	const now = () => {
+		cancel();
+
+		for (const list of [summary.tournament, summary.open]) {
+			if (list !== null) {
+				prefetchList(list.id);
+				prefetchGroups();
+			}
+		}
+	};
+
+	const schedule = () => {
+		cancel();
+		timer.current = window.setTimeout(now, HOVER_INTENT_MS);
+	};
+
+	useEffect(() => () => {
+		if (timer.current !== null) {
+			window.clearTimeout(timer.current);
+		}
+	}, []);
+
+	return { schedule, cancel, now };
+}
+
 
 /**
  * How much of one list is dealt with. Green only once nothing on it is outstanding.

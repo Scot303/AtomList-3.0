@@ -1,7 +1,9 @@
 import type { AppColumnDef } from '@/components/dataTable';
-import { TagBadge, TagBadgeSingle, type TagOption } from '@/components/ui/tags';
+import { TagBadge, TagBadgeSingle } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
-import { CHARGE_KIND_OPTIONS, CONTRACT_TAG_OPTIONS, PAID_TAG_OPTIONS, type PaymentRow, SETTLE_STATE_OPTIONS, } from './paymentRows.ts';
+import { resolveGroupColor } from '@/modules/groups/types/groupRows.ts';
+import type { GroupView } from '@/modules/groups/types/types.ts';
+import { CHARGE_KIND_OPTIONS, CONTRACT_TAG_OPTIONS, type PaymentRow, SETTLE_STATE_OPTIONS, } from './paymentRows.ts';
 
 
 function moneyColumn(accessorKey: keyof PaymentRow, header: string, summarised: boolean): AppColumnDef<PaymentRow> {
@@ -26,19 +28,19 @@ function moneyColumn(accessorKey: keyof PaymentRow, header: string, summarised: 
 /**
  * What a charge is for, drawn as the group's own badge.
  */
-function chargeLabelCell(row: PaymentRow, groupOptions: TagOption[]) {
-	const group = row.groupId === null ? undefined : groupOptions.find((option) => option.id === row.groupId);
+function chargeLabelCell(row: PaymentRow, groupsById: ReadonlyMap<string, GroupView>) {
+	const group = row.groupId === null ? undefined : groupsById.get(row.groupId);
 
 	return group === undefined
 		? <span className="truncate">{ row.label }</span>
-		: <TagBadge label={ group.name } color={ group.color }/>;
+		: <TagBadge label={ group.name } color={ resolveGroupColor(group) }/>;
 }
 
 
 /**
  * One list's charges, as the table reads them.
  */
-export function buildPaymentColumns(tracksContracts: boolean, groupOptions: TagOption[]): AppColumnDef<PaymentRow>[] {
+export function buildPaymentColumns(tracksContracts: boolean, groupsById: ReadonlyMap<string, GroupView>): AppColumnDef<PaymentRow>[] {
 	const columns: AppColumnDef<PaymentRow>[] = [
 		{
 			accessorKey: 'code',
@@ -68,7 +70,15 @@ export function buildPaymentColumns(tracksContracts: boolean, groupOptions: TagO
 			fieldType: 'text',
 			size: 200,
 			meta: { groupable: true, globalSearch: true },
-			cell: ({ row }) => chargeLabelCell(row.original, groupOptions),
+			cell: ({ row }) => chargeLabelCell(row.original, groupsById),
+		},
+		{
+			accessorKey: 'note',
+			header: 'Notatka',
+			fieldType: 'text',
+			size: 240,
+			aggregatedCell: () => null,
+			meta: { globalSearch: true },
 		},
 		{
 			accessorKey: 'chargeKind',
@@ -88,7 +98,7 @@ export function buildPaymentColumns(tracksContracts: boolean, groupOptions: TagO
 		},
 		moneyColumn('unitCost', 'Stawka', false),
 		moneyColumn('amountToPay', 'Do zapłaty', true),
-		moneyColumn('amountSettled', 'Rozliczono', true),
+		moneyColumn('amountSettled', 'Opłacono', true),
 		moneyColumn('outstanding', 'Pozostało', true),
 		{
 			accessorKey: 'settleState',
@@ -97,14 +107,6 @@ export function buildPaymentColumns(tracksContracts: boolean, groupOptions: TagO
 			size: 160,
 			meta: { groupable: true, globalSearch: false, tagOptions: SETTLE_STATE_OPTIONS },
 			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ SETTLE_STATE_OPTIONS }/>,
-		},
-		{
-			accessorKey: 'isPaid',
-			header: 'Status płatności',
-			fieldType: 'tag',
-			size: 170,
-			meta: { groupable: true, globalSearch: false, tagOptions: PAID_TAG_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ PAID_TAG_OPTIONS }/>,
 		}
 	];
 

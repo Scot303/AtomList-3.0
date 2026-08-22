@@ -170,10 +170,33 @@ public class Payment {
 	}
 
 
+	/**
+	 * Takes a settlement onto this payment and numbers it.
+	 */
 	public void addSettlement(PaymentSettlement settlement) {
 		settlement.setPayment(this);
+
+		if (settlement.getNumber() == null) {
+			settlement.setNumber(nextSettlementNumber());
+		}
+
 		settlements.add(settlement);
 		recalculateSettledAmount();
+	}
+
+
+	private long nextSettlementNumber() {
+		long highest = 0;
+
+		for (PaymentSettlement settlement : settlements) {
+			Long number = settlement.getNumber();
+
+			if (number != null && number > highest) {
+				highest = number;
+			}
+		}
+
+		return highest + 1;
 	}
 
 

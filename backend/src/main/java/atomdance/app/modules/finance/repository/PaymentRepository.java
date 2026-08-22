@@ -47,8 +47,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 			LEFT JOIN FETCH person.family
 			LEFT JOIN FETCH p.group
 			LEFT JOIN FETCH p.settlements settlement
-			LEFT JOIN FETCH settlement.deposit deposit
-			LEFT JOIN FETCH deposit.payer
+			LEFT JOIN FETCH settlement.deposit
 			WHERE p.list.id = :listId
 			""")
 	List<Payment> findByListIdWithSettlements(@Param("listId") UUID listId);
@@ -150,7 +149,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 	List<PaymentCounts> countByListIds(@Param("listIds") Collection<UUID> listIds);
 
 	/**
-	 * What each list is still owed, for the year overview..
+	 * What each list is still owed, for the year overview.
 	 */
 	@Query("""
 			SELECT new atomdance.app.modules.finance.repository.projection.PaymentOutstanding(

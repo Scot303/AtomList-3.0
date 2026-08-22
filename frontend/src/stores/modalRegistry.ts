@@ -97,7 +97,7 @@ export const MODAL_REGISTRY = {
 	'payments.settle': defineModal({
 		load: () => import('@/modules/paymentLists/modals/SettlePaymentModal.tsx'),
 		title: 'Rozlicz płatność',
-		size: 'md',
+		size: 'lg',
 		dismissible: false
 	}),
 
@@ -125,6 +125,13 @@ export const MODAL_REGISTRY = {
 		load: () => import('@/modules/paymentLists/modals/PaymentEditModal.tsx'),
 		title: 'Informacje dodatkowe',
 		size: 'md',
+		dismissible: false
+	}),
+
+	'lists.customForm': defineModal({
+		load: () => import('@/modules/paymentLists/modals/CustomListFormModal.tsx'),
+		title: ({ list }) => ( list === undefined ? 'Nowa lista' : 'Szczegóły listy' ),
+		size: 'lg',
 		dismissible: false
 	}),
 

@@ -1,7 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { fetchGroups } from '../api/groupsApi';
 import { groupKeys } from '../api/groupKeys';
+
 
 export function groupsQuery() {
 	return {
@@ -10,6 +11,7 @@ export function groupsQuery() {
 	};
 }
 
+
 export function useGroups() {
 	const { hasPermission } = useAuth();
 
@@ -17,4 +19,13 @@ export function useGroups() {
 		...groupsQuery(),
 		enabled: hasPermission('READ_GROUPS'),
 	});
+}
+
+
+export function usePrefetchGroups() {
+	const queryClient = useQueryClient();
+
+	return () => {
+		void queryClient.prefetchQuery({ ...groupsQuery(), meta: { silent: true } });
+	};
 }

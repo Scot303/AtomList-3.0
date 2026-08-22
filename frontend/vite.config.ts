@@ -2,10 +2,13 @@ import { fileURLToPath, URL } from 'node:url'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
-import react from '@vitejs/plugin-react'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 
+
 const API_ORIGIN_PLACEHOLDER = '__API_ORIGIN__'
+
 
 /**
  * Substitutes the API origin into the CSP of the `_headers` file Cloudflare Pages reads.
@@ -54,6 +57,7 @@ function apiOriginCsp(apiBaseUrl: string): Plugin {
 	}
 }
 
+
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), 'VITE_')
 
@@ -67,7 +71,13 @@ export default defineConfig(({ mode }) => {
 	}
 
 	return {
-		plugins: [react(), tailwindcss(), apiOriginCsp(env.VITE_API_BASE_URL)],
+		plugins: [
+			react(),
+			// Auto-memoises components and hooks, so hand-written useMemo/useCallback is only needed where the compiler bails out.
+			babel({ presets: [reactCompilerPreset()] }),
+			tailwindcss(),
+			apiOriginCsp(env.VITE_API_BASE_URL),
+		],
 		resolve: {
 			alias: {
 				'@': fileURLToPath(new URL('./src', import.meta.url)),

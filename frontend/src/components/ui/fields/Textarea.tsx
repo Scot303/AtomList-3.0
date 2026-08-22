@@ -1,13 +1,15 @@
 import type React from 'react';
-import { type Ref, useCallback, useId, useLayoutEffect, useRef } from 'react';
+import { type Ref, useId, useLayoutEffect, useRef } from 'react';
 import { cn } from '@/lib/cn';
 import { FieldShell } from './FieldShell';
 import { fieldControl, type FieldSize } from './fieldStyles';
+
 
 /** Roughly one line of text at the kit's line-height, for translating rows into pixels. */
 const LINE_HEIGHT_REM = 1.5;
 
 export type TextareaResize = 'none' | 'vertical' | 'both';
+
 
 interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'rows'> {
 	label: string;
@@ -23,6 +25,7 @@ interface TextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaEl
 	resize?: TextareaResize;
 	ref?: Ref<HTMLTextAreaElement>;
 }
+
 
 const RESIZE_CLASS: Record<TextareaResize, string> = {
 	none: 'resize-none',
@@ -53,7 +56,7 @@ export const Textarea = (props: TextareaProps) => {
 	const id = useId();
 	const innerRef = useRef<HTMLTextAreaElement>(null);
 
-	const setRef = useCallback((element: HTMLTextAreaElement | null) => {
+	const setRef = (element: HTMLTextAreaElement | null) => {
 		innerRef.current = element;
 
 		if (typeof ref === 'function') {
@@ -61,9 +64,9 @@ export const Textarea = (props: TextareaProps) => {
 		} else if (ref) {
 			ref.current = element;
 		}
-	}, [ref]);
+	};
 
-	const fit = useCallback(() => {
+	const fit = () => {
 		const element = innerRef.current;
 
 		if (!autoResize || element === null) {
@@ -73,7 +76,7 @@ export const Textarea = (props: TextareaProps) => {
 		// Collapse first, so shrinking works and not just growing.
 		element.style.height = 'auto';
 		element.style.height = `${ element.scrollHeight }px`;
-	}, [autoResize]);
+	};
 
 	// Sized before the first paint, so a pre-filled field never flashes at the wrong height.
 	useLayoutEffect(fit, [fit, rest.value]);

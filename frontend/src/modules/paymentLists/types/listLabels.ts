@@ -1,4 +1,4 @@
-import { monthName } from '@/components/ui/fields/dateUtils';
+import { monthName } from '@/utils/dateUtils.ts';
 import type { PaymentListView } from './types.ts';
 
 

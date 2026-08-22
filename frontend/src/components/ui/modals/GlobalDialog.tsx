@@ -6,11 +6,13 @@ import { useCloseOnNavigate } from '@/hooks/useCloseOnNavigate';
 import { cn } from '@/lib/cn';
 import { type DialogVariant, useDialogStore } from '@/stores/dialogStore';
 
+
 const VARIANTS: Record<DialogVariant, { icon: typeof Info; iconColor: string; buttonVariant: 'danger' | 'warning' | 'primary' }> = {
 	danger: { icon: AlertTriangle, iconColor: 'text-os-error', buttonVariant: 'danger' },
 	warning: { icon: AlertCircle, iconColor: 'text-os-warning', buttonVariant: 'warning' },
 	info: { icon: Info, iconColor: 'text-os-primary', buttonVariant: 'primary' },
 };
+
 
 /**
  * The one confirmation dialog on the page, sitting a layer above {@link GlobalModal} so a modal can raise one over itself.
@@ -71,7 +73,7 @@ export function GlobalDialog() {
 										{ title }
 									</DialogTitle>
 
-									<Description className="themed-scrollbar max-h-[50dvh] overflow-y-auto text-sm wrap-break-word text-os-text-muted">
+									<Description className="themed-scrollbar max-h-[50dvh] overflow-y-auto whitespace-pre-line text-sm wrap-break-word text-os-text-muted">
 										{ message }
 									</Description>
 								</div>

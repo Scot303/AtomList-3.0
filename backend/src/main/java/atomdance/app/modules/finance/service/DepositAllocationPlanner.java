@@ -28,7 +28,7 @@ public class DepositAllocationPlanner {
 	/**
 	 * @param settlements what the money covers, in the order it is spent
 	 * @param allocated   how much of the total is spent
-	 * @param unallocated what is left over, which becomes credit held against the payer
+	 * @param unallocated what is left over, which becomes credit held for everybody the handover covered
 	 */
 	public record Plan(List<PlannedSettlement> settlements, BigDecimal allocated, BigDecimal unallocated) {
 

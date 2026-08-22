@@ -53,7 +53,7 @@ public record PaymentView(
 			.thenComparing(Payment::getNumber, Comparator.nullsLast(Comparator.naturalOrder()));
 
 	private static final Comparator<PaymentSettlement> SETTLEMENT_ORDER = Comparator
-			.comparing(PaymentSettlement::getSettledAt, Comparator.nullsLast(Comparator.naturalOrder()))
+			.comparing(PaymentSettlement::getSettledAt, Comparator.nullsLast(Comparator.reverseOrder()))
 			.thenComparing(PaymentSettlement::getNumber, Comparator.nullsLast(Comparator.naturalOrder()));
 
 

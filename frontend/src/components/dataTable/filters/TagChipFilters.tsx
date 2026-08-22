@@ -1,6 +1,6 @@
 import { resolveTagHex, type TagOption } from '@/components/ui/tags';
 import { cn } from '@/lib/cn';
-import type { TableFilterTagsBinding } from '../useTableFilterTags';
+import type { TableFilterTagsBinding } from '@/components/dataTable';
 import type { FilterActiveTag, FilterTag } from '../types/filterTypes';
 import { toHexColor, withAlpha } from '../config/tagColors';
 

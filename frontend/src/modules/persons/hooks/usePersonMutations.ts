@@ -4,9 +4,8 @@ import { personKeys } from '../api/personKeys';
 import type { CreatePersonPayload, PersonView, UpdatePersonPayload } from '../types/types.ts';
 
 
-/**
- * Adds one person. The list is refetched rather than appended to.
- */
+/* ------------------ CREATE ------------------ */
+
 export function useCreatePerson() {
 	const queryClient = useQueryClient();
 
@@ -17,10 +16,13 @@ export function useCreatePerson() {
 }
 
 
+/* ------------------ UPDATE ------------------ */
+
 export interface UpdatePersonVariables {
 	id: string;
 	payload: UpdatePersonPayload;
 }
+
 
 /**
  * Partial update of one person. Applies the change immediately and puts the row back as it was if the backend refuses it.
@@ -38,7 +40,7 @@ export function useUpdatePerson() {
 			const previous = queryClient.getQueryData<PersonView[]>(personKeys.list());
 
 			queryClient.setQueryData<PersonView[]>(personKeys.list(), (persons) =>
-				persons?.map((person) => (person.id === id ? applyPayload(person, payload) : person)),
+				persons?.map((person) => ( person.id === id ? applyPayload(person, payload) : person )),
 			);
 
 			return { previous };
@@ -55,12 +57,15 @@ export function useUpdatePerson() {
 }
 
 
+/* ------------------ INNER METHODS ------------------ */
+
 /** Drops the authoritative version of a row the backend just handed back into the cached list. */
 function replacePerson(queryClient: QueryClient, updated: PersonView): void {
 	queryClient.setQueryData<PersonView[]>(personKeys.list(), (persons) =>
-		persons?.map((person) => (person.id === updated.id ? updated : person)),
+		persons?.map((person) => ( person.id === updated.id ? updated : person )),
 	);
 }
+
 
 /**
  * The change the backend is about to make, applied locally so an in-place cell answers the click rather than the round trip.
@@ -109,8 +114,6 @@ function applyPayload(person: PersonView, payload: UpdatePersonPayload): PersonV
 		next.note = payload.note === '' ? null : payload.note;
 	}
 
-	// Which household a person joined, and what number that household answers on, is the backend's to say,
-	// so the family is left as it was until the response lands and corrects it.
 
 	return next;
 }

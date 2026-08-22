@@ -1,4 +1,4 @@
-import { type MouseEvent, useCallback, useMemo } from 'react';
+import { type MouseEvent } from 'react';
 import { Info, Plus, Users } from 'lucide-react';
 import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
@@ -31,6 +31,8 @@ const KIND_TITLES = {
 	TOURNAMENT: 'Pokaż grupy TURNIEJOWE',
 };
 
+const GROUP_COLUMNS = buildGroupColumns();
+
 
 export function GroupsPage() {
 	const { hasPermission } = useAuth();
@@ -47,63 +49,56 @@ export function GroupsPage() {
 
 	const filterTags = useTableFilterTags(TABLE_KEY);
 
-	const groupList = useMemo(() => groups.data ?? [], [groups.data]);
+	const groupList = groups.data ?? [];
 
-	const rows = useMemo(() => groupList.map(toGroupRow), [groupList]);
-
-	const columns = useMemo(() => buildGroupColumns(), []);
+	const rows = groupList.map(toGroupRow);
 
 
-	const handleCellEdit = useCallback(
-		(rowId: string, columnId: string, value: unknown) => {
-			const payload = toUpdatePayload(columnId, value);
+	const handleCellEdit = (rowId: string, columnId: string, value: unknown) => {
+		const payload = toUpdatePayload(columnId, value);
 
-			if (payload === null) {
-				return;
-			}
+		if (payload === null) {
+			return;
+		}
 
-			updateGroup.mutate(
-				{
-					id: rowId,
-					payload
-				},
-				{ onError: notifyApiError });
-		},
-		[updateGroup],
-	);
+		updateGroup.mutate(
+			{
+				id: rowId,
+				payload
+			},
+			{ onError: notifyApiError }
+		);
+	};
 
-	const handleRowContextMenu = useCallback(
-		(event: MouseEvent, row: GroupRow) => {
-			preloadModal('groups.form');
-			preloadModal('groups.members');
+	const handleRowContextMenu = (event: MouseEvent, row: GroupRow) => {
+		preloadModal('groups.form');
+		preloadModal('groups.members');
 
-			if (canReadPersons) {
-				prefetchPersons();
-			}
+		if (canReadPersons) {
+			prefetchPersons();
+		}
 
-			openContextMenu(event, [
-				{
-					id: 'details',
-					label: 'Szczegóły',
-					icon: Info,
-					onSelect: () => void openModal('groups.form', {
-						groupId: row.id,
-						groupName: row.name,
-					}),
-				},
-				{
-					id: 'members',
-					label: 'Pokaż członków',
-					icon: Users,
-					onSelect: () => void openModal('groups.members', {
-						groupId: row.id,
-						groupName: row.name,
-					}),
-				},
-			]);
-		},
-		[openContextMenu, openModal, prefetchPersons, canReadPersons],
-	);
+		openContextMenu(event, [
+			{
+				id: 'details',
+				label: 'Szczegóły',
+				icon: Info,
+				onSelect: () => void openModal('groups.form', {
+					groupId: row.id,
+					groupName: row.name,
+				}),
+			},
+			{
+				id: 'members',
+				label: 'Pokaż członków',
+				icon: Users,
+				onSelect: () => void openModal('groups.members', {
+					groupId: row.id,
+					groupName: row.name,
+				}),
+			},
+		]);
+	};
 
 	const toolbar = (
 		<div className="flex items-center">
@@ -137,7 +132,7 @@ export function GroupsPage() {
 			<DataTable
 				moduleKey={ TABLE_KEY }
 				data={ rows }
-				columns={ columns }
+				columns={ GROUP_COLUMNS }
 				getRowId={ (row) => row.id }
 				isLoading={ groups.isLoading }
 				enableGrouping

@@ -5,10 +5,7 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.finance.dto.CreditSweepResultView;
-import atomdance.app.modules.finance.dto.CreditSweepView;
-import atomdance.app.modules.finance.dto.PlannedSettlementView;
-import atomdance.app.modules.finance.dto.SettleCreditRequest;
+import atomdance.app.modules.finance.dto.*;
 import atomdance.app.modules.finance.model.Deposit;
 import atomdance.app.modules.finance.model.Payment;
 import atomdance.app.modules.finance.model.PaymentList;
@@ -138,7 +135,7 @@ public class CreditSweepService {
 			}
 
 			BigDecimal credit = creditAvailable;
-			Set<UUID> covered = deposit.getCoveredPersonIds();
+			Set<UUID> covered = new HashSet<>(deposit.getCoveredPersonIds());
 			List<Line> lines = new ArrayList<>();
 
 			for (Payment payment : unpaid) {
@@ -219,8 +216,7 @@ public class CreditSweepService {
 			entries.add(new CreditSweepView.Entry(
 					deposit.getId(),
 					deposit.getCode(),
-					deposit.getPayer().getId(),
-					deposit.getPayer().getFullName(),
+					deposit.getCoveredPersonsInDisplayOrder().stream().map(CoveredPersonView::from).toList(),
 					deposit.getPaymentMethod(),
 					deposit.getReceivedAt(),
 					planned.creditAvailable(),

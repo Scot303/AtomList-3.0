@@ -8,7 +8,8 @@ import { DataTableBody } from './components/DataTableBody';
 import { DataTableStatusBar } from './components/DataTableStatusBar';
 import { FilterBar } from './filters/FilterBar';
 import type { DataTableProps } from './types/dataTableTypes';
-import { useDataTable } from './useDataTable';
+import { useDataTable } from './hooks/useDataTable';
+
 
 /**
  * Space kept below the last row so a cell editor opening near the bottom has somewhere to hang.
@@ -31,7 +32,7 @@ export const DataTable = <T extends object>(props: DataTableProps<T>) => {
 		sensors, handleDragEnd, orderedColumnIds, headerGroups,
 		totalWidth, bodyRows,
 		scrollRef, headRef, popoverClip,
-		virtualRows, paddingTop, paddingBottom, measureRow,
+		renderRows, paddingTop, paddingBottom, measureRow,
 		filteredRowCount, totalRowCount,
 		resetLayout, maxFilterTags, maxAdvancedRules,
 	} = useDataTable(props);
@@ -63,7 +64,7 @@ export const DataTable = <T extends object>(props: DataTableProps<T>) => {
 					maxAdvancedRules={ maxAdvancedRules }
 					onAddTag={ (tag) => setFilterTags((tags) => [...tags, tag]) }
 					onRemoveTag={ (id) => setFilterTags((tags) => tags.filter((tag) => tag.id !== id)) }
-					onUpdateTag={ (updated) => setFilterTags((tags) => tags.map((tag) => (tag.id === updated.id ? updated : tag))) }
+					onUpdateTag={ (updated) => setFilterTags((tags) => tags.map((tag) => ( tag.id === updated.id ? updated : tag ))) }
 					onSortChange={ setSortTags }
 				/>
 			) }
@@ -102,8 +103,8 @@ export const DataTable = <T extends object>(props: DataTableProps<T>) => {
 
 							<tbody>
 							<DataTableBody
-								rows={ bodyRows }
-								virtualRows={ virtualRows }
+								renderRows={ renderRows }
+								rowCount={ bodyRows.length }
 								paddingTop={ paddingTop }
 								paddingBottom={ paddingBottom }
 								measureRow={ measureRow }

@@ -17,6 +17,7 @@ interface FamilyDiscountSectionProps {
 	household: DiscountHousehold | null;
 }
 
+
 /**
  * The part that comes from where in the family this person sits.
  */
@@ -43,6 +44,7 @@ export function FamilyDiscountSection({ component, household }: FamilyDiscountSe
 		</DiscountSection>
 	);
 }
+
 
 /**
  * The household in the order the ladder put it, with the figure that order was decided on.

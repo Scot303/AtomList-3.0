@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { autoUpdate, type DetectOverflowOptions, flip, hide, offset, shift, type SideObject, size, useClick, useDismiss, useFloating, useInteractions, useTransitionStyles, } from '@floating-ui/react';
 import { resolvePopoverAnchor } from '@/lib/popoverAnchor';
 import { usePopoverClip } from './usePopoverClip';
+
 
 /** Distance between the trigger and the panel. */
 const GAP = 6;
@@ -17,6 +18,7 @@ const MAX_PANEL_HEIGHT = 320;
  */
 const MIN_PANEL_HEIGHT = 180;
 const MIN_PANEL_WIDTH = 200;
+
 
 interface UsePopoverOptions {
 	onBlur?: () => void;
@@ -34,6 +36,7 @@ interface UsePopoverOptions {
 	align?: 'start' | 'end';
 }
 
+
 /**
  * Open state, dismissal, and positioning for a panel that hangs off a trigger.
  */
@@ -49,11 +52,11 @@ export function usePopover(options: UsePopoverOptions = {}) {
 	/** Supplied by whichever scrolling container the trigger sits in, and a no-op outside one. */
 	const clip = usePopoverClip();
 
-	const placementClip = useCallback(() => {
+	const placementClip = () => {
 		const { boundary, padding } = clip();
 
 		return { boundary, padding: insetBy(padding, VIEWPORT_PADDING) };
-	}, [clip]);
+	};
 
 
 	const { refs, floatingStyles, context, placement, middlewareData } = useFloating({
@@ -69,7 +72,7 @@ export function usePopover(options: UsePopoverOptions = {}) {
 			offset(GAP),
 			flip(placementClip),
 			shift(placementClip),
-			size(() => ({
+			size(() => ( {
 				...placementClip(),
 				apply({ rects, elements, availableWidth, availableHeight }) {
 					Object.assign(elements.floating.style, {
@@ -78,7 +81,7 @@ export function usePopover(options: UsePopoverOptions = {}) {
 						maxHeight: `${ Math.min(maxHeight, Math.max(availableHeight, MIN_PANEL_HEIGHT)) }px`,
 					});
 				},
-			})),
+			} )),
 
 			hide(clip),
 		],
@@ -139,13 +142,13 @@ export function usePopover(options: UsePopoverOptions = {}) {
 
 	}, [open, onBlur]);
 
-	const close = useCallback(() => setOpen(false), []);
+	const close = () => setOpen(false);
 
 
-	const setReference = useCallback((node: Element | null) => {
+	const setReference = (node: Element | null) => {
 		refs.setReference(node);
 		refs.setPositionReference(node && resolvePopoverAnchor(node));
-	}, [refs]);
+	};
 
 	return {
 		open,
@@ -166,7 +169,9 @@ export function usePopover(options: UsePopoverOptions = {}) {
 	};
 }
 
+
 export type PopoverState = ReturnType<typeof usePopover>;
+
 
 /**
  * A clip's padding widened by `extra` on every side.

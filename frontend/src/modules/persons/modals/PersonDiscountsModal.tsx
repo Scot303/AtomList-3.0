@@ -1,7 +1,7 @@
 import { Ban } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
-import { MONTH_NAMES } from '@/components/ui/fields/dateUtils';
+import { MONTH_NAMES } from '@/utils/dateUtils.ts';
 import { cn } from '@/lib/cn';
 import { formatPercent } from '@/lib/locale';
 import { FamilyDiscountSection } from '../components/discountBreakdown/FamilyDiscountSection';
@@ -14,6 +14,7 @@ interface PersonDiscountsModalProps {
 	personId: string;
 	personName: string;
 }
+
 
 /**
  * Why one person's discount comes out the way it does.
@@ -86,6 +87,7 @@ interface TotalProps {
 	billed: boolean;
 }
 
+
 /**
  * The figure everything below explains.
  */
@@ -124,6 +126,7 @@ interface SumProps {
 	total: number;
 	capped: boolean;
 }
+
 
 function Sum({ familyPercent, groupCountPercent, total, capped }: SumProps) {
 	return (

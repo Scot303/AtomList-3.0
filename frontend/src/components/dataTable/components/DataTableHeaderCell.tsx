@@ -1,41 +1,39 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { flexRender, type Header } from '@tanstack/react-table';
 import { cn } from '@/lib/cn';
-import type { DataTableFeatures } from '../tableFeatures';
+import type { RenderHeader } from '../types/dataTableTypes';
+
 
 /** How far one arrow-key press nudges a column's width. */
 const RESIZE_STEP = 2;
 
-interface DataTableHeaderCellProps<T extends object> {
-	header: Header<DataTableFeatures, T, unknown>;
+
+interface DataTableHeaderCellProps {
+	header: RenderHeader;
 }
 
-export const DataTableHeaderCell = <T extends object>({ header }: DataTableHeaderCellProps<T>) => {
-	const { column } = header;
 
-	const sortable = useSortable({ id: column.id });
+/**
+ * One column heading: its label, the sort arrow, and the handle its width is dragged by.
+ */
+export const DataTableHeaderCell = ({ header }: DataTableHeaderCellProps) => {
+	const { columnId, label, content, size, sorted, canSort, canResize, isResizing } = header;
+
+	const sortable = useSortable({ id: columnId });
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
-
-	const sorted = column.getIsSorted();
-	const canSort = column.getCanSort();
-	const canResize = column.getCanResize();
-	const isResizing = column.getIsResizing();
-
-	const label = typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id;
 
 	return (
 		<th
 			ref={ setNodeRef }
 			scope="col"
-			aria-sort={ canSort ? (sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none') : undefined }
+			aria-sort={ canSort ? ( sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none' ) : undefined }
 			style={ {
 				transform: CSS.Translate.toString(transform),
 				transition,
 				zIndex: isDragging ? 20 : 1,
 				position: 'relative',
-				width: header.getSize(),
+				width: size,
 			} }
 			className={ cn(
 				'select-none overflow-hidden whitespace-nowrap text-left text-xs font-semibold uppercase tracking-wider outline-none',
@@ -46,14 +44,14 @@ export const DataTableHeaderCell = <T extends object>({ header }: DataTableHeade
 		>
 			<div
 				{ ...listeners }
-				onClick={ canSort ? column.getToggleSortingHandler() : undefined }
+				onClick={ canSort ? header.onToggleSort : undefined }
 				className={ cn(
 					'flex items-center gap-1 px-4 py-2.5 transition-colors',
 					'cursor-pointer active:cursor-grabbing',
 					canSort && 'hover:text-os-text',
 				) }
 			>
-				{ header.isPlaceholder ? null : flexRender(column.columnDef.header, header.getContext()) }
+				{ content }
 
 				{ canSort && (
 					<span aria-hidden className="shrink-0">
@@ -73,9 +71,9 @@ export const DataTableHeaderCell = <T extends object>({ header }: DataTableHeade
 					tabIndex={ 0 }
 					aria-orientation="vertical"
 					aria-label={ `Szerokość kolumny: ${ label }` }
-					aria-valuenow={ Math.round(header.getSize()) }
-					onMouseDown={ header.getResizeHandler() }
-					onTouchStart={ header.getResizeHandler() }
+					aria-valuenow={ Math.round(size) }
+					onMouseDown={ header.onResizeStart }
+					onTouchStart={ header.onResizeStart }
 					onClick={ (event) => event.stopPropagation() }
 					onKeyDown={ (event) => {
 						const delta = event.key === 'ArrowLeft' ? -RESIZE_STEP : event.key === 'ArrowRight' ? RESIZE_STEP : 0;
@@ -87,10 +85,7 @@ export const DataTableHeaderCell = <T extends object>({ header }: DataTableHeade
 						event.preventDefault();
 						event.stopPropagation();
 
-						const { minSize = 0, maxSize = Number.MAX_SAFE_INTEGER } = column.columnDef;
-						const next = Math.min(maxSize, Math.max(minSize, header.getSize() + delta));
-
-						column.table.setColumnSizing((sizing) => ({ ...sizing, [column.id]: next }));
+						header.onResizeStep(delta);
 					} }
 					className="group/resize absolute right-0 top-0 z-20 flex h-full w-[5px] cursor-col-resize items-center justify-center outline-none"
 				>
