@@ -65,7 +65,9 @@ export default function PaymentEditModal({ payment, tracksContracts }: PaymentEd
 
 	return (
 		<form onSubmit={ onSubmit } noValidate className="mt-3 space-y-5">
-			<PaymentIdentity payment={ payment }/>
+			<header className="styled-card p-3 rounded-2xl mb-8">
+				<PaymentIdentity payment={ payment }/>
+			</header>
 
 			{ tracksContracts && (
 				<div className="styled-card rounded-xl px-3 py-1">

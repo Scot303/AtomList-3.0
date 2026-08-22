@@ -58,7 +58,9 @@ export default function QuantityModal({ payment }: QuantityModalProps) {
 
 	return (
 		<form onSubmit={ onSubmit } noValidate className="mt-3 space-y-5">
-			<PaymentIdentity payment={ payment }/>
+			<header className="styled-card p-3 rounded-2xl mb-8">
+				<PaymentIdentity payment={ payment }/>
+			</header>
 
 			<Input
 				label="Liczba wejść"

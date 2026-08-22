@@ -49,7 +49,7 @@ function Details({ payment, list }: { payment: PaymentView; list: PaymentListVie
 	const settlements = payment.settlements ?? [];
 	return (
 		<div className="mt-2 space-y-5">
-			<header>
+			<header className="styled-card p-3 rounded-2xl mb-10">
 				<PaymentIdentity payment={ payment }/>
 			</header>
 

@@ -117,7 +117,7 @@ export default function OneOffPaymentModal({ list, payment }: OneOffPaymentModal
 	return (
 		<form onSubmit={ onSubmit } noValidate className="mt-2 space-y-5">
 			{ isEditing ? (
-				<p className="text-base text-os-text-muted ml-0.5">{ payment.code } · { payment.personName }</p>
+				<p className="text-base text-os-text-muted ml-0.5 mb-7">{ payment.code } · { payment.personName }</p>
 			) : (
 				<Controller
 					control={ control }
