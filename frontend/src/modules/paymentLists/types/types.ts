@@ -301,7 +301,7 @@ export interface ListReportView {
 
 
 /**
- * Mirror of `ListReportView.Deposit` - one deposit of money belonging to this period, and what became of it.
+ * Mirror of `ListReportView.Deposit` - one handover of money, and what became of it as seen from this sheet.
  */
 export interface ReportDepositView {
 	depositId: string;
@@ -312,8 +312,12 @@ export interface ReportDepositView {
 	paymentMethod: PaymentMethod;
 	receivedAt: string;
 	direct: boolean;
+	/** Whether this sheet is the one that has to account for the handover. */
+	belongsHere: boolean;
 	totalAmount: number;
 	countedOnThisList: number;
+	/** What of it settled a charge here without being this sheet's income. */
+	clearedOnThisList: number;
 	spentElsewhere: number;
 	unallocated: number;
 	overpaid: boolean;
@@ -333,8 +337,10 @@ export interface ReportTotalsView {
 	collectedTotal: number;
 	clearedElsewhereTotal: number;
 	outstandingTotal: number;
+	/** The cash box for this sheet's period: only deposits with `belongsHere`. The three below partition it. */
 	depositsReceivedTotal: number;
 	depositsCountedHereTotal: number;
+	depositsClearedHereTotal: number;
 	depositsSpentElsewhereTotal: number;
 	depositsUnallocatedTotal: number;
 	reconciles: boolean;
