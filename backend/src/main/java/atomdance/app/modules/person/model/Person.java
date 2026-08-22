@@ -2,7 +2,6 @@ package atomdance.app.modules.person.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.BatchSize;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -54,7 +53,6 @@ public class Person {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "family_id")
-	@BatchSize(size = 64)
 	private Family family;
 
 	@Column(length = 512)

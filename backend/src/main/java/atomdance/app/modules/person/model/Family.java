@@ -2,6 +2,7 @@ package atomdance.app.modules.person.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "families", indexes = @Index(name = "idx_families_name", columnList = "name"))
+@BatchSize(size = 64)
 public class Family {
 
 	@Id
