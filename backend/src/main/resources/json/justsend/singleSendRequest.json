@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SingleSendRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bulkVariant",
+    "content",
+    "msisdn",
+    "sender"
+  ],
+  "properties": {
+    "sender": {
+      "type": "string"
+    },
+    "msisdn": {
+      "type": "string"
+    },
+    "bulkVariant": {
+      "type": "string",
+      "description": "Allowed variants: ECO, FULL, PRO, INTER, VOICE.\nBusiness names used in the web UI map to API variants as follows: BASIC → ECO, DYNAMIC → FULL, UNIQUE → PRO, VOICE → VOICE, INTERNATIONAL → INTER.",
+      "enum": [
+        "ECO",
+        "FULL",
+        "PRO",
+        "ECO_RESP",
+        "PRO_RESP",
+        "TEST",
+        "INTER",
+        "VOICE",
+        "RCS",
+        "ECO",
+        "FULL",
+        "PRO",
+        "INTER",
+        "VOICE"
+      ]
+    },
+    "content": {
+      "type": "string"
+    }
+  }
+}
