@@ -2,16 +2,14 @@ import { Hash, Pencil, StickyNote, Wallet } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { Button } from '@/components/ui/buttons/Button';
-import { TagBadge, TagBadgeSingle } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { useGroups } from '@/modules/groups/hooks/useGroups';
-import { indexGroups, resolveGroupColor } from '@/modules/groups/types/groupRows';
 import { useModalStore } from '@/stores/modalStore';
 import { ChargeBreakdown } from '../components/paymentDetails/ChargeBreakdown';
+import { PaymentIdentity } from '../components/PaymentIdentity';
 import { SettlementList } from '../components/paymentDetails/SettlementList';
 import { usePayment } from '../hooks/usePayments';
-import { CHARGE_KIND_OPTIONS, hasCountableQuantity, isMembershipDerived } from '../types/paymentRows';
+import { hasCountableQuantity, isMembershipDerived } from '../types/paymentRows';
 import type { PaymentListView, PaymentView } from '../types/types.ts';
 
 
@@ -43,28 +41,16 @@ export default function PaymentDetailsModal({ paymentId, list }: PaymentDetailsM
 function Details({ payment, list }: { payment: PaymentView; list: PaymentListView }) {
 	const { hasPermission } = useAuth();
 	const openModal = useModalStore((state) => state.openModal);
-	const groups = useGroups();
-	const groupsById = indexGroups(groups.data ?? []);
-
 	const canModify = hasPermission('MODIFY_PAYMENTS');
 
 	const chargeEditable = canModify && !list.closed;
 
 	const oneOff = !isMembershipDerived(payment.chargeKind);
 	const settlements = payment.settlements ?? [];
-	const group = payment.groupId === null ? undefined : groupsById.get(payment.groupId);
-
 	return (
 		<div className="mt-2 space-y-5">
-			<header className="flex flex-wrap items-center justify-between gap-3">
-				<div className="min-w-0">
-					<p className="text-base font-bold text-os-text">{ payment.personName }</p>
-					<p className="truncate text-sm text-os-text-muted ml-0.5 mt-0.5">
-						{ payment.code } · <TagBadgeSingle id={ payment.chargeKind } options={ CHARGE_KIND_OPTIONS } size="sm"/>
-					</p>
-				</div>
-
-				{ group !== undefined ? <TagBadge label={ group.name } color={ resolveGroupColor(group) }/> : payment.description }
+			<header>
+				<PaymentIdentity payment={ payment }/>
 			</header>
 
 			<ChargeBreakdown payment={ payment }/>

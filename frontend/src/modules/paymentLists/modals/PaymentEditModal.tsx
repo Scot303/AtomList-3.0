@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/buttons/Button';
 import { Textarea, Toggle } from '@/components/ui/fields';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
+import { PaymentIdentity } from '../components/PaymentIdentity';
 import { useUpdatePayment } from '../hooks/usePaymentMutations';
 import { paymentEditFormSchema, type PaymentEditFormValues } from '../schemas/paymentSchemas';
 import type { PaymentView, UpdatePaymentPayload } from '../types/types.ts';
@@ -64,9 +65,7 @@ export default function PaymentEditModal({ payment, tracksContracts }: PaymentEd
 
 	return (
 		<form onSubmit={ onSubmit } noValidate className="mt-3 space-y-5">
-			<p className="text-base text-os-text ml-0.5">
-				{ payment.code } · { payment.personName }
-			</p>
+			<PaymentIdentity payment={ payment }/>
 
 			{ tracksContracts && (
 				<div className="styled-card rounded-xl px-3 py-1">

@@ -4,12 +4,10 @@ import { useForm, useWatch } from 'react-hook-form';
 import { Alert } from '@/components/feedback/Alert';
 import { Button } from '@/components/ui/buttons/Button';
 import { Input } from '@/components/ui/fields';
-import { TagBadge } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
-import { useGroups } from '@/modules/groups/hooks/useGroups';
-import { indexGroups, resolveGroupColor } from '@/modules/groups/types/groupRows';
 import { useModalStore } from '@/stores/modalStore';
+import { PaymentIdentity } from '../components/PaymentIdentity';
 import { useUpdateQuantity } from '../hooks/usePaymentMutations';
 import { parseAmount, quantityFormSchema, type QuantityFormValues } from '../schemas/paymentSchemas';
 import type { PaymentView } from '../types/types.ts';
@@ -30,10 +28,6 @@ export default function QuantityModal({ payment }: QuantityModalProps) {
 	const closeModal = useModalStore((state) => state.closeModal);
 
 	const updateQuantity = useUpdateQuantity();
-	const groups = useGroups();
-	const groupsById = indexGroups(groups.data ?? []);
-	const group = payment.groupId === null ? undefined : groupsById.get(payment.groupId);
-
 	const form = useForm<QuantityFormValues>({
 		resolver: zodResolver(quantityFormSchema),
 		defaultValues: { quantity: String(Number(payment.quantity.toFixed(2))) },
@@ -64,23 +58,7 @@ export default function QuantityModal({ payment }: QuantityModalProps) {
 
 	return (
 		<form onSubmit={ onSubmit } noValidate className="mt-3 space-y-5">
-			<div className="flex items-center justify-between">
-				<div>
-					<p className="text-base text-os-text">
-						{ payment.personName }
-					</p>
-					<p className="text-sm text-os-text-muted">
-						{ payment.code }
-					</p>
-				</div>
-				{ group !== undefined ? (
-					<div className="mt-0.5">
-						<TagBadge label={ group.name } color={ resolveGroupColor(group) }/>
-					</div>
-				) : (
-					<p className="text-sm text-os-text-muted">{ payment.description }</p>
-				) }
-			</div>
+			<PaymentIdentity payment={ payment }/>
 
 			<Input
 				label="Liczba wejść"
