@@ -11,7 +11,7 @@ import atomdance.app.modules.person.model.Family;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.sms.model.Sms;
 import atomdance.app.modules.sms.service.SmsService;
-import atomdance.app.service.sms.ScheduledSmsService;
+import atomdance.app.modules.sms.service.ScheduledSmsService;
 import atomdance.app.common.sms.SmsApiClient;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;

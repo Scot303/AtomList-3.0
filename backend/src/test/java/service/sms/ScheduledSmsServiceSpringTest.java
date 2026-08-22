@@ -7,7 +7,7 @@ import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.repository.PaymentListRepository;
 import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.sms.service.SmsService;
-import atomdance.app.service.sms.ScheduledSmsService;
+import atomdance.app.modules.sms.service.ScheduledSmsService;
 import atomdance.app.common.sms.SmsApiClient;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

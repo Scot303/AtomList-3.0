@@ -1,4 +1,4 @@
-package atomdance.app.service.sms;
+package atomdance.app.modules.sms.service;
 
 import atomdance.app.common.sms.SmsApiClient;
 import atomdance.app.common.utils.AppClock;
@@ -13,7 +13,6 @@ import atomdance.app.modules.finance.repository.PaymentListRepository;
 import atomdance.app.modules.finance.repository.PaymentRepository;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.sms.model.Sms;
-import atomdance.app.modules.sms.service.SmsService;
 import atomdance.json.justsend.BulkSendRequest;
 import atomdance.json.justsend.RestRecipient;
 import lombok.RequiredArgsConstructor;
