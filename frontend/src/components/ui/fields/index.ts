@@ -20,6 +20,8 @@ export {
 	fieldHint,
 	fieldLabel,
 	fieldLeftIcon,
+	fieldMessage,
+	fieldMessageReserve,
 	fieldRightAdornment,
 	fieldWrapper,
 	showsLabel,

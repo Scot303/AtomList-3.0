@@ -107,3 +107,17 @@ export const fieldFocusRing = 'ring-offset-2 ring-offset-os-bg ring-os-primary';
 /* ── Help text ───────────────────────────────────────────────────────────── */
 
 export const fieldHint = 'mt-1.5 block px-1 text-xs text-os-text-muted';
+
+
+/* ── Message row ─────────────────────────────────────────────────────────── */
+
+/**
+ * The row under a control that holds either the error or the hint.
+ *
+ * `flex` so the message keeps its own top margin instead of collapsing it out of the row.
+ * `min-h` so a form that opts in with {@link fieldMessageReserve} keeps the row standing while there is nothing to show - an error appearing then costs no height.
+ */
+export const fieldMessage = 'flex flex-col min-h-[var(--field-message-h,0px)]';
+
+/** Put on a form to hold one line of space under every field inside it, so errors cannot resize it. */
+export const fieldMessageReserve = '[--field-message-h:1.75rem]';
