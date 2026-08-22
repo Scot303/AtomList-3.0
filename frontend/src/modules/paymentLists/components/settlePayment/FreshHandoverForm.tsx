@@ -59,69 +59,70 @@ export function FreshHandoverForm({ payment }: { payment: PaymentView }) {
 	const busy = settle.isPending;
 
 	return (
-		<form onSubmit={ onSubmit } noValidate className="space-y-5">
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-				<Input
-					label="Wpłacana kwota"
-					inputMode="decimal"
-					autoComplete="off"
-					autoFocus
-					disabled={ busy }
-					error={ errors.amount?.message }
-					hint={ `Pozostało: ${ formatCurrency(payment.outstanding) }` }
-					{ ...register('amount') }
-				/>
+		<form onSubmit={ onSubmit } noValidate className="flex min-h-0 flex-1 flex-col">
+			<div className="space-y-5">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<Input
+						label="Wpłacana kwota"
+						inputMode="decimal"
+						autoComplete="off"
+						disabled={ busy }
+						error={ errors.amount?.message }
+						hint={ `Pozostało: ${ formatCurrency(payment.outstanding) }` }
+						{ ...register('amount') }
+					/>
+
+					<Controller
+						control={ control }
+						name="paymentMethod"
+						render={ ({ field }) => (
+							<TagSelect
+								label="Forma płatności"
+								options={ PAYMENT_METHOD_OPTIONS }
+								value={ field.value }
+								onChange={ (id) => {
+									if (id !== undefined) {
+										field.onChange(id);
+									}
+								} }
+								onBlur={ field.onBlur }
+								disabled={ busy }
+								searchable={ false }
+								error={ errors.paymentMethod?.message }
+							/>
+						) }
+					/>
+				</div>
 
 				<Controller
 					control={ control }
-					name="paymentMethod"
+					name="receivedAt"
 					render={ ({ field }) => (
-						<TagSelect
-							label="Forma płatności"
-							options={ PAYMENT_METHOD_OPTIONS }
+						<DatePicker
+							label="Data otrzymania wpłaty"
 							value={ field.value }
-							onChange={ (id) => {
-								if (id !== undefined) {
-									field.onChange(id);
-								}
-							} }
+							onChange={ field.onChange }
 							onBlur={ field.onBlur }
 							disabled={ busy }
-							searchable={ false }
-							error={ errors.paymentMethod?.message }
+							error={ errors.receivedAt?.message }
+							hint="Decyduje o miesiącu księgowania"
 						/>
 					) }
 				/>
+
+				<Textarea
+					label="Notatka"
+					maxLength={ 512 }
+					minRows={ 2 }
+					disabled={ busy }
+					error={ errors.note?.message }
+					{ ...register('note') }
+				/>
+
+				{ settle.error !== null && <Alert tone="danger">{ settle.error.message }</Alert> }
 			</div>
 
-			<Controller
-				control={ control }
-				name="receivedAt"
-				render={ ({ field }) => (
-					<DatePicker
-						label="Data otrzymania wpłaty"
-						value={ field.value }
-						onChange={ field.onChange }
-						onBlur={ field.onBlur }
-						disabled={ busy }
-						error={ errors.receivedAt?.message }
-						hint="Decyduje o miesiącu księgowania"
-					/>
-				) }
-			/>
-
-			<Textarea
-				label="Notatka"
-				maxLength={ 512 }
-				minRows={ 2 }
-				disabled={ busy }
-				error={ errors.note?.message }
-				{ ...register('note') }
-			/>
-
-			{ settle.error !== null && <Alert tone="danger">{ settle.error.message }</Alert> }
-
-			<div className="flex justify-end gap-3 pt-1">
+			<div className="mt-auto flex shrink-0 justify-end gap-3 pt-5">
 				<Button type="button" variant="secondary_muted" size="md" disabled={ busy } onClick={ closeModal }>
 					Anuluj
 				</Button>

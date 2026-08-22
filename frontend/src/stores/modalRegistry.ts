@@ -97,7 +97,7 @@ export const MODAL_REGISTRY = {
 	'payments.settle': defineModal({
 		load: () => import('@/modules/paymentLists/modals/SettlePaymentModal.tsx'),
 		title: 'Rozlicz płatność',
-		size: 'md',
+		size: 'lg',
 		dismissible: false
 	}),
 

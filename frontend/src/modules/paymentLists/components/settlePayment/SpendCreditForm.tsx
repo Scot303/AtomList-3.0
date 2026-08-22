@@ -67,68 +67,51 @@ export function SpendCreditForm({ payment, deposits }: { payment: PaymentView; d
 	const busy = allocate.isPending;
 
 	return (
-		<form onSubmit={ onSubmit } noValidate className="space-y-5">
-			<Controller
-				control={ control }
-				name="depositId"
-				render={ ({ field }) => (
-					<ExtendedSelect
-						label="Wybierz wpłatę z wolnymi środkami"
-						options={ options }
-						value={ field.value === '' ? undefined : field.value }
-						onChange={ (id) => {
-							field.onChange(id ?? '');
+		<form onSubmit={ onSubmit } noValidate className="flex min-h-0 flex-1 flex-col">
+			<div className="space-y-5">
+				<Controller
+					control={ control }
+					name="depositId"
+					render={ ({ field }) => (
+						<ExtendedSelect
+							label="Wybierz wpłatę z wolnymi środkami"
+							options={ options }
+							value={ field.value === '' ? undefined : field.value }
+							onChange={ (id) => {
+								field.onChange(id ?? '');
 
-							// The amount was proposed against the previous deposit's credit, which may be a different figure.
-							const picked = deposits.find((deposit) => deposit.id === id);
+								// The amount was proposed against the previous deposit's credit, which may be a different figure.
+								const picked = deposits.find((deposit) => deposit.id === id);
 
-							if (picked !== undefined) {
-								setValue('amount', String(Math.min(picked.unallocatedAmount, payment.outstanding)));
-							}
-						} }
-						onBlur={ field.onBlur }
-						disabled={ busy }
-						error={ errors.depositId?.message }
-						searchable={ options.length > 6 }
-					/>
+								if (picked !== undefined) {
+									setValue('amount', String(Math.min(picked.unallocatedAmount, payment.outstanding)));
+								}
+							} }
+							onBlur={ field.onBlur }
+							disabled={ busy }
+							error={ errors.depositId?.message }
+							searchable={ options.length > 6 }
+						/>
+					) }
+				/>
+
+				<Input label="Kwota do rozliczenia z wybranej wpłaty" inputMode="decimal" autoComplete="off" disabled={ busy } error={ errors.amount?.message } { ...register('amount') } />
+
+				{ overCredit && (
+					<Alert tone="warning" contentClassName="text-sm">
+						Ta wpłata ma do wykorzystania tylko { formatCurrency(chosen.unallocatedAmount) }. Wpisz poprawną wartość.
+					</Alert>
 				) }
-			/>
 
-			<Input
-				label="Kwota do rozliczenia z wybranej wpłaty"
-				inputMode="decimal"
-				autoComplete="off"
-				disabled={ busy }
-				error={ errors.amount?.message }
-				{ ...register('amount') }
-			/>
+				{ allocate.error !== null && <Alert tone="danger">{ allocate.error.message }</Alert> }
+			</div>
 
-			{ overCredit && (
-				<Alert tone="warning" contentClassName="text-sm">
-					Ta wpłata ma do wykorzystania tylko { formatCurrency(chosen.unallocatedAmount) }. Wpisz poprawną wartość.
-				</Alert>
-			) }
-
-			{ allocate.error !== null && <Alert tone="danger">{ allocate.error.message }</Alert> }
-
-			<div className="flex justify-end gap-3 pt-1">
-				<Button
-					type="button"
-					variant="secondary_muted"
-					size="md"
-					disabled={ busy }
-					onClick={ closeModal }
-				>
+			<div className="mt-auto flex shrink-0 justify-end gap-3 pt-5">
+				<Button type="button" variant="secondary_muted" size="md" disabled={ busy } onClick={ closeModal }>
 					Anuluj
 				</Button>
 
-				<Button
-					type="submit"
-					size="md"
-					isLoading={ busy }
-					disabled={ overCredit || chosen === undefined }
-					leftIcon={ <Wallet size={ 16 }/> }
-				>
+				<Button type="submit" size="md" isLoading={ busy } disabled={ overCredit || chosen === undefined } leftIcon={ <Wallet size={ 16 }/> }>
 					Rozlicz z wpłaty
 				</Button>
 			</div>

@@ -28,12 +28,11 @@ export default function SettlePaymentModal({ payment, list }: SettlePaymentModal
 	const groupsById = indexGroups(groups.data ?? []);
 	const group = payment.groupId === null ? undefined : groupsById.get(payment.groupId);
 
-	const spendable = ( credit.data ?? [] )
-		.filter((deposit) => deposit.unallocatedAmount > 0 && maySettleOnList(deposit, list));
+	const spendable = ( credit.data ?? [] ).filter((deposit) => deposit.unallocatedAmount > 0 && maySettleOnList(deposit, list));
 
 	return (
-		<div className="mt-2 space-y-5">
-			<header className="space-y-5">
+		<div className="mt-2 flex min-h-[38rem] flex-col">
+			<header className="shrink-0 space-y-5 styled-card p-3 rounded-2xl">
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div className="min-w-0">
 						<p className="text-base font-bold text-os-text">{ payment.personName }</p>
@@ -45,38 +44,44 @@ export default function SettlePaymentModal({ payment, list }: SettlePaymentModal
 					{ group !== undefined ? <TagBadge label={ group.name } color={ resolveGroupColor(group) }/> : payment.description }
 				</div>
 
-				<p className="text-sm text-os-text border-b border-os-border pb-3">
-					{ payment.outstanding === 0
-						? 'Płatność w pełni rozliczona'
-						: <>
-							Do rozliczenia pozostało:{ ' ' }
-							<strong className={ `tabular-nums ${ payment.outstanding > 0 ? 'text-os-error' : 'text-os-green' }` }>
-								{ formatCurrency(payment.outstanding) }
-							</strong>
+				<p className="text-sm text-os-text">
+					{ payment.outstanding === 0 ? (
+						'Płatność w pełni rozliczona'
+					) : (
+						<>
+							Do rozliczenia pozostało: <strong
+							className={ `tabular-nums ${ payment.outstanding > 0 ? 'text-os-error' : 'text-os-green' }` }>{ formatCurrency(payment.outstanding) }</strong>
 							<span className="text-os-text-muted"> / { formatCurrency(payment.amountToPay) }</span>
 						</>
-					}
+					) }
 				</p>
 			</header>
 
 			{ list.closed && (
-				<Alert tone="warning" title="Lista jest zamknięta">
+				<Alert className="mt-5 shrink-0" tone="warning" title="Lista jest zamknięta">
 					Wpłata zamknie ten dług, ale zostanie policzona jako przychód miesiąca, w którym wpłynęła.
 				</Alert>
 			) }
 
-			{ credit.isPending ? (
-				<div className="flex justify-center py-2">
+			{ credit.isPending && (
+				<div className="mt-5 flex justify-center py-2">
 					<Spinner/>
 				</div>
-			) : spendable.length > 0 ? (
-				<SettleModeSwitch mode={ mode } onChange={ setMode } creditCount={ spendable.length }/>
-			) : null }
+			) }
 
-			{ mode === 'credit' && spendable.length > 0 ? (
-				<SpendCreditForm payment={ payment } deposits={ spendable }/>
+			{ spendable.length > 0 ? (
+				<SettleModeSwitch
+					className="mt-3 min-h-0 flex-1"
+					mode={ mode }
+					onChange={ setMode }
+					creditCount={ spendable.length }
+					freshContent={ <FreshHandoverForm payment={ payment }/> }
+					creditContent={ <SpendCreditForm payment={ payment } deposits={ spendable }/> }
+				/>
 			) : (
-				<FreshHandoverForm payment={ payment }/>
+				<div className="mt-12 flex min-h-0 flex-1 flex-col">
+					<FreshHandoverForm payment={ payment }/>
+				</div>
 			) }
 		</div>
 	);
