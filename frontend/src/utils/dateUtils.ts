@@ -1,4 +1,4 @@
-import { FIRST_DAY_OF_WEEK, LOCALE, TIME_ZONE } from '@/lib/locale';
+import { FIRST_DAY_OF_WEEK, LOCALE, TIME_ZONE } from '@/lib/locale.ts';
 
 
 /**

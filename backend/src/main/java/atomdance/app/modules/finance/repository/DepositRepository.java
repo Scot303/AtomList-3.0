@@ -18,8 +18,6 @@ public interface DepositRepository extends JpaRepository<Deposit, UUID> {
 
 	@Query("""
 			SELECT d FROM Deposit d
-			JOIN FETCH d.payer payer
-			LEFT JOIN FETCH payer.family
 			LEFT JOIN FETCH d.settlements
 			WHERE d.id = :id
 			""")
@@ -27,17 +25,15 @@ public interface DepositRepository extends JpaRepository<Deposit, UUID> {
 
 	@Query("""
 			SELECT d FROM Deposit d
-			JOIN FETCH d.payer payer
-			LEFT JOIN FETCH payer.family
 			LEFT JOIN FETCH d.settlements
 			WHERE d.number = :number
 			""")
 	Optional<Deposit> findByNumberWithSettlements(@Param("number") Long number);
 
-	@EntityGraph(attributePaths = {"payer", "payer.family", "settlements"})
+	@EntityGraph(attributePaths = "settlements")
 	List<Deposit> findAllBy(Sort sort);
 
-	@EntityGraph(attributePaths = {"payer", "payer.family", "settlements"})
+	@EntityGraph(attributePaths = "settlements")
 	List<Deposit> findByReceivedAtGreaterThanEqualAndReceivedAtLessThan(Instant from, Instant until, Sort sort);
 
 	/**
@@ -45,35 +41,18 @@ public interface DepositRepository extends JpaRepository<Deposit, UUID> {
 	 */
 	@Query("""
 			SELECT d FROM Deposit d
-			JOIN FETCH d.payer payer
-			LEFT JOIN FETCH payer.family
 			WHERE d.receivedAt >= :from AND d.receivedAt < :until
 			ORDER BY d.receivedAt ASC, d.number ASC
 			""")
 	List<Deposit> findReceivedBetween(@Param("from") Instant from, @Param("until") Instant until);
 
 	/**
-	 * Credit somebody still has in hand, oldest first so the earliest money is spent first.
-	 */
-	@Query("""
-			SELECT d FROM Deposit d
-			JOIN FETCH d.payer
-			WHERE d.payer.id = :payerId
-			  AND d.totalAmount > (SELECT COALESCE(SUM(s.amount), 0) FROM PaymentSettlement s WHERE s.deposit = d)
-			ORDER BY d.receivedAt ASC, d.number ASC
-			""")
-	List<Deposit> findWithCreditFor(@Param("payerId") UUID payerId);
-
-	/**
 	 * Every bit of credit still in hand for any of these people, oldest first - so the earliest money is spent first.
 	 */
 	@Query("""
-			SELECT DISTINCT d FROM Deposit d
-			JOIN FETCH d.payer payer
-			LEFT JOIN FETCH payer.family
+			SELECT d FROM Deposit d
 			LEFT JOIN FETCH d.settlements
-			JOIN d.coveredPersonIds coveredId
-			WHERE coveredId IN :personIds
+			WHERE d.id IN (SELECT covering.id FROM Deposit covering JOIN covering.coveredPersons covered WHERE covered.id IN :personIds)
 			  AND d.totalAmount > (SELECT COALESCE(SUM(s.amount), 0) FROM PaymentSettlement s WHERE s.deposit = d)
 			ORDER BY d.receivedAt ASC, d.number ASC
 			""")

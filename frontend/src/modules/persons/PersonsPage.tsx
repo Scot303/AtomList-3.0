@@ -1,5 +1,4 @@
-import { type MouseEvent, useCallback, useMemo } from 'react';
-import { Info, Percent, Plus, Users } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { BirthdayIndicator } from '@/components/shared/BirthdayIndicator';
@@ -12,8 +11,7 @@ import { useContextMenu } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { useFamilies } from './hooks/useFamilies';
-import { usePrefetchMemberships } from './hooks/useMemberships';
-import { usePrefetchPersonDiscounts } from './hooks/usePersonDiscounts';
+import { usePersonRowMenu } from './hooks/contextMenu/usePersonRowMenu.ts';
 import { usePersons } from './hooks/usePersons';
 import { useUpdatePerson } from './hooks/usePersonMutations';
 import { buildPersonColumns } from './types/personColumns.tsx';
@@ -27,6 +25,9 @@ import type { ColumnVisibilityState } from "@tanstack/react-table";
  */
 const TABLE_KEY = 'persons';
 
+const HIDDEN_COLS: ColumnVisibilityState = {
+	groupKinds: false
+};
 
 /** The id the kind chips keep their filter under, and the column they filter. */
 const KIND_FILTER_ID = 'persons-quick-group-kind';
@@ -48,91 +49,41 @@ export function PersonsPage() {
 	/* Subscribed to but not read. Keeping data fresh for details modal. */
 	useFamilies();
 
-	const prefetchMemberships = usePrefetchMemberships();
-	const prefetchDiscounts = usePrefetchPersonDiscounts();
 	const updatePerson = useUpdatePerson();
 
 	const openModal = useModalStore((state) => state.openModal);
 	const openContextMenu = useContextMenu();
+	const buildRowMenu = usePersonRowMenu();
 
 	const filterTags = useTableFilterTags(TABLE_KEY);
 
-	const personList = useMemo(() => persons.data ?? [], [persons.data]);
-	const groupList = useMemo(() => groups.data ?? [], [groups.data]);
+	const personList = persons.data ?? [];
+	const groupList = groups.data ?? [];
 
-	const groupsById = useMemo(() => indexGroups(groupList), [groupList]);
+	const groupsById = indexGroups(groupList);
 
-	const rows = useMemo(
-		() => personList.map((person) => toPersonRow(person, groupsById)),
-		[personList, groupsById],
-	);
+	const rows = personList.map((person) => toPersonRow(person, groupsById));
+	const columns = buildPersonColumns(buildGroupOptions(groupList));
 
-	const columns = useMemo(() => buildPersonColumns(buildGroupOptions(groupList)), [groupList]);
-
-	const HIDDEN_COLS: ColumnVisibilityState = {
-		groupKinds: false
-	};
 
 	const isLoading = persons.isPending || groups.isLoading;
 
 
-	const handleCellEdit = useCallback(
-		(rowId: string, columnId: string, value: unknown) => {
-			const payload = toUpdatePayload(columnId, value);
+	const handleCellEdit = (rowId: string, columnId: string, value: unknown) => {
+		const payload = toUpdatePayload(columnId, value);
 
-			if (payload === null) {
-				return;
-			}
+		if (payload === null) {
+			return;
+		}
 
-			updatePerson.mutate(
-				{
-					id: rowId,
-					payload
-				},
-				{ onError: notifyApiError });
-		},
-		[updatePerson],
-	);
-
-	const handleRowContextMenu = useCallback(
-		(event: MouseEvent, row: PersonRow) => {
-			preloadModal('persons.form');
-			preloadModal('persons.discounts');
-			preloadModal('persons.groups');
-
-			prefetchMemberships(row.id);
-			prefetchDiscounts(row.id);
-
-			openContextMenu(event, [
-				{
-					id: 'details',
-					label: 'Szczegóły',
-					icon: Info,
-					onSelect: () => void openModal('persons.form', { personId: row.id }),
-				},
-				{
-					id: 'discounts',
-					label: 'Zobacz zniżki',
-					icon: Percent,
-					onSelect: () => void openModal('persons.discounts', {
-						personId: row.id,
-						personName: row.person.fullName,
-					}),
-				},
-				{
-					id: 'groups',
-					label: 'Zobacz grupy',
-					icon: Users,
-					separatorBefore: true,
-					onSelect: () => void openModal('persons.groups', {
-						personId: row.id,
-						personName: row.person.fullName,
-					}),
-				},
-			]);
-		},
-		[openContextMenu, openModal, prefetchMemberships, prefetchDiscounts],
-	);
+		updatePerson.mutate(
+			{
+				id: rowId,
+				payload
+			},
+			{ onError: notifyApiError }
+		);
+	};
 
 	const toolbar = (
 		<div className="flex items-center">
@@ -176,7 +127,7 @@ export function PersonsPage() {
 				enableGrouping
 				emptyMessage="Brak osób do wyświetlenia"
 				onCellEdit={ canModify ? handleCellEdit : undefined }
-				onRowContextMenu={ handleRowContextMenu }
+				onRowContextMenu={ (event, row: PersonRow) => openContextMenu(event, buildRowMenu(row)) }
 				toolbarStart={ toolbarStart }
 				toolbar={ toolbar }
 				initialColumnVisibility={ HIDDEN_COLS }

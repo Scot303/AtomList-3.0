@@ -19,22 +19,17 @@ export function parseAmount(value: string): number {
  * A money field. `min` is what the backend's own `@DecimalMin` says: zero for a charge, a penny for a handover -
  * there is no such thing as receiving nothing.
  */
-function amountValue(min: 0 | 0.01, label: string) {
+function amountValue(min: 0 | 0.01) {
 	return z
 		.string()
 		.trim()
-		.min(1, `Podaj ${ label }.`)
-		.refine((value) => !Number.isNaN(toNumber(value)), `${ capitalise(label) } musi być liczbą.`)
-		.refine((value) => AMOUNT_SHAPE.test(value), `${ capitalise(label) } może mieć najwyżej 2 miejsca po przecinku.`)
+		.min(1, `Podaj kwotę.`)
+		.refine((value) => !Number.isNaN(toNumber(value)), `Kwota musi być liczbą.`)
+		.refine((value) => AMOUNT_SHAPE.test(value), `Kwota może mieć najwyżej 2 miejsca po przecinku.`)
 		.refine(
 			(value) => toNumber(value) >= min,
-			min === 0 ? `${ capitalise(label) } nie może być ujemna.` : `${ capitalise(label) } musi być większa od zera.`,
+			min === 0 ? `Kwota nie może być ujemna.` : `Kwota musi być większa od zera.`,
 		);
-}
-
-
-function capitalise(text: string): string {
-	return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 
@@ -72,7 +67,7 @@ export const oneOffFormSchema: z.ZodType<OneOffFormValues, OneOffFormValues> = z
 	personId: z.string(),
 	groupId: z.string(),
 	description: z.string().trim().max(255, 'Opis może mieć najwyżej 255 znaków.'),
-	unitCost: amountValue(0, 'kwota'),
+	unitCost: amountValue(0),
 	quantity: quantityValue,
 });
 
@@ -115,7 +110,7 @@ export interface SettleFormValues {
 
 export const settleFormSchema: z.ZodType<SettleFormValues, SettleFormValues> = z.object({
 	receivedAt: dateValue,
-	amount: amountValue(0.01, 'kwota'),
+	amount: amountValue(0.01),
 	paymentMethod: paymentMethodValue,
 	note: noteValue,
 });
@@ -135,7 +130,7 @@ export interface DepositFormValues {
 export const depositFormSchema: z.ZodType<DepositFormValues, DepositFormValues> = z.object({
 	personIds: z.array(z.string()).min(1, 'Wybierz co najmniej jedną osobę.'),
 	payerPersonId: z.string(),
-	amount: amountValue(0.01, 'kwota'),
+	amount: amountValue(0.01),
 	paymentMethod: paymentMethodValue,
 	receivedAt: dateValue,
 	monthsAhead: z
@@ -156,7 +151,7 @@ export interface AllocateFormValues {
 
 export const allocateFormSchema: z.ZodType<AllocateFormValues, AllocateFormValues> = z.object({
 	depositId: z.string().min(1, 'Wybierz wpłatę, z której rozliczyć tą pozycję.'),
-	amount: amountValue(0.01, 'kwota'),
+	amount: amountValue(0.01),
 });
 
 

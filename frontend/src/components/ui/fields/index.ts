@@ -12,6 +12,7 @@ export { FormSection } from './FormSection';
 export type { FieldSize, FieldStateOptions } from './fieldStyles';
 export {
 	fieldControl,
+	fieldControlValueLine,
 	fieldControlWithLeftIcon,
 	fieldControlWithRightAdornment,
 	fieldError,
@@ -19,8 +20,9 @@ export {
 	fieldHint,
 	fieldLabel,
 	fieldLeftIcon,
+	fieldMessage,
+	fieldMessageReserve,
 	fieldRightAdornment,
 	fieldWrapper,
 	showsLabel,
 } from './fieldStyles';
-export { dateToISO, formatLongDate, parseISODate, toISODate, todayInTimeZone } from './dateUtils';

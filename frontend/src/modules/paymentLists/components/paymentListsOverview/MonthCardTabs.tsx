@@ -7,7 +7,7 @@ import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
 import { paymentListDetailPath } from '@/routes/paths.ts';
 import { useConfirm } from '@/stores/dialogStore.ts';
 import { useOpenStandardList } from '../../hooks/useOpenStandardList.ts';
-import { monthHasEnded, monthName } from '@/components/ui/fields/dateUtils';
+import { monthHasEnded, monthName } from '@/utils/dateUtils.ts';
 import type { ListSummaryView, MonthSummaryView } from '../../types/types.ts';
 
 
@@ -41,7 +41,7 @@ export const MonthCardTabs = ({ summary }: MonthCardTabsProps) => {
 		const previousMonth = summary.month === 1 ? 12 : summary.month - 1;
 		const previousYear = summary.month === 1 ? summary.year - 1 : summary.year;
 
-		if (!monthHasEnded(previousYear, previousMonth) && !( await confirmEarlyOpening(confirm, summary.month) )) {
+		if (!monthHasEnded(previousYear, previousMonth) && !( await confirmEarlyOpening(confirm, summary.month, summary.year) )) {
 			return;
 		}
 
@@ -70,6 +70,7 @@ export const MonthCardTabs = ({ summary }: MonthCardTabsProps) => {
 				<Tab
 					label="TURNIEJOWA"
 					month={ summary.month }
+					year={ summary.year }
 					list={ summary.tournament }
 					canCreate={ canCreate }
 					pending={ openStandardList.isPending && openStandardList.variables?.tournament }
@@ -81,6 +82,7 @@ export const MonthCardTabs = ({ summary }: MonthCardTabsProps) => {
 				<Tab
 					label="OPEN"
 					month={ summary.month }
+					year={ summary.year }
 					list={ summary.open }
 					canCreate={ canCreate }
 					pending={ openStandardList.isPending && !openStandardList.variables?.tournament }
@@ -95,9 +97,9 @@ export const MonthCardTabs = ({ summary }: MonthCardTabsProps) => {
 /**
  * Warns before a month is committed to a list while the previous month is still in progress.
  */
-function confirmEarlyOpening(confirm: ReturnType<typeof useConfirm>, month: number): Promise<boolean> {
+function confirmEarlyOpening(confirm: ReturnType<typeof useConfirm>, month: number, year: number): Promise<boolean> {
 	return confirm({
-		title: `Utworzyć listę za ${ monthName(month).toLowerCase() } przed końcem poprzedniego miesiąca?`,
+		title: `Utworzyć listę za ${ monthName(month).toLowerCase() } ${ year } przed końcem poprzedniego miesiąca?`,
 		message: 'Im wcześniej utworzona zostanie nowa lista, tym bardziej prawdopodobna będzie konieczność jej ręcznego przeliczenia.',
 		confirmText: 'Utwórz mimo to',
 		variant: 'danger',
@@ -108,6 +110,7 @@ function confirmEarlyOpening(confirm: ReturnType<typeof useConfirm>, month: numb
 interface TabProps {
 	label: string;
 	month: number;
+	year: number;
 	list: ListSummaryView | null;
 	canCreate: boolean;
 	pending: boolean;
@@ -115,12 +118,12 @@ interface TabProps {
 }
 
 
-const Tab = ({ label, month, list, canCreate, pending, onOpen }: TabProps) => {
+const Tab = ({ label, month, year, list, canCreate, pending, onOpen }: TabProps) => {
 	const missing = list === null;
 
 	const unavailable = missing && !canCreate;
 
-	const period = monthName(month).toLowerCase();
+	const period = `${ monthName(month).toLowerCase() } ${ year }`;
 
 	const title = unavailable
 		? `Lista ${ label } za ${ period } jeszcze nie istnieje`
@@ -145,7 +148,7 @@ const Tab = ({ label, month, list, canCreate, pending, onOpen }: TabProps) => {
 				'text-[8px] 2xl:text-xs 3xl:text-sm',
 				'transition-colors outline-none focus-visible:bg-white/3 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-os-primary',
 				unavailable || pending ? 'cursor-default text-os-text-muted opacity-50' : 'text-os-text-muted hover:bg-white/3 hover:text-os-text',
-				missing && !unavailable && 'text-os-warning',
+				missing && !unavailable && 'text-os-error',
 			) }
 		>
 			{ pending && <Loader2 size={ 12 } aria-hidden className="shrink-0 animate-spin"/> }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -45,18 +45,15 @@ export function Sidebar() {
 	/**
 	 * Starts a module's list on its way while the pointer is still on the link, so the table has rows by the time it mounts.
 	 */
-	const prefetchModule = useCallback(
-		(moduleId: string) => {
-			if (moduleId === 'persons') {
-				void queryClient.prefetchQuery({ ...personsQuery(), meta: { silent: true } });
-			}
+	const prefetchModule = (moduleId: string) => {
+		if (moduleId === 'persons') {
+			void queryClient.prefetchQuery({ ...personsQuery(), meta: { silent: true } });
+		}
 
-			if ((moduleId === 'groups' || moduleId === 'persons') && hasPermission('READ_GROUPS')) {
-				void queryClient.prefetchQuery({ ...groupsQuery(), meta: { silent: true } });
-			}
-		},
-		[queryClient, hasPermission],
-	);
+		if (( moduleId === 'groups' || moduleId === 'persons' ) && hasPermission('READ_GROUPS')) {
+			void queryClient.prefetchQuery({ ...groupsQuery(), meta: { silent: true } });
+		}
+	};
 
 	const visibleModules = MODULES.filter((module) => hasAnyPermission(module.permissions));
 

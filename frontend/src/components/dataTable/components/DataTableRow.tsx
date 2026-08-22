@@ -4,12 +4,12 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { popoverAnchorProps } from '@/lib/popoverAnchor';
 import { EditableCell } from '../cells/EditableCell';
-import type { AppColumnDef } from '@/components/dataTable';
-import type { DataTableFeatures } from '../tableFeatures';
+import type { AppColumnDef, DataTableFeatures } from '@/components/dataTable';
 
 
 interface DataTableRowProps<T extends object> {
 	row: Row<DataTableFeatures, T>;
+	cells: Cell<DataTableFeatures, T>[];
 	/** This row's place in the virtual list. `data-index` is how the measurer identifies it. */
 	virtualIndex: number;
 	measureRow: (node: HTMLTableRowElement | null) => void;
@@ -26,7 +26,9 @@ interface DataTableRowProps<T extends object> {
  * One data row.
  */
 const DataTableRowInner = <T extends object>(props: DataTableRowProps<T>) => {
-	const { row, virtualIndex, measureRow, onCellEdit, onRowClick, onRowContextMenu, isContextTarget, onContextRowChange } = props;
+	'use no memo';
+
+	const { row, cells, virtualIndex, measureRow, onCellEdit, onRowClick, onRowContextMenu, isContextTarget, onContextRowChange } = props;
 
 	const [editingCellId, setEditingCellId] = useState<string | null>(null);
 
@@ -50,7 +52,7 @@ const DataTableRowInner = <T extends object>(props: DataTableRowProps<T>) => {
 				: undefined
 			}
 		>
-			{ row.getVisibleCells().map((cell) => {
+			{ cells.map((cell) => {
 				const definition = cell.column.columnDef as AppColumnDef<T>;
 				const meta = definition.meta ?? {};
 				const isEditing = editingCellId === cell.id;
@@ -92,39 +94,46 @@ export const DataTableRow = memo(DataTableRowInner) as typeof DataTableRowInner;
 
 interface DataTableGroupRowProps<T extends object> {
 	row: Row<DataTableFeatures, T>;
+	cells: Cell<DataTableFeatures, T>[];
 	virtualIndex: number;
 	measureRow: (node: HTMLTableRowElement | null) => void;
 }
 
 
-/** A grouping header: the grouped value, a count of what is under it, and a disclosure arrow. */
-export const DataTableGroupRow = <T extends object>({ row, virtualIndex, measureRow }: DataTableGroupRowProps<T>) => (
-	<tr
-		ref={ measureRow }
-		data-index={ virtualIndex }
-		aria-rowindex={ virtualIndex + 2 }
-		className="cursor-pointer border-b border-os-border/40 bg-os-surface/60 transition-colors hover:bg-os-surface/80"
-		onClick={ row.getToggleExpandedHandler() }
-	>
-		{ row.getVisibleCells().map((cell) => (
-			<td
-				key={ cell.id }
-				style={ { width: cell.column.getSize() } }
-				className="px-4 py-2.5 font-semibold text-os-text"
-			>
-				{ cell.getIsGrouped() ? (
-					<span className="flex items-center gap-2">
-						{ row.getIsExpanded() ? <ChevronDown size={ 14 }/> : <ChevronRight size={ 14 }/> }
-						{ groupLabel(cell) }
-						<span className="ml-1 text-xs font-normal text-os-text-muted">({ row.subRows.length })</span>
-					</span>
-				) : cell.getIsAggregated() && cell.column.columnDef.aggregatedCell ? (
-					flexRender(cell.column.columnDef.aggregatedCell, cell.getContext())
-				) : null }
-			</td>
-		)) }
-	</tr>
-);
+/**
+ * A grouping header: the grouped value, a count of what is under it, and a disclosure arrow.
+ */
+export const DataTableGroupRow = <T extends object>({ row, cells, virtualIndex, measureRow }: DataTableGroupRowProps<T>) => {
+	'use no memo';
+
+	return (
+		<tr
+			ref={ measureRow }
+			data-index={ virtualIndex }
+			aria-rowindex={ virtualIndex + 2 }
+			className="cursor-pointer border-b border-os-border/40 bg-os-surface/60 transition-colors hover:bg-os-surface/80"
+			onClick={ row.getToggleExpandedHandler() }
+		>
+			{ cells.map((cell) => (
+				<td
+					key={ cell.id }
+					style={ { width: cell.column.getSize() } }
+					className="px-4 py-2.5 font-semibold text-os-text"
+				>
+					{ cell.getIsGrouped() ? (
+						<span className="flex items-center gap-2">
+							{ row.getIsExpanded() ? <ChevronDown size={ 14 }/> : <ChevronRight size={ 14 }/> }
+							{ groupLabel(cell) }
+							<span className="ml-1 text-xs font-normal text-os-text-muted">({ row.subRows.length })</span>
+						</span>
+					) : cell.getIsAggregated() && cell.column.columnDef.aggregatedCell ? (
+						flexRender(cell.column.columnDef.aggregatedCell, cell.getContext())
+					) : null }
+				</td>
+			)) }
+		</tr>
+	);
+};
 
 
 /**

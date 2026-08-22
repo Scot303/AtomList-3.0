@@ -26,6 +26,7 @@ interface ExtendedCellSelectOwnProps {
 	className?: string;
 }
 
+
 export type ExtendedCellSelectProps = ExtendedCellSelectOwnProps & SelectValueProps;
 
 /**

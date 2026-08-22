@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { DEFAULT_AUTHENTICATED_PATH, safeInternalPath } from '@/routes/paths';
 import { CodeStep } from '../components/CodeStep';
@@ -20,12 +19,12 @@ export function LoginPage() {
 	const markCodeRequested = useLoginFlowStore((state) => state.markCodeRequested);
 	const resetFlow = useLoginFlowStore((state) => state.reset);
 
-	const intendedPath = safeInternalPath((location.state as { from?: unknown } | null)?.from) ?? DEFAULT_AUTHENTICATED_PATH;
+	const intendedPath = safeInternalPath(( location.state as { from?: unknown } | null )?.from) ?? DEFAULT_AUTHENTICATED_PATH;
 
-	const handleSignedIn = useCallback(() => {
+	const handleSignedIn = () => {
 		resetFlow();
 		navigate(intendedPath, { replace: true });
-	}, [intendedPath, navigate, resetFlow]);
+	};
 
 	if (isAuthenticated) {
 		return <Navigate to={ intendedPath } replace/>;

@@ -3,7 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { notifyApiError, notifySuccess } from '@/lib/toast.ts';
 import { useConfirm } from '@/stores/dialogStore.ts';
 import { useContextMenu } from '@/stores/menuStore.ts';
-import { useDeleteMembership, useLeaveMembership } from '../../hooks/useMemberships.ts';
+import { useDeleteMembership, useLeaveMembership } from '../../hooks/useMembershipMutations.ts';
 import type { MembershipView } from '../../types/types.ts';
 import { formatShortDate } from '../../utils/personFormat.ts';
 
@@ -14,6 +14,7 @@ interface MembershipActionsOptions {
 	personName: string;
 	canModify: boolean;
 }
+
 
 /**
  * Ending a membership and erasing one, both behind a confirmation.

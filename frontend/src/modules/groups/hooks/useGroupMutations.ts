@@ -5,6 +5,8 @@ import { groupKeys } from '../api/groupKeys';
 import type { CreateGroupPayload, GroupView, UpdateGroupPayload } from '../types/types.ts';
 
 
+/* ------------------ CREATE ------------------ */
+
 export function useCreateGroup() {
 	const queryClient = useQueryClient();
 
@@ -15,10 +17,13 @@ export function useCreateGroup() {
 }
 
 
+/* ------------------ UPDATE ------------------ */
+
 export interface UpdateGroupVariables {
 	id: string;
 	payload: UpdateGroupPayload;
 }
+
 
 /**
  * Partial update of one group. Applies the change immediately and puts the row back as it was if the backend refuses it.
@@ -35,7 +40,7 @@ export function useUpdateGroup() {
 			const previous = queryClient.getQueryData<GroupView[]>(groupKeys.list());
 
 			queryClient.setQueryData<GroupView[]>(groupKeys.list(), (groups) =>
-				groups?.map((group) => (group.id === id ? { ...group, ...payload } : group)),
+				groups?.map((group) => ( group.id === id ? { ...group, ...payload } : group )),
 			);
 
 			return { previous };
@@ -55,9 +60,11 @@ export function useUpdateGroup() {
 }
 
 
+/* ------------------ REPLACE ------------------ */
+
 /** Drops the authoritative version of a row the backend just handed back into the cached list. */
 function replaceGroup(queryClient: QueryClient, updated: GroupView): void {
 	queryClient.setQueryData<GroupView[]>(groupKeys.list(), (groups) =>
-		groups?.map((group) => (group.id === updated.id ? updated : group)),
+		groups?.map((group) => ( group.id === updated.id ? updated : group )),
 	);
 }

@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { fetchSeasonSummary } from '../api/paymentListsApi';
@@ -32,7 +31,7 @@ export function useSeasonSummary(startYear: number) {
 export function usePrefetchSeasonSummary() {
 	const queryClient = useQueryClient();
 
-	return useCallback((startYear: number) => {
+	return (startYear: number) => {
 		void queryClient.prefetchQuery({ ...seasonSummaryQuery(startYear), meta: { silent: true } });
-	}, [queryClient]);
+	};
 }

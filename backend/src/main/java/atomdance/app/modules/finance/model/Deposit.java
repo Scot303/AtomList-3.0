@@ -20,10 +20,7 @@ import java.util.*;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "deposits",
 		uniqueConstraints = @UniqueConstraint(name = "uk_deposits_number", columnNames = "number"),
-		indexes = {
-				@Index(name = "idx_deposits_payer_id", columnList = "payer_id"),
-				@Index(name = "idx_deposits_received_at", columnList = "received_at")
-		})
+		indexes = @Index(name = "idx_deposits_received_at", columnList = "received_at"))
 public class Deposit {
 
 	@Id
@@ -39,22 +36,13 @@ public class Deposit {
 	private Long number;
 
 	/**
-	 * Who handed the money over. The first person a manager picks at the counter.
+	 * Everybody this money was handed over for.
 	 */
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "payer_id", nullable = false)
-	private Person payer;
-
-	/**
-	 * Everybody the manager said this money was for, kept so leftover credit can be re-planned later
-	 * against the same people without them having to remember the selection.
-	 */
-	@ElementCollection(fetch = FetchType.LAZY)
-	@CollectionTable(name = "deposit_covered_persons", joinColumns = @JoinColumn(name = "deposit_id"))
-	@Column(name = "person_id", nullable = false)
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "deposit_covered_persons", joinColumns = @JoinColumn(name = "deposit_id"), inverseJoinColumns = @JoinColumn(name = "person_id"))
 	@BatchSize(size = 64)
 	@Builder.Default
-	private Set<UUID> coveredPersonIds = new HashSet<>();
+	private Set<Person> coveredPersons = new LinkedHashSet<>();
 
 	@Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
 	@Builder.Default
@@ -114,6 +102,19 @@ public class Deposit {
 
 
 	/**
+	 * The people this money was for, in the order screens list them.
+	 */
+	public List<Person> getCoveredPersonsInDisplayOrder() {
+		return coveredPersons.stream().sorted(DISPLAY_ORDER).toList();
+	}
+
+
+	public List<UUID> getCoveredPersonIds() {
+		return getCoveredPersonsInDisplayOrder().stream().map(Person::getId).toList();
+	}
+
+
+	/**
 	 * Whether this money is allowed to settle a charge on the given list.
 	 */
 	public boolean maySettleOn(PaymentList list) {
@@ -151,4 +152,10 @@ public class Deposit {
 	public void removeSettlement(PaymentSettlement settlement) {
 		settlements.remove(settlement);
 	}
+
+
+	private static final Comparator<Person> DISPLAY_ORDER = Comparator
+			.comparing(Person::getLastName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+			.thenComparing(Person::getName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
+			.thenComparing(Person::getId);
 }

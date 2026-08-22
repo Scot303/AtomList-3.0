@@ -2,22 +2,6 @@ import type { TagOption } from '@/components/ui/tags';
 import type { PaymentChargeKind, PaymentView } from './types.ts';
 
 
-export const PAID_ID = 'paid';
-export const UNPAID_ID = 'unpaid';
-
-export type PaidTag = typeof PAID_ID | typeof UNPAID_ID;
-
-export const PAID_TAG_OPTIONS: TagOption[] = [
-	{ id: PAID_ID, name: 'Opłacone', color: 'emerald' },
-	{ id: UNPAID_ID, name: 'Nieopłacone', color: 'red' },
-];
-
-
-export function toPaidTag(payment: Pick<PaymentView, 'settled'>): PaidTag {
-	return payment.settled ? PAID_ID : UNPAID_ID;
-}
-
-
 /* ── How far along the settling is ───────────────────────────────────────── */
 
 export const SETTLED_ID = 'settled';
@@ -95,7 +79,6 @@ export interface PaymentRow {
 	amountSettled: number;
 	outstanding: number;
 	settleState: SettleState;
-	isPaid: PaidTag;
 	contractReturned: ContractTag;
 	note: string | null;
 	payment: PaymentView;
@@ -125,7 +108,6 @@ export function toPaymentRow(payment: PaymentView): PaymentRow {
 		amountSettled: payment.amountSettled,
 		outstanding: payment.outstanding,
 		settleState: toSettleState(payment),
-		isPaid: toPaidTag(payment),
 		contractReturned: payment.contractReturned ? CONTRACT_RETURNED_ID : CONTRACT_PENDING_ID,
 		note: payment.note,
 		payment,

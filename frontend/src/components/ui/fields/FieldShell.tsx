@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { popoverAnchorProps } from '@/lib/popoverAnchor';
-import { fieldError, fieldErrorIconSize, fieldHint, fieldLabel, type FieldSize, fieldWrapper, showsLabel, } from './fieldStyles';
+import { fieldError, fieldErrorIconSize, fieldHint, fieldLabel, fieldMessage, type FieldSize, fieldWrapper, showsLabel, } from './fieldStyles';
+
 
 interface FieldShellProps {
 	/** The control itself. Position adornments against it with `relative` already applied. */
@@ -19,6 +20,7 @@ interface FieldShellProps {
 	/** Set when the control is not a native input, so the label is not a `<label>` at all. */
 	labelAs?: 'label' | 'span';
 }
+
 
 /**
  * The style around a form control: label above, error below, and the positioning context an icon
@@ -53,13 +55,15 @@ export const FieldShell = (props: FieldShellProps) => {
 			{ /* The anchor, so a panel opened from an adornment hangs off the whole control rather than the little button that opened it. */ }
 			<div { ...popoverAnchorProps } className="relative">{ children }</div>
 
-			{ hasError ? (
-				<p className={ fieldError }>
-					<AlertCircle size={ fieldErrorIconSize } className="shrink-0"/> { error }
-				</p>
-			) : hint ? (
-				<span className={ fieldHint }>{ hint }</span>
-			) : null }
+			<div className={ fieldMessage }>
+				{ hasError ? (
+					<p className={ fieldError }>
+						<AlertCircle size={ fieldErrorIconSize } className="shrink-0"/> { error }
+					</p>
+				) : hint ? (
+					<span className={ fieldHint }>{ hint }</span>
+				) : null }
+			</div>
 		</div>
 	);
 };

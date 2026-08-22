@@ -1,15 +1,12 @@
 import type { MouseEvent } from 'react';
-import type { Row } from '@tanstack/react-table';
-import type { VirtualItem } from '@tanstack/react-virtual';
 import { dataTableStrings } from '@/components/dataTable';
-import type { DataTableFeatures } from '../tableFeatures';
+import type { RenderRow } from '../types/dataTableTypes';
 import { DataTableGroupRow, DataTableRow } from './DataTableRow';
 
 
 interface DataTableBodyProps<T extends object> {
-	/** Every row that qualifies, not just the rendered ones - indexed into by `virtualRows`. */
-	rows: Row<DataTableFeatures, T>[];
-	virtualRows: VirtualItem[];
+	renderRows: RenderRow<T>[];
+	rowCount: number;
 	paddingTop: number;
 	paddingBottom: number;
 	measureRow: (node: HTMLTableRowElement | null) => void;
@@ -26,13 +23,13 @@ interface DataTableBodyProps<T extends object> {
 
 export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) => {
 	const {
-		rows, virtualRows, paddingTop, paddingBottom, measureRow,
+		renderRows, rowCount, paddingTop, paddingBottom, measureRow,
 		visibleColumnCount, isLoading, emptyMessage,
 		onCellEdit, onRowClick, onRowContextMenu,
 		contextRowId, onContextRowChange,
 	} = props;
 
-	if (rows.length === 0) {
+	if (rowCount === 0) {
 		if (isLoading) {
 			return null;
 		}
@@ -50,15 +47,14 @@ export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) =>
 		<>
 			{ paddingTop > 0 && <Spacer height={ paddingTop } columnCount={ visibleColumnCount }/> }
 
-			{ virtualRows.map((virtualRow) => {
-				const row = rows[virtualRow.index];
-
-				return row.getIsGrouped()
+			{ renderRows.map(({ row, cells, index, isGrouped }) => (
+				isGrouped
 					? (
 						<DataTableGroupRow
 							key={ row.id }
 							row={ row }
-							virtualIndex={ virtualRow.index }
+							cells={ cells }
+							virtualIndex={ index }
 							measureRow={ measureRow }
 						/>
 					)
@@ -66,7 +62,8 @@ export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) =>
 						<DataTableRow
 							key={ row.id }
 							row={ row }
-							virtualIndex={ virtualRow.index }
+							cells={ cells }
+							virtualIndex={ index }
 							measureRow={ measureRow }
 							onCellEdit={ onCellEdit }
 							onRowClick={ onRowClick }
@@ -74,8 +71,8 @@ export const DataTableBody = <T extends object>(props: DataTableBodyProps<T>) =>
 							isContextTarget={ row.id === contextRowId }
 							onContextRowChange={ onContextRowChange }
 						/>
-					);
-			}) }
+					)
+			)) }
 
 			{ paddingBottom > 0 && <Spacer height={ paddingBottom } columnCount={ visibleColumnCount }/> }
 		</>
