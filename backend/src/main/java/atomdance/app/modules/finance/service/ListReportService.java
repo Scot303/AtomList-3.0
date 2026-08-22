@@ -55,11 +55,11 @@ public class ListReportService {
 				.sorted(PaymentView.DISPLAY_ORDER)
 				.toList();
 
-		List<Deposit> deposits = cashInFor(list, payments);
-		Map<UUID, Integer> refs = referenceNumbers(deposits);
+		CashIn cash = cashInFor(list, payments);
+		Map<UUID, Integer> refs = referenceNumbers(cash.deposits());
 
 		List<ListReportView.Row> rows = payments.stream().map(payment -> row(payment, refs)).toList();
-		List<ListReportView.Deposit> cashIn = deposits.stream().map(deposit -> deposit(deposit, list, refs)).toList();
+		List<ListReportView.Deposit> cashIn = cash.deposits().stream().map(deposit -> deposit(deposit, list, refs, cash.belongsHere(deposit))).toList();
 
 		auditLogger.record(securityService.getCurrentUserId(), listId, AuditEventType.LIST_PREVIEW, AuditOutcome.SUCCESS, "List report generated.");
 
@@ -172,31 +172,56 @@ public class ListReportService {
 
 
 	/**
-	 * The deposits a sheet has to account for: the money that arrived during its period, plus anything that settled a debt on it whenever that money arrived.
+	 * The deposits a sheet has to name, and the subset of them it has to account for.
 	 * <p>
-	 * The first half is what makes the sheet reconcile against the cash box - money taken this month that went on an earlier month's debt
-	 * is still money taken this month. The second half is what makes every paid row on the sheet traceable to a handover.
+	 * It has to name the money that arrived during its period, plus anything that settled a debt on it whenever that money arrived - the second half is
+	 * what makes every paid row on the sheet traceable to a handover.
+	 * <p>
+	 * It has to account for only the first half. Money taken this month that went on an earlier month's debt is still money taken this month, so it belongs
+	 * in this cash box; money taken in another month that came back to settle a debt here does not, and counting it would book the same cash on every sheet
+	 * it passed through. An ad-hoc sheet bills no month and so owns nothing by date - what it owns is whatever landed on it as income, which is what the
+	 * carrying flag says.
 	 */
-	private List<Deposit> cashInFor(PaymentList list, List<Payment> payments) {
+	private CashIn cashInFor(PaymentList list, List<Payment> payments) {
 		Map<UUID, Deposit> byId = new LinkedHashMap<>();
+		Set<UUID> owned = new HashSet<>();
 		YearMonth month = list.yearMonth();
 
 		if (month != null) {
 			for (Deposit deposit : depositRepository.findReceivedBetween(clock.startOf(month), clock.endOf(month))) {
 				byId.putIfAbsent(deposit.getId(), deposit);
+				owned.add(deposit.getId());
 			}
 		}
 
 		for (Payment payment : payments) {
 			for (PaymentSettlement settlement : payment.getSettlements()) {
-				byId.putIfAbsent(settlement.getDeposit().getId(), settlement.getDeposit());
+				Deposit deposit = settlement.getDeposit();
+				byId.putIfAbsent(deposit.getId(), deposit);
+
+				if (settlement.isCarryingMoney()) {
+					owned.add(deposit.getId());
+				}
 			}
 		}
 
-		return byId.values().stream()
+		List<Deposit> deposits = byId.values().stream()
 				.sorted(Comparator.comparing(Deposit::getReceivedAt, Comparator.nullsLast(Comparator.naturalOrder()))
 						.thenComparing(Deposit::getNumber, Comparator.nullsLast(Comparator.naturalOrder())))
 				.toList();
+
+		return new CashIn(deposits, owned);
+	}
+
+
+	/**
+	 * The deposits one sheet names, and the ones whose money is that sheet's to report.
+	 */
+	private record CashIn(List<Deposit> deposits, Set<UUID> owned) {
+
+		boolean belongsHere(Deposit deposit) {
+			return owned.contains(deposit.getId());
+		}
 	}
 
 
@@ -215,10 +240,17 @@ public class ListReportService {
 	}
 
 
-	private ListReportView.Deposit deposit(Deposit deposit, PaymentList list, Map<UUID, Integer> refs) {
+	/**
+	 * What became of one handover, split against the sheet being printed.
+	 * <p>
+	 * Settling a charge here and being this sheet's income are two different things, and money from another month does the first without the second.
+	 * Rolling the two together prints such money as spent on other sheets, on the very sheet it paid for.
+	 */
+	private ListReportView.Deposit deposit(Deposit deposit, PaymentList list, Map<UUID, Integer> refs, boolean belongsHere) {
 		List<PaymentSettlement> settlements = settlementRepository.findByDepositId(deposit.getId());
 
 		BigDecimal countedHere = Money.ZERO;
+		BigDecimal clearedHere = Money.ZERO;
 		BigDecimal spentElsewhere = Money.ZERO;
 		BigDecimal total = Money.ZERO;
 
@@ -228,10 +260,12 @@ public class ListReportService {
 			Payment payment = settlement.getPayment();
 			boolean onThisList = list.getId().equals(payment.getList().getId());
 
-			if (onThisList && settlement.isCarryingMoney()) {
+			if (!onThisList) {
+				spentElsewhere = Money.add(spentElsewhere, settlement.getAmount());
+			} else if (settlement.isCarryingMoney()) {
 				countedHere = Money.add(countedHere, settlement.getAmount());
 			} else {
-				spentElsewhere = Money.add(spentElsewhere, settlement.getAmount());
+				clearedHere = Money.add(clearedHere, settlement.getAmount());
 			}
 
 			total = Money.add(total, settlement.getAmount());
@@ -239,7 +273,9 @@ public class ListReportService {
 		}
 
 		int ref = refs.getOrDefault(deposit.getId(), 0);
-		BigDecimal unallocated = Money.atLeastZero(Money.subtract(deposit.getTotalAmount(), total));
+
+		// Left unclamped on purpose: negative means more was allocated than was ever handed over, and the sheet has to be able to say so.
+		BigDecimal unallocated = Money.subtract(deposit.getTotalAmount(), total);
 
 		return new ListReportView.Deposit(
 				deposit.getId(),
@@ -249,8 +285,10 @@ public class ListReportService {
 				deposit.getPaymentMethod(),
 				deposit.getReceivedAt(),
 				deposit.getOrigin().isDirect(),
+				belongsHere,
 				deposit.getTotalAmount(),
 				countedHere,
+				clearedHere,
 				spentElsewhere,
 				unallocated,
 				Money.isPositive(spentElsewhere) || Money.isPositive(unallocated),
@@ -352,24 +390,40 @@ public class ListReportService {
 
 		BigDecimal received = Money.ZERO;
 		BigDecimal countedHere = Money.ZERO;
+		BigDecimal clearedHere = Money.ZERO;
 		BigDecimal spentElsewhere = Money.ZERO;
 		BigDecimal unallocated = Money.ZERO;
 
+		// Every handover that touched this sheet, whoever it belongs to. Only used to check the sheet against itself - it is not a figure anybody reads.
+		BigDecimal clearedFromAnywhere = Money.ZERO;
+
 		for (ListReportView.Deposit deposit : cashIn) {
+			clearedFromAnywhere = Money.add(clearedFromAnywhere, deposit.clearedOnThisList());
+
+			// Money from another period is named on this sheet so its rows can be traced, but it was taken - and is reported - somewhere else.
+			if (!deposit.belongsHere()) {
+				continue;
+			}
+
 			received = Money.add(received, deposit.totalAmount());
 			countedHere = Money.add(countedHere, deposit.countedOnThisList());
+			clearedHere = Money.add(clearedHere, deposit.clearedOnThisList());
 			spentElsewhere = Money.add(spentElsewhere, deposit.spentElsewhere());
 			unallocated = Money.add(unallocated, deposit.unallocated());
 		}
 
+		// No deposit can have had more spent out of it than was handed over. The residual is left unclamped in deposit() so that this can be seen here rather than rounded away into a plausible zero.
+		boolean overAllocated = cashIn.stream().anyMatch(deposit -> Money.isNegative(deposit.unallocated()));
+
 		// The same money reached two different ways: summed over the rows, and summed over the deposits.
-		// They have to agree, and if they ever do not the report is lying rather than the manager being wrong.
-		boolean reconciles = collected.compareTo(countedHere) == 0
-				&& received.compareTo(Money.add(countedHere, Money.add(spentElsewhere, unallocated))) == 0;
+		// They have to agree, and if they ever do not the report is lying.
+		boolean reconciles = !overAllocated
+				&& collected.compareTo(countedHere) == 0
+				&& cleared.compareTo(clearedFromAnywhere) == 0;
 
 		if (!reconciles) {
-			log.error("List report does not reconcile: rows collected {} against deposits counted {}; received {} against {} + {} + {}",
-					collected, countedHere, received, countedHere, spentElsewhere, unallocated);
+			log.error("List report does not reconcile: rows collected {} against deposits counted {}; rows cleared {} against deposits cleared {}; over-allocated deposits: {}",
+					collected, countedHere, cleared, clearedFromAnywhere, overAllocated);
 		}
 
 		return new ListReportView.Totals(
@@ -381,6 +435,7 @@ public class ListReportService {
 				outstanding,
 				received,
 				countedHere,
+				clearedHere,
 				spentElsewhere,
 				unallocated,
 				reconciles
