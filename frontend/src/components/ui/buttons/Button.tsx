@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn.ts';
 type ButtonVariant = 'primary' | 'secondary' | 'secondary_muted' | 'danger' | 'warning' | 'ghost' | 'ghost_primary';
 type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 
+
 interface ButtonProps extends HTMLMotionProps<'button'> {
 	variant?: ButtonVariant;
 	size?: ButtonSize;
@@ -44,8 +45,8 @@ export const Button = (props: ButtonProps) => {
 	};
 
 	const sizes = {
-		sm: 'px-3 py-1 text-xs rounded-lg gap-1.5 shadow-md',
-		md: 'px-4 py-2 text-sm rounded-xl gap-2 shadow-md',
+		sm: 'px-2.5 py-1 text-xs rounded-lg gap-1.5 shadow-md',
+		md: 'pl-3 pr-3.5 py-2 text-sm rounded-xl gap-2 shadow-md',
 		lg: 'px-6 py-2.5 text-sm rounded-xl gap-2 shadow-lg',
 		xl: 'px-8 py-3 text-base rounded-2xl gap-2.5 shadow-lg',
 	};
