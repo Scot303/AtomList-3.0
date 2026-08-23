@@ -10,7 +10,7 @@ const TONES: Record<Tone, string> = {
 	muted: 'text-os-text-muted',
 	good: 'text-os-green',
 	bad: 'text-os-error',
-	strong: 'font-semibold text-os-text',
+	strong: 'font-medium text-os-text',
 };
 
 

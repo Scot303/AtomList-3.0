@@ -98,7 +98,7 @@ function CreditRow({ deposit }: { deposit: DepositView }) {
 						variant="secondary_muted"
 						size="sm"
 						leftIcon={ <Eye size={ 14 }/> }
-						onClick={ () => void openModal('deposits.details', { depositId: deposit.id }) }
+						onClick={ () => void openModal('deposits.details', { depositId: deposit.id, depositCode: deposit.code }) }
 					>
 						Szczegóły
 					</Button>

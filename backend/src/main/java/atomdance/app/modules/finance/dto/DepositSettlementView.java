@@ -29,6 +29,7 @@ public record DepositSettlementView(
 		String listName,
 		UUID personId,
 		String personName,
+		UUID groupId,
 		String description
 ) {
 
@@ -50,6 +51,7 @@ public record DepositSettlementView(
 				payment.getList().getName(),
 				payment.getPerson().getId(),
 				payment.getPerson().getFullName(),
+				payment.getGroup() == null ? null : payment.getGroup().getId(),
 				payment.getLabel()
 		);
 	}
