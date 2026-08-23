@@ -164,7 +164,7 @@ export const MODAL_REGISTRY = {
 
 	'deposits.personCredit': defineModal({
 		load: () => import('@/modules/deposits/modals/PersonCreditModal.tsx'),
-		title: ({ personName }) => `Wpłaty osoby - ${ personName }`,
+		title: ({ personName }) => `Wpłaty z wolnymi środkami osoby - ${ personName }`,
 		size: 'lg',
 	}),
 

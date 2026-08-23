@@ -1,4 +1,4 @@
-import { Controller, type FieldErrors, type UseFormReturn } from 'react-hook-form';
+import { type Control, Controller, useFormState } from 'react-hook-form';
 import { Alert } from '@/components/feedback/Alert';
 import { ExtendedSelect } from '@/components/ui/extendedSelect';
 import { DatePicker, Input, Textarea } from '@/components/ui/fields';
@@ -11,16 +11,16 @@ import type { DepositFormValues } from '../../schemas/paymentSchemas';
 
 
 interface DepositFormFieldsProps {
-	form: UseFormReturn<DepositFormValues>;
-	errors: FieldErrors<DepositFormValues>;
+	control: Control<DepositFormValues>;
 	busy: boolean;
 }
 
 
-export function DepositFormFields({ form, errors, busy }: DepositFormFieldsProps) {
+export function DepositFormFields({ control, busy }: DepositFormFieldsProps) {
 	const persons = usePersons();
 
-	const { register, control } = form;
+	const { register } = control;
+	const { errors } = useFormState({ control });
 
 	const personOptions = toPersonOptions(persons.data ?? []);
 

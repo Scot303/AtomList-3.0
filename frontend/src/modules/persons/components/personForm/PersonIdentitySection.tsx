@@ -1,18 +1,20 @@
-import { Controller, type UseFormReturn } from 'react-hook-form';
+import { type Control, Controller, useFormState } from 'react-hook-form';
 import { DatePicker, FormSection, Input } from '@/components/ui/fields';
 import type { PersonFormValues } from '../../schemas/personSchemas';
 
 
 interface PersonIdentitySectionProps {
-	form: UseFormReturn<PersonFormValues>;
+	control: Control<PersonFormValues>;
 	busy: boolean;
 }
+
 
 /**
  * Who the person is.
  */
-export const PersonIdentitySection = ({ form, busy }: PersonIdentitySectionProps) => {
-	const { register, control, formState: { errors } } = form;
+export const PersonIdentitySection = ({ control, busy }: PersonIdentitySectionProps) => {
+	const { register } = control;
+	const { errors } = useFormState({ control });
 
 	return (
 		<FormSection title="Dane osobowe">

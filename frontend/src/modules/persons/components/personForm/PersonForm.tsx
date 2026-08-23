@@ -20,6 +20,7 @@ interface PersonFormProps {
 	person?: PersonView;
 }
 
+
 /**
  * Everything held about one person, whether they exist yet or not.
  */
@@ -31,10 +32,11 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 
 	const form = useForm<PersonFormValues>({
 		resolver: zodResolver(personFormSchema),
+		mode: "onTouched",
 		defaultValues: person === undefined ? blankPersonForm() : personToForm(person),
 	});
 
-	const { register, handleSubmit, formState: { errors } } = form;
+	const { register, control, handleSubmit, formState: { errors } } = form;
 
 
 	const onSubmit = handleSubmit((values) => {
@@ -81,15 +83,11 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 
 	return (
 		<form onSubmit={ onSubmit } noValidate className="mt-3 space-y-5">
-			<PersonIdentitySection form={ form } busy={ busy }/>
+			<PersonIdentitySection control={ control } busy={ busy }/>
 
-			<PersonContactSection
-				form={ form }
-				busy={ busy }
-				familyPhone={ familyPhone }
-			/>
+			<PersonContactSection control={ control } busy={ busy } familyPhone={ familyPhone }/>
 
-			<PersonStudioSection form={ form } busy={ busy } showActive={ person !== undefined }/>
+			<PersonStudioSection control={ control } busy={ busy } showActive={ person !== undefined }/>
 
 			<Textarea
 				label="Notatka"
