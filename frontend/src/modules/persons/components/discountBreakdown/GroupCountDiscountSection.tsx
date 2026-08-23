@@ -1,5 +1,6 @@
 import { Users } from 'lucide-react';
 import { TagBadge } from '@/components/ui/tags';
+import { cn } from '@/lib/cn';
 import { formatCurrency, pluralise } from '@/lib/locale';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
 import { indexGroups, resolveGroupColor } from '@/modules/groups/types/groupRows.ts';
@@ -26,7 +27,7 @@ export function GroupCountDiscountSection({ component, memberships }: GroupCount
 			icon={ <Users size={ 16 } aria-hidden/> }
 			title="Zniżka za liczbę grup"
 			percent={ component.percent }
-			lead={ `Osoba uczęszcza do ${ count } ${ groupWord(count) } w tym miesiącu.` }
+			lead={ `Osoba jest rozliczana za ${ count } ${ groupWord(count) } w tym miesiącu.` }
 		>
 			{ memberships.length > 0 && <CountedMembershipList memberships={ memberships }/> }
 
@@ -41,7 +42,8 @@ export function GroupCountDiscountSection({ component, memberships }: GroupCount
 
 
 /**
- * Every membership that ran at any point this month counts, whether or not it is still running, because the month was charged for it.
+ * Every membership that ran at any point this month counts, whether or not it is still running, because the month was
+ * charged for it. A group the person pays nothing for is listed too, but marked as counting towards nothing.
  */
 function CountedMembershipList({ memberships }: { memberships: CountedMembership[] }) {
 	const groups = useGroups();
@@ -52,14 +54,17 @@ function CountedMembershipList({ memberships }: { memberships: CountedMembership
 			{ memberships.map((membership) => (
 				<li
 					key={ membership.membershipId }
-					className="flex items-center gap-3 border-b border-os-border/40 px-3 py-2 text-sm last:border-b-0"
+					className={ cn(
+						'flex items-center gap-3 border-b border-os-border/40 px-3 py-2 text-sm last:border-b-0',
+						!membership.counted && 'text-os-text-muted',
+					) }
 				>
 					<span className="shrink-0">
 						<TagBadge label={ membership.groupName } color={ membershipColor(membership, groupsById) }/>
 					</span>
 
 					<span className="min-w-0 flex-1 truncate text-os-text-muted">
-						{ !membership.current && 'zakończona w tym miesiącu, ale nadal liczona' }
+						{ membershipNote(membership) }
 					</span>
 
 					<span className="shrink-0 font-mono text-sm">
@@ -71,6 +76,24 @@ function CountedMembershipList({ memberships }: { memberships: CountedMembership
 			)) }
 		</ul>
 	);
+}
+
+
+/**
+ * Why a membership is, or is not, part of the count.
+ */
+function membershipNote(membership: CountedMembership): string {
+	const notes: string[] = [];
+
+	if (!membership.current) {
+		notes.push(membership.counted ? 'zakończona w tym miesiącu, ale nadal liczona' : 'zakończona w tym miesiącu');
+	}
+
+	if (!membership.counted) {
+		notes.push('bez opłaty, nie liczy się do zniżki');
+	}
+
+	return notes.join(' · ');
 }
 
 

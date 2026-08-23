@@ -1,5 +1,5 @@
 import type { PlannedSettlementView } from '@/modules/deposits/types/types.ts';
-import type { PaymentMethod } from '@/types/finance.ts';
+import type { CoveredPersonView, PaymentMethod } from '@/types/finance.ts';
 
 
 /** Mirror of the backend's `ListType`. */
@@ -166,8 +166,7 @@ export interface CreditSweepView {
 export interface CreditSweepEntryView {
 	depositId: string;
 	depositCode: string;
-	payerId: string;
-	payerName: string;
+	coveredPersons: CoveredPersonView[];
 	paymentMethod: PaymentMethod;
 	receivedAt: string;
 	creditAvailable: number;
@@ -302,20 +301,23 @@ export interface ListReportView {
 
 
 /**
- * Mirror of `ListReportView.Deposit` - one deposit of money belonging to this period, and what became of it.
+ * Mirror of `ListReportView.Deposit` - one handover of money, and what became of it as seen from this sheet.
  */
 export interface ReportDepositView {
 	depositId: string;
 	depositCode: string;
 	/** The deposit's number within this report - "#1", "#2" - so paper references stay short. */
 	ref: number;
-	payerId: string;
-	payerName: string;
+	coveredPersons: CoveredPersonView[];
 	paymentMethod: PaymentMethod;
 	receivedAt: string;
 	direct: boolean;
+	/** Whether this sheet is the one that has to account for the handover. */
+	belongsHere: boolean;
 	totalAmount: number;
 	countedOnThisList: number;
+	/** What of it settled a charge here without being this sheet's income. */
+	clearedOnThisList: number;
 	spentElsewhere: number;
 	unallocated: number;
 	overpaid: boolean;
@@ -335,8 +337,10 @@ export interface ReportTotalsView {
 	collectedTotal: number;
 	clearedElsewhereTotal: number;
 	outstandingTotal: number;
+	/** The cash box for this sheet's period: only deposits with `belongsHere`. The three below partition it. */
 	depositsReceivedTotal: number;
 	depositsCountedHereTotal: number;
+	depositsClearedHereTotal: number;
 	depositsSpentElsewhereTotal: number;
 	depositsUnallocatedTotal: number;
 	reconciles: boolean;

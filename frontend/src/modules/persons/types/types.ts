@@ -185,7 +185,7 @@ export interface DiscountHousehold {
 }
 
 
-/** One membership counted toward the group-count discount. Mirror of `PersonDiscountView.CountedMembership`. */
+/** Mirror of `PersonDiscountView.CountedMembership`. */
 export interface CountedMembership {
 	membershipId: string;
 	groupId: string;
@@ -195,6 +195,8 @@ export interface CountedMembership {
 	monthlyCost: number | null;
 	/** False for a membership that ended mid-month: still counted, but no longer running. */
 	current: boolean;
+	/** False for a group this person pays nothing for this month: shown for the explanation, but not counted towards the discount. */
+	counted: boolean;
 }
 
 

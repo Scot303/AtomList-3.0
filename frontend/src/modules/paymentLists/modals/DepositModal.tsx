@@ -36,8 +36,8 @@ export default function DepositModal({ list, defaultPersonIds }: DepositModalPro
 					Pozycje z tej listy najlepiej jest rozliczać pojedynczo, poprzez opcję „Rozlicz” w menu kontekstowym wiersza.
 				</Alert>
 			) : (
-				<p className="text-sm text-os-text-muted">
-					Wpłata na listę <span className="font-bold text-os-text">{ describeList(list) }</span>.
+				<p className="text-base text-os-text-muted">
+					Wpłata na listę <span className="font-bold text-os-primary">{ describeList(list) }</span>.
 				</p>
 			) }
 
@@ -68,7 +68,7 @@ export default function DepositModal({ list, defaultPersonIds }: DepositModalPro
 			{ current !== null && (
 				<DepositPlanReview
 					plan={ current }
-					payerPersonId={ form.getValues('personIds')[0] }
+					personIds={ form.getValues('personIds') }
 					busy={ busy }
 					replanning={ deposit.planning }
 					error={ deposit.saveError }

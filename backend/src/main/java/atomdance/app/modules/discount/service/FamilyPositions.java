@@ -7,7 +7,9 @@ import atomdance.app.modules.person.model.Person;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
+
 
 /**
  * Decides which sibling counts as the first in the household, which the second, and so on.
@@ -17,17 +19,25 @@ public final class FamilyPositions {
 	private FamilyPositions() {
 	}
 
+
 	/**
 	 * Works out where each person sits in their household's discount ladder, counting from 1.
+	 * <p>
+	 * Somebody who is billed nothing in the month takes up no rung, so a free membership cannot push a paying sibling down the ladder.
 	 *
 	 * @param candidates    everybody the ladder has to account for, each appearing once.
 	 * @param monthByPerson the memberships running in the month, by person, which is what the order is decided on
+	 * @param month         the month being billed, which decides what each membership charges and so who is charged at all
 	 */
-	public static Map<UUID, Integer> resolve(Collection<Person> candidates, Map<UUID, List<Membership>> monthByPerson) {
+	public static Map<UUID, Integer> resolve(Collection<Person> candidates, Map<UUID, List<Membership>> monthByPerson, YearMonth month) {
 		Map<UUID, List<Person>> byFamily = new HashMap<>();
 		Map<UUID, Integer> positions = new HashMap<>();
 
 		for (Person person : candidates) {
+			if (!ChargedMemberships.anyCharged(monthByPerson.get(person.getId()), month)) {
+				continue;
+			}
+
 			if (person.getFamily() == null) {
 				positions.put(person.getId(), 1);
 
@@ -48,8 +58,9 @@ public final class FamilyPositions {
 		return positions;
 	}
 
+
 	/**
-	 * Reshapes a flat set of memberships into the per-person map {@link #resolve} reads.
+	 * Reshapes a flat set of memberships into the per-person map.
 	 */
 	public static Map<UUID, List<Membership>> byPerson(Collection<Membership> memberships) {
 		Map<UUID, List<Membership>> byPerson = new HashMap<>();
@@ -61,6 +72,7 @@ public final class FamilyPositions {
 		return byPerson;
 	}
 
+
 	/**
 	 * Highest recurring charge first, then the longest-standing member.
 	 */
@@ -71,6 +83,7 @@ public final class FamilyPositions {
 				.thenComparing(Person::getCreatedAt, Comparator.nullsLast(Instant::compareTo))
 				.thenComparing(person -> String.valueOf(person.getId()));
 	}
+
 
 	/**
 	 * The recurring monthly charge, which is what the family order is decided on.

@@ -118,25 +118,18 @@ export const settleFormSchema: z.ZodType<SettleFormValues, SettleFormValues> = z
 
 export interface DepositFormValues {
 	personIds: string[];
-	payerPersonId: string;
 	amount: string;
 	paymentMethod: PaymentMethod;
 	receivedAt: string;
-	monthsAhead: string;
 	note: string;
 }
 
 
 export const depositFormSchema: z.ZodType<DepositFormValues, DepositFormValues> = z.object({
 	personIds: z.array(z.string()).min(1, 'Wybierz co najmniej jedną osobę.'),
-	payerPersonId: z.string(),
 	amount: amountValue(0.01),
 	paymentMethod: paymentMethodValue,
 	receivedAt: dateValue,
-	monthsAhead: z
-		.string()
-		.trim()
-		.refine((value) => value === '' || /^\d{1,2}$/.test(value), 'Podaj liczbę miesięcy.'),
 	note: noteValue,
 });
 

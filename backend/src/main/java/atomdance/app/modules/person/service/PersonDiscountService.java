@@ -6,6 +6,7 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.discount.service.ChargedMemberships;
 import atomdance.app.modules.discount.service.DiscountRules;
 import atomdance.app.modules.discount.service.DiscountService;
 import atomdance.app.modules.discount.service.FamilyPositions;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.*;
+
 
 /**
  * Explains one person's discount for the current month.
@@ -62,19 +64,19 @@ public class PersonDiscountService {
 				month.atEndOfMonth()
 		));
 
-		// The same rule the family view applied: anybody inactive, or with nothing running, is not being charged.
+		// Anybody inactive is not being charged, and of the rest the ladder itself leaves out whoever is billed nothing this month.
 		List<Person> billedMembers = household.stream()
 				.filter(Person::isActive)
-				.filter(member -> monthByPerson.containsKey(member.getId()))
 				.toList();
 
-		Map<UUID, Integer> positions = FamilyPositions.resolve(billedMembers, monthByPerson);
+		Map<UUID, Integer> positions = FamilyPositions.resolve(billedMembers, monthByPerson, month);
 
 		Integer position = positions.get(personId);
 		boolean billed = position != null;
 
-		List<Membership> counted = monthByPerson.getOrDefault(personId, List.of());
-		int groupCount = counted.size();
+		// Everything running this month, whether or not it counts: a group somebody pays nothing for is still shown, just not counted.
+		List<Membership> running = monthByPerson.getOrDefault(personId, List.of());
+		int groupCount = ChargedMemberships.groupCount(running, month);
 
 		DiscountRules rules = discountService.currentRules();
 
@@ -93,7 +95,7 @@ public class PersonDiscountService {
 				person.isActive(),
 				billed,
 				householdView(person, household, positions, monthByPerson),
-				counted.stream().map(PersonDiscountService::countedMembership).toList(),
+				running.stream().map(membership -> countedMembership(membership, month)).toList(),
 				component(billed ? position : null, familyPercent, rules.familyLadder(), billed ? rules.familyThreshold(position) : null),
 				component(billed ? groupCount : null, groupCountPercent, rules.groupCountLadder(), billed ? rules.groupCountThreshold(groupCount) : null),
 				total,
@@ -126,6 +128,7 @@ public class PersonDiscountService {
 		return members;
 	}
 
+
 	/**
 	 * The household as the ladder ordered it. Null for somebody with no family.
 	 */
@@ -155,6 +158,7 @@ public class PersonDiscountService {
 		return new PersonDiscountView.Household(family.getId(), family.getName(), members);
 	}
 
+
 	/**
 	 * @param input null when nothing is being charged, so the ladder was never consulted.
 	 */
@@ -170,7 +174,8 @@ public class PersonDiscountService {
 		return new PersonDiscountView.Component(input, matchedThreshold, Money.normalize(percent), rungs);
 	}
 
-	private static PersonDiscountView.CountedMembership countedMembership(Membership membership) {
+
+	private static PersonDiscountView.CountedMembership countedMembership(Membership membership, YearMonth month) {
 		boolean perClass = membership.getGroup().isPerClass();
 
 		return new PersonDiscountView.CountedMembership(
@@ -179,7 +184,8 @@ public class PersonDiscountService {
 				membership.getGroup().getName(),
 				perClass,
 				perClass ? null : Money.normalize(membership.resolveUnitCost()),
-				membership.isActive()
+				membership.isActive(),
+				ChargedMemberships.isCharged(membership, month)
 		);
 	}
 }
