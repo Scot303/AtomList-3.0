@@ -1,4 +1,4 @@
-package service.sms;
+package atomdance.app.modules.sms;
 
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.modules.audit.service.AuditLogger;
@@ -69,7 +69,7 @@ class ScheduledSmsServiceTest {
         assertEquals(1, smsServiceArgumentCaptor.getValue().size());
 
         Sms combinedSms = (Sms) smsServiceArgumentCaptor.getValue().getFirst();
-        assertEquals("Przypominamy o uregulowaniu płatności za zajęcia: 101,00 zł.", combinedSms.getMessage());
+        assertEquals("Przypominamy o uregulowaniu płatności za zajęcia. Dziękujemy!", combinedSms.getMessage());
         assertEquals(familyPhoneNumber, combinedSms.getSentToPhone());
     }
 

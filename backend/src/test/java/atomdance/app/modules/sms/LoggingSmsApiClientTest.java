@@ -1,4 +1,4 @@
-package service.sms;
+package atomdance.app.modules.sms;
 
 import atomdance.app.BackendApplication;
 import atomdance.app.common.sms.LoggingSmsApiClient;
