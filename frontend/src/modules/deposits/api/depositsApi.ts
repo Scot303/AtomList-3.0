@@ -1,6 +1,6 @@
 import { axiosInstance } from '@/api/axiosInstance';
 import { DEPOSIT_ENDPOINTS } from '@/api/endpoints';
-import type { AllocateDepositPayload, CreateDepositPayload, DepositPlanView, DepositView, PlanDepositPayload, } from '@/modules/paymentLists/types/types.ts';
+import type { AllocateDepositPayload, CreateDepositPayload, DepositPlanView, DepositView, PlanDepositPayload, } from '../types/types.ts';
 
 
 /** The history of deposits, most recent first. Rows carry no settlements. */
