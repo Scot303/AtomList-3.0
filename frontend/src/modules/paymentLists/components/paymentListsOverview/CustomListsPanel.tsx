@@ -5,6 +5,9 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/buttons/Button.tsx';
 import { useMediaQuery } from '@/hooks/useMediaQuery.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups.ts';
+import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons.ts';
+import { preloadModal } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore.ts';
 import { CustomListRow } from './CustomListRow.tsx';
 import { useCustomListMenu } from '../../hooks/contextMenu/useCustomListMenu.ts';
@@ -35,6 +38,9 @@ export const CustomListsPanel = ({ lists, isLoading }: CustomListsPanelProps) =>
 	const { hasPermission } = useAuth();
 	const openModal = useModalStore((state) => state.openModal);
 
+	const prefetchGroups = usePrefetchGroups();
+	const prefetchPersons = usePrefetchPersons();
+
 	const buildMenu = useCustomListMenu();
 
 	const rowVirtualizer = useVirtualizer({
@@ -48,6 +54,12 @@ export const CustomListsPanel = ({ lists, isLoading }: CustomListsPanelProps) =>
 	useLayoutEffect(() => {
 		rowVirtualizer.measure();
 	}, [rowHeight, rowVirtualizer]);
+
+	const prefetchCustomListForm = () => {
+		preloadModal('lists.customForm');
+		prefetchGroups();
+		prefetchPersons();
+	};
 
 	return (
 		<section className="styled-card flex h-full min-h-0 flex-col rounded-2xl">
@@ -88,6 +100,8 @@ export const CustomListsPanel = ({ lists, isLoading }: CustomListsPanelProps) =>
 						variant="secondary"
 						className="w-full"
 						leftIcon={ <Plus size={ 16 }/> }
+						onMouseEnter={ prefetchCustomListForm }
+						onFocus={ prefetchCustomListForm }
 						onClick={ () => void openModal('lists.customForm', {}) }
 					>
 						Dodaj listę
