@@ -102,7 +102,7 @@ export default function FindDepositModal() {
 							size="sm"
 							className="ml-auto"
 							leftIcon={ <ArrowRight size={ 16 }/> }
-							onClick={ () => void openModal('deposits.details', { depositId: deposit.id }) }
+							onClick={ () => void openModal('deposits.details', { depositId: deposit.id, depositCode: deposit.code }) }
 						>
 							Otwórz szczegóły
 						</Button>

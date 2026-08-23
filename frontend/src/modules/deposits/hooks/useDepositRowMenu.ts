@@ -3,6 +3,7 @@ import { formatCurrency } from '@/lib/locale';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { coveredPersonLabel } from '@/types/finance.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
+import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
 import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
 import { useConfirm } from '@/stores/dialogStore';
 import type { ContextMenuItem } from '@/stores/menuStore';
@@ -29,6 +30,7 @@ export function useDepositRowMenu(): DepositRowMenuBuilder {
 	const prefetchDeposit = usePrefetchDeposit();
 	const prefetchPersonCredit = usePrefetchPersonCredit();
 	const prefetchPersons = usePrefetchPersons();
+	const prefetchGroups = usePrefetchGroups();
 
 	const { mutate: deleteDeposit } = useDeleteDeposit();
 
@@ -61,6 +63,7 @@ export function useDepositRowMenu(): DepositRowMenuBuilder {
 		const { deposit } = row;
 
 		prefetchDeposit(deposit.id);
+		prefetchGroups();
 
 		if (deposit.unallocatedAmount > 0) {
 			prefetchPersons();
@@ -73,7 +76,7 @@ export function useDepositRowMenu(): DepositRowMenuBuilder {
 				id: 'details',
 				label: 'Szczegóły',
 				icon: Eye,
-				onSelect: () => void openModal('deposits.details', { depositId: deposit.id }),
+				onSelect: () => void openModal('deposits.details', { depositId: deposit.id, depositCode: deposit.code }),
 			},
 		];
 

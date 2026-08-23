@@ -144,7 +144,7 @@ export const MODAL_REGISTRY = {
 
 	'deposits.details': defineModal({
 		load: () => import('@/modules/deposits/modals/DepositDetailsModal.tsx'),
-		title: 'Szczegóły wpłaty',
+		title: ({ depositCode }) => `Szczegóły wpłaty - (${ depositCode })`,
 		size: 'lg',
 	}),
 

@@ -55,6 +55,8 @@ export interface DepositSettlementView {
 	listName: string | null;
 	personId: string;
 	personName: string;
+	/** The billed group, or null for an ad-hoc charge. */
+	groupId: string | null;
 	description: string | null;
 }
 
