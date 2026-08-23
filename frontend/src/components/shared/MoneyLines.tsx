@@ -32,7 +32,7 @@ export function MoneyLine({ label, amount, tone = 'default', suffix, separated }
 		<div className={ cn('flex items-baseline justify-between gap-3 py-1', separated && 'mt-1 border-t border-os-border/80 pt-2') }>
 			<span className="min-w-0 truncate text-sm text-os-text-muted">{ label }</span>
 
-			<span className={ cn('shrink-0 text-sm tabular-nums', TONES[tone]) }>
+			<span className={ cn('shrink-0 text-sm font-medium tabular-nums', TONES[tone]) }>
 				{ formatCurrency(amount) }
 				{ suffix }
 			</span>
