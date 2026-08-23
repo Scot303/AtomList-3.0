@@ -1,5 +1,5 @@
 import { type ChangeEvent, type KeyboardEvent } from 'react';
-import { Controller, type UseFormReturn } from 'react-hook-form';
+import { type Control, Controller, useFormState } from 'react-hook-form';
 import { Info } from 'lucide-react';
 import { ExtendedSelect } from '@/components/ui/extendedSelect';
 import { fieldLabel, FormSection, Input } from '@/components/ui/fields';
@@ -13,6 +13,7 @@ const PHONE_FALLBACK_HINT = 'Gdy pole telefonu jest puste, do kontaktu używany 
 	'dzięki temu rodzeństwo dzieli jeden numer i wystarczy zmienić go w jednym miejscu. Własny numer osoby zawsze ma pierwszeństwo.';
 
 const PHONE_MAX_LENGTH = formatPhone('0'.repeat(PHONE_DIGIT_COUNT)).length;
+
 
 function caretAfterDigits(formatted: string, digitsBefore: number): number {
 	if (digitsBefore === 0) {
@@ -36,23 +37,25 @@ function caretAfterDigits(formatted: string, digitsBefore: number): number {
 
 
 interface PersonContactSectionProps {
-	form: UseFormReturn<PersonFormValues>;
+	control: Control<PersonFormValues>;
 	busy: boolean;
 	familyPhone: string | null;
 }
 
+
 /**
  * How the person is reached, and which household they are reached through.
  */
-export const PersonContactSection = ({ form, busy, familyPhone }: PersonContactSectionProps) => {
-	const { register, control, formState: { errors } } = form;
+export const PersonContactSection = ({ control, busy, familyPhone }: PersonContactSectionProps) => {
+	const { register } = control;
+	const { errors } = useFormState({ control });
 
 	const families = useFamilies();
 
-	const familyOptions = (families.data ?? []).map((family) => ({
+	const familyOptions = ( families.data ?? [] ).map((family) => ( {
 		id: family.id,
 		name: formatFamilyName(family),
-	}));
+	} ));
 
 	const phone = register('phone');
 

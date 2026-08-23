@@ -1,20 +1,21 @@
-import { Controller, type UseFormReturn } from 'react-hook-form';
+import { type Control, Controller, useFormState } from 'react-hook-form';
 import { DatePicker, FormSection, Toggle } from '@/components/ui/fields';
 import type { PersonFormValues } from '../../schemas/personSchemas';
 import { cn } from "@/lib/cn.ts";
 
 
 interface PersonStudioSectionProps {
-	form: UseFormReturn<PersonFormValues>;
+	control: Control<PersonFormValues>;
 	busy: boolean;
 	showActive: boolean;
 }
 
+
 /**
  * The person's standing with the studio.
  */
-export const PersonStudioSection = ({ form, busy, showActive }: PersonStudioSectionProps) => {
-	const { control, formState: { errors } } = form;
+export const PersonStudioSection = ({ control, busy, showActive }: PersonStudioSectionProps) => {
+	const { errors } = useFormState({ control });
 
 	return (
 		<FormSection title="Studio">

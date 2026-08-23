@@ -27,7 +27,8 @@ export default function DepositModal({ list, defaultPersonIds }: DepositModalPro
 	const deposit = useDepositPlanForm({ list, defaultPersonIds });
 
 	const { current, busy, form } = deposit;
-	const { errors } = form.formState;
+
+	const { control } = form;
 
 	return (
 		<div className="mt-2">
@@ -43,7 +44,7 @@ export default function DepositModal({ list, defaultPersonIds }: DepositModalPro
 
 			<form onSubmit={ deposit.runPlan } noValidate className="space-y-5 mt-8">
 				<div className={ cn('space-y-2', fieldMessageReserve) }>
-					<DepositFormFields form={ form } errors={ errors } busy={ busy }/>
+					<DepositFormFields control={ control } busy={ busy }/>
 				</div>
 
 				{ deposit.planError !== null && <Alert tone="danger">{ deposit.planError }</Alert> }
