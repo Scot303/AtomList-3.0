@@ -78,6 +78,11 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.dhatim</groupId>
+            <artifactId>fastexcel</artifactId>
+            <version>0.20.2</version>
+        </dependency>
 
         <dependency>
             <groupId>org.postgresql</groupId>
