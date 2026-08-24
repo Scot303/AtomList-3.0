@@ -221,6 +221,8 @@ public class DepositService {
 				Payment payment = paymentRepository.findByIdWithSettlements(target.paymentId())
 						.orElseThrow(() -> new NotFoundException("entity.payment"));
 
+				requireCoveredPersons(deposit, List.of(payment.getPerson().getId()));
+
 				settlementService.settle(deposit, payment, target.amount(), Instant.now());
 
 				if (deposit.isFullyAllocated()) {
@@ -235,6 +237,8 @@ public class DepositService {
 			if (personIds.isEmpty()) {
 				throw new InvalidOperationException("error.list_population_requires_persons");
 			}
+
+			requireCoveredPersons(deposit, personIds);
 
 			ListType type = ListType.standardFor(deposit.getScope());
 
@@ -372,6 +376,23 @@ public class DepositService {
 		String first = covered.getFirst().getFullName();
 
 		return covered.size() == 1 ? first : String.format("%s and %d other(s)", first, covered.size() - 1);
+	}
+
+
+	/**
+	 * Refuses to spend a deposit on anybody it was not handed over for.
+	 */
+	private static void requireCoveredPersons(Deposit deposit, Collection<UUID> personIds) {
+		Set<UUID> covered = new HashSet<>(deposit.getCoveredPersonIds());
+
+		if (!covered.containsAll(personIds)) {
+			throw new InvalidOperationException("error.deposit_person_not_covered", listCoveredPersons(deposit));
+		}
+	}
+
+
+	private static String listCoveredPersons(Deposit deposit) {
+		return String.join(", ", deposit.getCoveredPersonsInDisplayOrder().stream().map(Person::getFullName).toList());
 	}
 
 

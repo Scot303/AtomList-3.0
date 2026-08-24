@@ -5,17 +5,11 @@ import { z } from 'zod';
 
 export interface CreditAllocationFormValues {
 	personIds: string[];
-	/** How far past the deposit's own month the credit may pay ahead, once nothing is owed. */
-	monthsAhead: string;
 }
 
 
 export const creditAllocationSchema: z.ZodType<CreditAllocationFormValues, CreditAllocationFormValues> = z.object({
 	personIds: z.array(z.string()).min(1, 'Wybierz co najmniej jedną osobę.'),
-	monthsAhead: z
-		.string()
-		.trim()
-		.refine((value) => value === '' || /^\d{1,2}$/.test(value), 'Podaj liczbę miesięcy.'),
 });
 
 

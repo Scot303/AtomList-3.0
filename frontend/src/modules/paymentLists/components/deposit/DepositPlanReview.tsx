@@ -56,7 +56,7 @@ export function DepositPlanReview({ plan, personIds, busy, replanning, error, on
 					}
 				/>
 				<MoneyLine
-					label="Zostanie jako nadpłata"
+					label="Pozostanie w systemie jako nadpłata:"
 					amount={ plan.unallocatedAmount }
 					tone={ plan.unallocatedAmount > 0 ? 'good' : 'muted' }
 					separated

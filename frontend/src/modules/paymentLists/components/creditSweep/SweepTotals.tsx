@@ -22,7 +22,7 @@ export function SweepTotals({ sweep }: { sweep: CreditSweepView }) {
 					}
 				/>
 				<MoneyLine
-					label="W dalszym ciągu pozostanie w systemie jako nadpłata:"
+					label="Pozostanie w systemie jako nadpłata:"
 					amount={ sweep.remainingCreditTotal }
 					tone={ sweep.remainingCreditTotal > 0 ? 'good' : 'muted' }
 					separated
