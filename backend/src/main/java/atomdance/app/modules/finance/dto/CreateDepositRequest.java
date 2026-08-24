@@ -45,18 +45,4 @@ public record CreateDepositRequest(
 
 		@Size(max = 512, message = "Note is too long")
 		String note
-) {
-
-	/**
-	 * One line of the plan the manager approved.
-	 */
-	public record ExpectedSettlement(
-
-			@NotNull(message = "Payment is required")
-			UUID paymentId,
-
-			@NotNull(message = "Amount is required")
-			@Digits(integer = 10, fraction = 2, message = "Amount has too many digits")
-			BigDecimal amount
-	) {}
-}
+) {}

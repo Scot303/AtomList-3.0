@@ -245,6 +245,8 @@ public class DepositService {
 			List<Payment> outstanding = paymentRepository.findOutstandingStandardForPersons(personIds, type);
 			DepositAllocationPlanner.Plan plan = planner.plan(outstanding, personIds, clock.monthOf(deposit.getReceivedAt()), deposit.getUnallocatedAmount(), monthsAhead(request.monthsAhead()));
 
+			assertMatchesWhatWasApproved(plan, request.expected());
+
 			if (plan.isEmpty()) {
 				throw new InvalidOperationException("error.nothing_to_settle");
 			}
@@ -306,7 +308,7 @@ public class DepositService {
 	/**
 	 * Refuses to settle anything other than what the manager was shown.
 	 */
-	private static void assertMatchesWhatWasApproved(DepositAllocationPlanner.Plan plan, List<CreateDepositRequest.ExpectedSettlement> expected) {
+	private static void assertMatchesWhatWasApproved(DepositAllocationPlanner.Plan plan, List<ExpectedSettlement> expected) {
 		if (expected == null || expected.isEmpty()) {
 			return;
 		}
@@ -317,12 +319,12 @@ public class DepositService {
 
 		for (int index = 0; index < expected.size(); index++) {
 			DepositAllocationPlanner.PlannedSettlement planned = plan.settlements().get(index);
-			CreateDepositRequest.ExpectedSettlement approved = expected.get(index);
+			ExpectedSettlement approved = expected.get(index);
 
-			boolean same = planned.payment().getId().equals(approved.paymentId())
+			boolean sameOnBothSides = planned.payment().getId().equals(approved.paymentId())
 					&& planned.amount().compareTo(Money.normalize(approved.amount())) == 0;
 
-			if (!same) {
+			if (!sameOnBothSides) {
 				throw new InvalidOperationException("error.deposit_plan_stale");
 			}
 		}

@@ -15,6 +15,7 @@ import java.util.UUID;
  * With no {@code targets}, the credit is spent the way a fresh plan says - arrears first.
  *
  * @param personIds who to plan against, defaulting to the people the deposit was recorded for
+ * @param expected  what the manager was shown, echoed back.
  */
 public record AllocateDepositRequest(
 
@@ -23,7 +24,10 @@ public record AllocateDepositRequest(
 		Integer monthsAhead,
 
 		@Valid
-		List<Target> targets
+		List<Target> targets,
+
+		@Valid
+		List<ExpectedSettlement> expected
 ) {
 
 	public record Target(
@@ -31,9 +35,6 @@ public record AllocateDepositRequest(
 			@NotNull(message = "Payment is required")
 			UUID paymentId,
 
-			/**
-			 * How much of the credit to put against it, or {@code null} for as much as it owes.
-			 */
 			@Digits(integer = 10, fraction = 2, message = "Amount has too many digits")
 			BigDecimal amount
 	) {}

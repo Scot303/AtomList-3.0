@@ -69,6 +69,7 @@ export function useAllocateCreditPlanForm(deposit: DepositView) {
 				payload: {
 					personIds: input.personIds,
 					monthsAhead: MONTHS_AHEAD,
+					expected: current.settlements.map((line) => ( { paymentId: line.paymentId, amount: line.amount } )),
 				},
 			},
 			{
