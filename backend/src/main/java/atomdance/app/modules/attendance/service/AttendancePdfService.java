@@ -9,6 +9,7 @@ import atomdance.app.modules.group.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -22,6 +23,8 @@ public class AttendancePdfService {
     private final AttendancePdfGenerator attendancePdfGenerator;
     private final AuditLogger auditLogger;
 
+
+    @Transactional(readOnly = true)
     public byte[] getGroupAttendancePdf(UUID groupId) throws IOException {
         Group group = groupService.getOrThrow(groupId);
         byte[] pdfBytes;
