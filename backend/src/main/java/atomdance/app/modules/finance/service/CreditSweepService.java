@@ -69,10 +69,8 @@ public class CreditSweepService {
 
 		assertMatchesWhatWasApproved(sweep, request.expected());
 
-		Instant now = Instant.now();
-
 		for (Line line : sweep.lines()) {
-			settlementService.settle(line.deposit(), line.payment(), line.amount(), now);
+			settlementService.settle(line.deposit(), line.payment(), line.amount(), Instant.now());
 		}
 
 		BigDecimal remainingCredit = Money.ZERO;

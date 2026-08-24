@@ -149,10 +149,8 @@ export const MODAL_REGISTRY = {
 	}),
 
 	'deposits.allocate': defineModal({
-		load: () => import('@/modules/deposits/modals/DepositDetailsModal.tsx'),
-		title: 'TEMP',
-		// load: () => import('@/modules/deposits/modals/AllocateCreditModal.tsx'),
-		// title: ({ deposit }) => `Rozlicz nadpłatę - ${ deposit.code }`,
+		load: () => import('@/modules/deposits/modals/AllocateCreditModal.tsx'),
+		title: ({ deposit }) => `Rozlicz nadpłatę - ${ deposit.code }`,
 		size: 'xl',
 		dismissible: false
 	}),

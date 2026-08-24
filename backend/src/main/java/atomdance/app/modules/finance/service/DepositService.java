@@ -221,6 +221,8 @@ public class DepositService {
 				Payment payment = paymentRepository.findByIdWithSettlements(target.paymentId())
 						.orElseThrow(() -> new NotFoundException("entity.payment"));
 
+				requireCoveredPersons(deposit, List.of(payment.getPerson().getId()));
+
 				settlementService.settle(deposit, payment, target.amount(), Instant.now());
 
 				if (deposit.isFullyAllocated()) {
@@ -236,10 +238,14 @@ public class DepositService {
 				throw new InvalidOperationException("error.list_population_requires_persons");
 			}
 
+			requireCoveredPersons(deposit, personIds);
+
 			ListType type = ListType.standardFor(deposit.getScope());
 
 			List<Payment> outstanding = paymentRepository.findOutstandingStandardForPersons(personIds, type);
 			DepositAllocationPlanner.Plan plan = planner.plan(outstanding, personIds, clock.monthOf(deposit.getReceivedAt()), deposit.getUnallocatedAmount(), monthsAhead(request.monthsAhead()));
+
+			assertMatchesWhatWasApproved(plan, request.expected());
 
 			if (plan.isEmpty()) {
 				throw new InvalidOperationException("error.nothing_to_settle");
@@ -302,7 +308,7 @@ public class DepositService {
 	/**
 	 * Refuses to settle anything other than what the manager was shown.
 	 */
-	private static void assertMatchesWhatWasApproved(DepositAllocationPlanner.Plan plan, List<CreateDepositRequest.ExpectedSettlement> expected) {
+	private static void assertMatchesWhatWasApproved(DepositAllocationPlanner.Plan plan, List<ExpectedSettlement> expected) {
 		if (expected == null || expected.isEmpty()) {
 			return;
 		}
@@ -313,12 +319,12 @@ public class DepositService {
 
 		for (int index = 0; index < expected.size(); index++) {
 			DepositAllocationPlanner.PlannedSettlement planned = plan.settlements().get(index);
-			CreateDepositRequest.ExpectedSettlement approved = expected.get(index);
+			ExpectedSettlement approved = expected.get(index);
 
-			boolean same = planned.payment().getId().equals(approved.paymentId())
+			boolean sameOnBothSides = planned.payment().getId().equals(approved.paymentId())
 					&& planned.amount().compareTo(Money.normalize(approved.amount())) == 0;
 
-			if (!same) {
+			if (!sameOnBothSides) {
 				throw new InvalidOperationException("error.deposit_plan_stale");
 			}
 		}
@@ -372,6 +378,23 @@ public class DepositService {
 		String first = covered.getFirst().getFullName();
 
 		return covered.size() == 1 ? first : String.format("%s and %d other(s)", first, covered.size() - 1);
+	}
+
+
+	/**
+	 * Refuses to spend a deposit on anybody it was not handed over for.
+	 */
+	private static void requireCoveredPersons(Deposit deposit, Collection<UUID> personIds) {
+		Set<UUID> covered = new HashSet<>(deposit.getCoveredPersonIds());
+
+		if (!covered.containsAll(personIds)) {
+			throw new InvalidOperationException("error.deposit_person_not_covered", listCoveredPersons(deposit));
+		}
+	}
+
+
+	private static String listCoveredPersons(Deposit deposit) {
+		return String.join(", ", deposit.getCoveredPersonsInDisplayOrder().stream().map(Person::getFullName).toList());
 	}
 
 

@@ -142,6 +142,8 @@ export interface AllocateDepositPayload {
 	personIds?: string[];
 	monthsAhead?: number;
 	targets?: AllocateTargetPayload[];
+	/** The plan the user approved, echoed back. Only read when planning; the server settles nothing else. */
+	expected?: ExpectedSettlementPayload[];
 }
 
 
