@@ -56,14 +56,22 @@ public class ScheduledSmsService {
 
 		var owedPayments = getOwedPayments(currentYearMonth);
 		Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments = pairPhoneNumbersWithOwedPayments(owedPayments);
+        log.debug("Before whitelist: {}", combinedOwedPayments.keySet());
 		leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
-		List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
 
-        var recipients = messagesToSend.stream()
-                .map(sms -> new RestRecipient(PHONE_COUNTRY_CODE + sms.getSentToPhone(), sms.getMessage()))
+        log.debug("After whitelist: {}", combinedOwedPayments.keySet());
+
+        List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
+
+        List<RestRecipient> recipients = messagesToSend.stream()
+                .map(sms -> new RestRecipient().withMsisdn(PHONE_COUNTRY_CODE + sms.getSentToPhone()))
                 .toList();
 
+
         var bulkSendRequest = getBulkSendRequest().withRecipients(recipients);
+
+        log.debug(bulkSendRequest.toString());
+        recipients.forEach(r -> log.debug("Recipient {}", r.getMsisdn()));
 
         try {
             smsApiClient.bulkSendMessage(bulkSendRequest);
@@ -151,10 +159,14 @@ public class ScheduledSmsService {
     private BulkSendRequest getBulkSendRequest() {
         return new BulkSendRequest()
                 .withName("AtomDance:" + appClock.today().format(DateTimeFormatter.BASIC_ISO_DATE))
-                .withBulkType(BulkSendRequest.BulkType.PERSONALIZED)
+                .withBulkType(BulkSendRequest.BulkType.STANDARD)
+
+                // Currently switched to BulkType.STANDARD when using simple message without specific quotes
+//                .withBulkType(BulkSendRequest.BulkType.PERSONALIZED)
+                .withMessage(STANDARD_TEMPLATE_SIMPLE)
                 .withBulkVariant(BulkSendRequest.BulkVariant.PRO)
                 .withSender(ATOM_DANCE_SENDER)
-                .withSendDate(appClock.nowOffset().plusMinutes(10L).truncatedTo(ChronoUnit.MINUTES));
+                .withSendDate(appClock.nowOffset().plusMinutes(1L).truncatedTo(ChronoUnit.MINUTES));
     }
 
     private String formatSmsMessage(BigDecimal owedAmount) {
