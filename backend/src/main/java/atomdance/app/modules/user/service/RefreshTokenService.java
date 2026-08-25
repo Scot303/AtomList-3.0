@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+
 @Slf4j
 @Service
 public class RefreshTokenService {
@@ -24,16 +25,17 @@ public class RefreshTokenService {
 	private final UserRepository userRepository;
 	private final Duration ttl;
 
+
 	public RefreshTokenService(RefreshTokenRepository repository, UserRepository userRepository, @Value("${app.security.refresh-token-ttl}") Duration ttl) {
 		this.repository = repository;
 		this.userRepository = userRepository;
 		this.ttl = ttl;
 	}
 
+
 	/**
-	 * Mints a new refresh token and returns the raw value. This is the only moment the raw value
-	 * exists server-side - only its hash is persisted. The caller puts it in an {@code HttpOnly}
-	 * cookie; it must never reach a response body.
+	 * Mints a new refresh token and returns the raw value. This is the only moment the raw value exists server-side - only its hash is persisted.
+	 * The caller puts it in an {@code HttpOnly} cookie; it must never reach a response body.
 	 */
 	@Transactional
 	public String issue(User user) {
@@ -50,9 +52,10 @@ public class RefreshTokenService {
 		return token;
 	}
 
+
 	/**
-	 * Validates a presented token and spends it, returning the owning user so the caller can mint a
-	 * replacement pair. The token is single-use: presenting it twice is treated as a breach.
+	 * Validates a presented token and spends it, returning the owning user so the caller can mint a replacement pair.
+	 * The token is single-use: presenting it twice is treated as a breach.
 	 */
 	@Transactional(noRollbackFor = InvalidRefreshTokenException.class)
 	public User consume(String rawToken) {
@@ -84,6 +87,7 @@ public class RefreshTokenService {
 		return stored.getUser();
 	}
 
+
 	/**
 	 * Ends one session. Deliberately silent when the token is unknown - reporting the difference
 	 * would turn logout into an oracle for guessing valid tokens.
@@ -99,6 +103,7 @@ public class RefreshTokenService {
 				.ifPresent(token -> token.setRevokedAt(Instant.now()));
 	}
 
+
 	/**
 	 * Ends every session a user has, on both halves: revoking the refresh tokens stops new access
 	 * tokens being minted, and bumping the token version invalidates the access tokens already out
@@ -109,10 +114,11 @@ public class RefreshTokenService {
 		killAllSessions(userId, Instant.now());
 	}
 
+
 	/**
 	 * The bulk update writes straight to the database, so any {@link User} already loaded in the
-	 * current persistence context keeps its stale {@code tokenVersion}. Nothing may re-read or
-	 * re-save that instance afterwards, or the bump would be silently undone.
+	 * current persistence context keeps its stale {@code tokenVersion}.
+	 * Nothing may re-read or re-save that instance afterwards, or the bump would be silently undone.
 	 */
 	private void killAllSessions(UUID userId, Instant now) {
 		int revoked = repository.revokeAllForUser(userId, now);
@@ -121,10 +127,11 @@ public class RefreshTokenService {
 		log.info("Revoked {} refresh token(s) and bumped the token version for user id {}", revoked, userId);
 	}
 
+
 	/**
 	 * Revoked rows are kept until they expire, so reuse detection still has something to match against.
 	 */
-	@Scheduled(cron = "0 15 3 * * *", zone = "${app.time-zone}")
+	@Scheduled(cron = "0 15 2 * * *", zone = "UTC")
 	@Transactional
 	public void purgeExpiredTokens() {
 		int deleted = repository.deleteExpiredBefore(Instant.now());

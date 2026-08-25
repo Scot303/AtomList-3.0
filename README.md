@@ -93,15 +93,15 @@ so the app refuses to start on one.
 A wildcard is accepted only when it stands in for labels **below a domain we own**, and it has to be anchored with a dot. `*.atomlist-3.pages.dev` can only ever match hosts of our own Pages project,
 because the `atomlist-3` label is ours; `*atomlist-3.pages.dev` without the dot also matches `evilatomlist-3.pages.dev`, a project name anyone may still claim.
 
-| Pattern                                                    |                                                          |
-|------------------------------------------------------------|----------------------------------------------------------|
-| `https://atomlist.pl`                                      | valid                                                    |
-| `https://atomlist.pl,https://www.atomlist.pl`              | valid - multiple origins                                 |
-| `https://*.atomlist-3.pages.dev`                           | valid - matches every Cloudflare preview deploy          |
-| `https://*.atomlist.pl`                                    | valid - subdomains of a domain we own                    |
-| `https://*.pages.dev`                                      | **rejected** - anyone can deploy there                   |
-| `https://*atomlist-3.pages.dev`                            | **rejected** - unanchored, matches other projects too    |
-| `https://*.pl` / `*`                                       | **rejected**                                             |
+| Pattern                                       |                                                       |
+|-----------------------------------------------|-------------------------------------------------------|
+| `https://atomlist.pl`                         | valid                                                 |
+| `https://atomlist.pl,https://www.atomlist.pl` | valid - multiple origins                              |
+| `https://*.atomlist-3.pages.dev`              | valid - matches every Cloudflare preview deploy       |
+| `https://*.atomlist.pl`                       | valid - subdomains of a domain we own                 |
+| `https://*.pages.dev`                         | **rejected** - anyone can deploy there                |
+| `https://*atomlist-3.pages.dev`               | **rejected** - unanchored, matches other projects too |
+| `https://*.pl` / `*`                          | **rejected**                                          |
 
 The bare `https://atomlist-3.pages.dev` is **not** matched by `https://*.atomlist-3.pages.dev` and has to be listed separately if you use it.
 
@@ -122,12 +122,12 @@ npm run dev          # http://localhost:5173
 One variable, `VITE_API_BASE_URL` — the origin of the backend, scheme and host only. It is **inlined into the bundle at build time**, so it must be present wherever the build runs; a production build
 fails fast if it is missing rather than shipping a frontend that calls its own origin.
 
-| Where                | Value                                                                        |
-|----------------------|------------------------------------------------------------------------------|
-| local (default)      | `http://localhost:8080` — committed in `.env.development`                    |
-| local → Railway dev  | put `VITE_API_BASE_URL=https://atomlist-30-dev.up.railway.app` in `.env.development.local` (git-ignored) |
-| Pages — Production   | `https://api.atomlist.pl`                                                    |
-| Pages — Preview      | the dev Railway origin                                                       |
+| Where               | Value                                                                                                    |
+|---------------------|----------------------------------------------------------------------------------------------------------|
+| local (default)     | `http://localhost:8080` — committed in `.env.development`                                                |
+| local → Railway dev | put `VITE_API_BASE_URL=https://atomlist-30-dev.up.railway.app` in `.env.development.local` (git-ignored) |
+| Pages — Production  | `https://api.atomlist.pl`                                                                                |
+| Pages — Preview     | the dev Railway origin                                                                                   |
 
 Set the Pages values under **Settings → Environment variables**, per environment, then redeploy — the variable is read at build time, so changing it without a new build changes nothing.
 
@@ -136,11 +136,11 @@ suffix and no configuration changes that.
 
 ### Cloudflare Pages project settings
 
-| Setting             | Value                  |
-|---------------------|------------------------|
-| Root directory      | `frontend`             |
-| Build command       | `npm run build`        |
-| Build output        | `dist`                 |
+| Setting        | Value           |
+|----------------|-----------------|
+| Root directory | `frontend`      |
+| Build command  | `npm run build` |
+| Build output   | `dist`          |
 
 `public/_redirects` sends every path to `index.html`, which is what makes `/verify-email?token=…` and a reload on any route work rather than returning the platform's 404.
 
@@ -160,8 +160,8 @@ REFRESH_COOKIE_SAME_SITE=None
 TRUSTED_PROXY_COUNT=1
 ```
 
-`REFRESH_COOKIE_SAME_SITE` is **not** optional here even though the table below lists a default: dev is cross-site and the default is `Lax`, which the browser will not send to a different site. Leaving
-it unset breaks the session on dev in every browser.
+`REFRESH_COOKIE_SAME_SITE` is **not** optional here even though the table below lists a default: dev is cross-site and the default is `Lax`, which the browser will not send to a different site.
+Leaving it unset breaks the session on dev in every browser.
 
 **Production backend** (`api.atomlist.pl`):
 
@@ -180,7 +180,8 @@ keeps the session without anything sensitive ever being written to `localStorage
 Because the backend treats a refresh token presented twice as theft and revokes every session the account holds, refreshes are serialised with a Web Lock shared across tabs - two tabs waking at the
 same moment would otherwise log the user out everywhere.
 
-That reload-survives-because-of-the-cookie design is why production runs the API on `api.atomlist.pl`. A cookie set by a host on a different registrable domain is third-party. Login would appear to work and the session would vanish on the next load. Sharing `atomlist.pl` makes the cookie first-party, which also allows `SameSite=Lax` instead of `None`.
+That reload-survives-because-of-the-cookie design is why production runs the API on `api.atomlist.pl`. A cookie set by a host on a different registrable domain is third-party. Login would appear to
+work and the session would vanish on the next load. Sharing `atomlist.pl` makes the cookie first-party, which also allows `SameSite=Lax` instead of `None`.
 
 `CookieAuthCsrfFilter` still guards `/api/auth/refresh` and `/api/auth/logout` by requiring an `X-Auth-Request` header - those two endpoints are the only ones authenticating from a cookie, so they are
 the only ones carrying authority a forged cross-site request could ride on. `Lax` makes that filter redundant on production, but **not** on dev, which still runs `None`. It stays until no deployment
@@ -192,35 +193,53 @@ uses `None`.
 |---------------|-------------|-------------------------------------------------------------------------------------------------------------------------|
 | `SERVER_PORT` | `${{PORT}}` | Railway injects `PORT`; the app reads `SERVER_PORT`. This bridges them. If Railway shows no `PORT`, set both to `8080`. |
 
+### Waking a serverless API for scheduled work
+
+Spring `@Scheduled` methods do not wake an API scaled to zero. Create a Bun **Railway Function** from [`railway-functions/wake-up-api.ts`](scripts/railway-functions/wake-up-api.ts) and set `WAKE_URL`
+variable. Example below:
+
+```text
+WAKE_URL=http://${{"AtomList-3.0 DEV".RAILWAY_PRIVATE_DOMAIN}}:${{"AtomList-3.0 DEV".SERVER_PORT}}/actuator/health
+```
+
+The public, side-effect-free health endpoint lets the Function retry for up to three minutes while the API cold-starts.
+
+Railway evaluates crons in UTC and supports a minimum interval of five minutes. Maintenance tasks use UTC; SMS reminders use `APP_TIME_ZONE` (`Europe/Warsaw` by default).
+
+| Cron (UTC)        | Description                                                                                                                                                        |
+|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `*/5 2 * * *`     | Keeps the API awake for the 02:00–03:00 UTC daily-maintenance window. The full hour accounts for the API idling again after a successful pre-warm.                 |
+| `55 10,11 15 * *` | Pre-warms the API for the monthly SMS reminder at 13:00 Warsaw time on the 15th. It runs at both CEST and CET pre-warm times, so one run is redundant each season. |
+
 ### Optional - defaults are production-appropriate
 
 Leave these unset unless you specifically want different behaviour.
 
-| Variable                             | Default                                                                                                                                                                     |
-|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `APP_TIME_ZONE`                      | `Europe/Warsaw`                                                                                                                                                             |
-| `JWT_ISSUER`                         | `atomlist-app`                                                                                                                                                              |
-| `ACCESS_TOKEN_TTL`                   | `10m`                                                                                                                                                                       |
-| `REFRESH_TOKEN_TTL`                  | `10d`                                                                                                                                                                       |
-| `REFRESH_COOKIE_NAME`                | `__Secure-refreshToken`                                                                                                                                                     |
-| `REFRESH_COOKIE_PATH`                | `/api/auth`                                                                                                                                                                 |
-| `REFRESH_COOKIE_SECURE`              | `true`                                                                                                                                                                      |
+| Variable                             | Default                                                                                                                                                                                                                                 |
+|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `APP_TIME_ZONE`                      | `Europe/Warsaw`                                                                                                                                                                                                                         |
+| `JWT_ISSUER`                         | `atomlist-app`                                                                                                                                                                                                                          |
+| `ACCESS_TOKEN_TTL`                   | `10m`                                                                                                                                                                                                                                   |
+| `REFRESH_TOKEN_TTL`                  | `10d`                                                                                                                                                                                                                                   |
+| `REFRESH_COOKIE_NAME`                | `__Secure-refreshToken`                                                                                                                                                                                                                 |
+| `REFRESH_COOKIE_PATH`                | `/api/auth`                                                                                                                                                                                                                             |
+| `REFRESH_COOKIE_SECURE`              | `true`                                                                                                                                                                                                                                  |
 | `REFRESH_COOKIE_SAME_SITE`           | `Lax` - correct only where the API shares a registrable domain with the frontend, as `api.atomlist.pl` does with `atomlist.pl`. Any deployment where it does not **must** set `None`, or the browser drops the cookie on every request. |
-| `REFRESH_COOKIE_DOMAIN`              | empty (host-only cookie) - the cookie belongs to the API hostname alone. Setting `.atomlist.pl` would hand it to every subdomain, the frontend included, which has no use for a cookie it cannot read. |
-| `LOGIN_CODE_LENGTH`                  | `16`                                                                                                                                                                        |
-| `LOGIN_CODE_TTL`                     | `15m`                                                                                                                                                                       |
-| `LOGIN_CODE_RESEND_COOLDOWN`         | `60s`                                                                                                                                                                       |
-| `LOGIN_CODE_MAX_ATTEMPTS`            | `5`                                                                                                                                                                         |
-| `LOGIN_LOCKOUT_MAX_ATTEMPTS`         | `10`                                                                                                                                                                        |
-| `LOGIN_LOCKOUT_DURATION`             | `60m`                                                                                                                                                                       |
-| `EMAIL_VERIFICATION_TTL`             | `1d`                                                                                                                                                                        |
-| `EMAIL_VERIFICATION_RESEND_COOLDOWN` | `5m`                                                                                                                                                                        |
-| `RATE_LIMIT_ENABLED`                 | `true`                                                                                                                                                                      |
-| `RATE_LIMIT_CAPACITY`                | `10`                                                                                                                                                                        |
-| `RATE_LIMIT_REFILL_PERIOD`           | `1m`                                                                                                                                                                        |
-| `MAIL_FROM_NAME`                     | `AtomList`                                                                                                                                                                  |
-| `DB_POOL_SIZE`                       | `5` - managed Postgres plans cap total connections low, and the cap is shared with migrations, `psql` sessions, and the outgoing instance during a rolling deploy.          |
-| `DB_POOL_MIN_IDLE`                   | `1`                                                                                                                                                                         |
+| `REFRESH_COOKIE_DOMAIN`              | empty (host-only cookie) - the cookie belongs to the API hostname alone. Setting `.atomlist.pl` would hand it to every subdomain, the frontend included, which has no use for a cookie it cannot read.                                  |
+| `LOGIN_CODE_LENGTH`                  | `16`                                                                                                                                                                                                                                    |
+| `LOGIN_CODE_TTL`                     | `15m`                                                                                                                                                                                                                                   |
+| `LOGIN_CODE_RESEND_COOLDOWN`         | `60s`                                                                                                                                                                                                                                   |
+| `LOGIN_CODE_MAX_ATTEMPTS`            | `5`                                                                                                                                                                                                                                     |
+| `LOGIN_LOCKOUT_MAX_ATTEMPTS`         | `10`                                                                                                                                                                                                                                    |
+| `LOGIN_LOCKOUT_DURATION`             | `60m`                                                                                                                                                                                                                                   |
+| `EMAIL_VERIFICATION_TTL`             | `1d`                                                                                                                                                                                                                                    |
+| `EMAIL_VERIFICATION_RESEND_COOLDOWN` | `5m`                                                                                                                                                                                                                                    |
+| `RATE_LIMIT_ENABLED`                 | `true`                                                                                                                                                                                                                                  |
+| `RATE_LIMIT_CAPACITY`                | `10`                                                                                                                                                                                                                                    |
+| `RATE_LIMIT_REFILL_PERIOD`           | `1m`                                                                                                                                                                                                                                    |
+| `MAIL_FROM_NAME`                     | `AtomList`                                                                                                                                                                                                                              |
+| `DB_POOL_SIZE`                       | `5` - managed Postgres plans cap total connections low, and the cap is shared with migrations, `psql` sessions, and the outgoing instance during a rolling deploy.                                                                      |
+| `DB_POOL_MIN_IDLE`                   | `1`                                                                                                                                                                                                                                     |
 
 ### FOR NOW - CHANGE LATER
 

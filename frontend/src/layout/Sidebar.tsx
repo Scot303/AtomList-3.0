@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { NavLink } from 'react-router';
@@ -7,10 +6,12 @@ import logo from '@public/atomlisticon.png';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { groupsQuery } from '@/modules/groups/hooks/useGroups';
-import { personsQuery } from '@/modules/persons/hooks/usePersons';
+import { usePrefetchDeposits } from '@/modules/deposits/hooks/useDeposits';
+import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
+import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
 import { MODULES } from '@/modules/registry';
 import { useUiStore } from '@/stores/uiStore';
+import { todayInTimeZone } from '@/utils/dateUtils';
 
 
 const ACTIVE_MARK_TRANSITION = { type: 'spring', stiffness: 380, damping: 32 } as const;
@@ -21,8 +22,12 @@ export function Sidebar() {
 	const sidebarOpen = useUiStore((state) => state.sidebarOpen);
 	const mobileNavOpen = useUiStore((state) => state.mobileNavOpen);
 	const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen);
+
 	const { hasAnyPermission, hasPermission } = useAuth();
-	const queryClient = useQueryClient();
+
+	const prefetchPersons = usePrefetchPersons();
+	const prefetchGroups = usePrefetchGroups();
+	const prefetchDeposits = usePrefetchDeposits();
 
 	const open = isDesktop ? sidebarOpen : mobileNavOpen;
 
@@ -47,11 +52,15 @@ export function Sidebar() {
 	 */
 	const prefetchModule = (moduleId: string) => {
 		if (moduleId === 'persons') {
-			void queryClient.prefetchQuery({ ...personsQuery(), meta: { silent: true } });
+			prefetchPersons();
+		}
+
+		if (moduleId === 'deposits') {
+			prefetchDeposits(todayInTimeZone().getFullYear());
 		}
 
 		if (( moduleId === 'groups' || moduleId === 'persons' ) && hasPermission('READ_GROUPS')) {
-			void queryClient.prefetchQuery({ ...groupsQuery(), meta: { silent: true } });
+			prefetchGroups();
 		}
 	};
 

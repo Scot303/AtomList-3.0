@@ -17,6 +17,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
  * Drops audit events once they pass the retention period for their type.
  */
@@ -65,6 +66,7 @@ public class AuditRetentionService {
 	private final AuditEventRepository repository;
 	private final AuditLogger auditLogger;
 
+
 	@PostConstruct
 	void warnAboutUnmappedTypes() {
 		Set<AuditEventType> unmapped = EnumSet.allOf(AuditEventType.class);
@@ -75,7 +77,8 @@ public class AuditRetentionService {
 		}
 	}
 
-	@Scheduled(cron = "0 30 3 * * *", zone = "${app.time-zone}")
+
+	@Scheduled(cron = "0 30 2 * * *", zone = "UTC")
 	@Transactional
 	public void purgeExpiredEvents() {
 		Instant now = Instant.now();
