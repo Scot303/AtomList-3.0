@@ -39,13 +39,15 @@ class AttendancePdfGeneratorTest {
         when(membershipRepository.findActivePersonsInGroup(group.getId()))
                 .thenAnswer((Answer<List<Person>>) invocation -> mockPersons());
 
-        var pdfBytes = attendancePdfGenerator.generateAttendancePdf(group);
+        var genResultPayload = attendancePdfGenerator.generateAttendancePdf(group);
 
-        assertThat(pdfBytes)
+        assertThat(genResultPayload)
                 .isNotNull();
 
+        assertThat(genResultPayload.fileName()).containsPattern("Grupa_1_\\d{4}-\\d{2}");
+
         // visually check the result saved to backend folder
-        Files.write(Paths.get("attendance-test-output.pdf"), pdfBytes);
+        Files.write(Paths.get("attendance-test-output.pdf"), genResultPayload.pdfBytes());
 
     }
 

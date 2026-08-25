@@ -1,6 +1,7 @@
 package atomdance.app.modules.attendance.service.pdf;
 
 import atomdance.app.common.utils.AppClock;
+import atomdance.app.modules.attendance.model.GenResultPayload;
 import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.person.model.Person;
@@ -15,7 +16,10 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Component
@@ -23,6 +27,8 @@ import java.util.UUID;
 public class AttendancePdfGenerator {
     private static final ClassLoaderTemplateResolver resolver;
     private static final String TEMPLATE_CLASSPATH = "templates/attendance/";
+    private static final int[] DEFAULT_COLUMN_DEPTH = new int[10];
+    private static final String FILENAME_TEMPLATE = "%s_%s";
     private final AppClock appClock;
     private final MembershipRepository membershipRepository;
 
@@ -34,11 +40,14 @@ public class AttendancePdfGenerator {
         resolver.setCharacterEncoding("UTF-8");
     }
 
-    public byte[] generateAttendancePdf(Group group) throws IOException {
+    public GenResultPayload generateAttendancePdf(Group group) throws IOException {
         TemplateEngine templateEngine = new TemplateEngine();
         templateEngine.setTemplateResolver(resolver);
 
-        var context = getTemplateContext(group);
+        var currentYearMonth = appClock.currentYearMonth();
+
+        var context = getTemplateContext(group, currentYearMonth);
+        String fileName = FILENAME_TEMPLATE.formatted(group.getName().replace(" ", "_"), currentYearMonth.toString());
 
         String processedHtmlTemplate = templateEngine.process("attendance_template", context);
 
@@ -49,18 +58,22 @@ public class AttendancePdfGenerator {
             renderer.layout();
             renderer.createPDF(outputStream);
 
-            return outputStream.toByteArray();
+            return new GenResultPayload(fileName, outputStream.toByteArray());
         }
     }
 
-    private Context getTemplateContext(Group group) {
+    private Context getTemplateContext(Group group, YearMonth currentYearMonth) {
         Context context = new Context();
+
+        var localizedFormatter = DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("pl"));
+        var genDateLocalized = currentYearMonth.format(localizedFormatter);
+        genDateLocalized = genDateLocalized.substring(0,1).toUpperCase() + genDateLocalized.substring(1);
 
         List<String> membersNames = getGroupMembersNames(group.getId());
         context.setVariable("names", membersNames);
         context.setVariable("groupName", group.getName());
-        context.setVariable("genDate", appClock.today());
-        context.setVariable("sessions", new int[10]);
+        context.setVariable("genDate", genDateLocalized);
+        context.setVariable("sessions", DEFAULT_COLUMN_DEPTH);
         return context;
     }
 
@@ -78,5 +91,4 @@ public class AttendancePdfGenerator {
             .map(Person::getFullName)
             .toList();
     }
-
 }

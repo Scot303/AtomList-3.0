@@ -24,22 +24,20 @@ public class AttendanceListController {
     @PreAuthorize("hasAuthority('PRINT_ATTENDANCE')")
     public ResponseEntity<byte[]> getGroupAttendancePdf(@PathVariable UUID groupId) {
         try {
-            var pdfBytes = attendancePdfService.getGroupAttendancePdf(groupId);
+            var genResultPayload = attendancePdfService.getGroupAttendancePdf(groupId);
             var headers = new HttpHeaders();
 
             // display file in browser
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=obecnosc.pdf");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; " + genResultPayload.fileName());
             // prevent client-side caching if data is dynamic
             headers.add(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate");
-
             return ResponseEntity.ok()
                     .headers(headers)
-                    .contentLength(pdfBytes.length)
-                    .body(pdfBytes);
+                    .contentLength(genResultPayload.pdfBytes().length)
+                    .body(genResultPayload.pdfBytes());
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
-
 }

@@ -1,5 +1,6 @@
 package atomdance.app.modules.attendance.service;
 
+import atomdance.app.modules.attendance.model.GenResultPayload;
 import atomdance.app.modules.attendance.service.pdf.AttendancePdfGenerator;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
@@ -25,12 +26,12 @@ public class AttendancePdfService {
 
 
     @Transactional(readOnly = true)
-    public byte[] getGroupAttendancePdf(UUID groupId) throws IOException {
+    public GenResultPayload getGroupAttendancePdf(UUID groupId) throws IOException {
         Group group = groupService.getOrThrow(groupId);
-        byte[] pdfBytes;
+        GenResultPayload genResult;
 
         try {
-            pdfBytes = attendancePdfGenerator.generateAttendancePdf(group);
+            genResult = attendancePdfGenerator.generateAttendancePdf(group);
         } catch (IOException e) {
             var errorMsg = "Failed to create group %s attendance list PDF".formatted(group.getId());
             log.error(errorMsg);
@@ -39,7 +40,6 @@ public class AttendancePdfService {
         }
 
         auditLogger.record(null, group.getId(), AuditEventType.ATTENDANCE_PDF_CREATION, AuditOutcome.SUCCESS, "Created group attendance PDF.");
-        return pdfBytes;
+        return genResult;
     }
-
 }
