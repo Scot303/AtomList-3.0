@@ -36,5 +36,7 @@ public enum Permission {
 	MODIFY_FAMILIES,
 
 	READ_SMS,
-	SEND_SMS
+	SEND_SMS,
+
+	PRINT_ATTENDANCE
 }
