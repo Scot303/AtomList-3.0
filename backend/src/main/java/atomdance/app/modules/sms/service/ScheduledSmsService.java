@@ -55,9 +55,15 @@ public class ScheduledSmsService {
         var currentYearMonth = appClock.currentYearMonth();
 
 		var owedPayments = getOwedPayments(currentYearMonth);
+
 		Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments = pairPhoneNumbersWithOwedPayments(owedPayments);
         log.debug("Before whitelist: {}", combinedOwedPayments.keySet());
 		leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
+
+        if (combinedOwedPayments.isEmpty()) {
+            log.debug("Owed payment list empty after filtering - cancelling current scheduled action");
+            return;
+        }
 
         log.debug("After whitelist: {}", combinedOwedPayments.keySet());
 
