@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
 public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 
 	/**
@@ -64,6 +65,7 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 	 * One person-to-group pairing of {@link #findActiveGroupIdsForPersons}.
 	 */
 	interface PersonGroupId {
+
 		UUID getPersonId();
 
 		UUID getGroupId();
@@ -96,6 +98,7 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 			WHERE m.group.id = :groupId
 			  AND m.leftAt IS NULL
 			  AND m.person.isActive = TRUE
+			ORDER BY m.person.lastName ASC
 			""")
 	List<Person> findActivePersonsInGroup(@Param("groupId") UUID groupId);
 
