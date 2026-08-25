@@ -25,6 +25,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static atomdance.app.common.utils.StaticValuesUtil.ATOM_DANCE_SENDER;
@@ -153,7 +154,7 @@ public class ScheduledSmsService {
                 .withBulkType(BulkSendRequest.BulkType.PERSONALIZED)
                 .withBulkVariant(BulkSendRequest.BulkVariant.PRO)
                 .withSender(ATOM_DANCE_SENDER)
-                .withSendDate(appClock.nowOffset().plusMinutes(10L));
+                .withSendDate(appClock.nowOffset().plusMinutes(10L).truncatedTo(ChronoUnit.MINUTES));
     }
 
     private String formatSmsMessage(BigDecimal owedAmount) {
