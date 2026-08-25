@@ -1,6 +1,7 @@
 package atomdance.app.modules.group.repository;
 
 import atomdance.app.modules.group.model.Membership;
+import atomdance.app.modules.person.model.Person;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 
 public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 
@@ -63,6 +65,7 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 	 * One person-to-group pairing of {@link #findActiveGroupIdsForPersons}.
 	 */
 	interface PersonGroupId {
+
 		UUID getPersonId();
 
 		UUID getGroupId();
@@ -88,6 +91,16 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 			  AND m.person.isActive = TRUE
 			""")
 	List<UUID> findActivePersonIdsInGroups(@Param("groupIds") Collection<UUID> groupIds);
+
+
+	@Query("""
+			SELECT DISTINCT m.person FROM Membership m
+			WHERE m.group.id = :groupId
+			  AND m.leftAt IS NULL
+			  AND m.person.isActive = TRUE
+			ORDER BY m.person.lastName ASC
+			""")
+	List<Person> findActivePersonsInGroup(@Param("groupId") UUID groupId);
 
 	long countByGroupId(UUID groupId);
 

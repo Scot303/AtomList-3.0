@@ -123,3 +123,7 @@ app:
 
     # represent as numbers with ',' delimiter, ex.: "48123456789, 48987654321"
     phoneWhitelist: ${PHONE_WHITELIST:}
+
+logging:
+  level:
+    atomdance.app: DEBUG

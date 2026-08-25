@@ -24,7 +24,10 @@ export default function PersonGroupsModal({ personId, personName }: PersonGroups
 	const memberships = useMemberships(personId);
 	const groups = useGroups();
 
-	const rows = memberships.data ?? [];
+	const rows = [...( memberships.data ?? [] )].sort(
+		(a, b) => Number(a.leftAt !== null) - Number(b.leftAt !== null),
+	);
+
 	const groupList = groups.data ?? [];
 	const groupsById = indexGroups(groupList);
 

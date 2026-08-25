@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Optional;
 
+
 /**
  * Proves that the address on an account belongs to whoever holds the account.
  */
@@ -35,6 +36,7 @@ public class EmailVerificationService {
 	private final AuthMailer mailer;
 	private final AuditLogger auditLogger;
 
+
 	/**
 	 * Sends a fresh link, ignoring the resend cooldown.
 	 */
@@ -42,6 +44,7 @@ public class EmailVerificationService {
 	public void issue(User user) {
 		issue(user, Instant.now());
 	}
+
 
 	/**
 	 * Sends a link only if the last one is old enough.
@@ -61,6 +64,7 @@ public class EmailVerificationService {
 
 		return true;
 	}
+
 
 	/**
 	 * Consumes a link and marks the address verified.
@@ -98,10 +102,11 @@ public class EmailVerificationService {
 		return user;
 	}
 
+
 	/**
 	 * Consumed and expired rows are only worth keeping until they expire.
 	 */
-	@Scheduled(cron = "0 25 3 * * *", zone = "${app.time-zone}")
+	@Scheduled(cron = "0 25 2 * * *", zone = "UTC")
 	@Transactional
 	public void purgeExpiredTokens() {
 		int deleted = repository.deleteExpiredBefore(Instant.now());
@@ -111,6 +116,7 @@ public class EmailVerificationService {
 			auditLogger.recordOnCommit(null, AuditEventType.SYSTEM_CLEANUP, AuditOutcome.SUCCESS, String.format("Purged %d expired email-verification token(s).", deleted));
 		}
 	}
+
 
 	private void issue(User user, Instant now) {
 		repository.consumeAllForUser(user.getId(), now);

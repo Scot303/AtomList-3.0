@@ -85,6 +85,18 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf-html</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf</artifactId>
+            <version>3.1.5.RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
