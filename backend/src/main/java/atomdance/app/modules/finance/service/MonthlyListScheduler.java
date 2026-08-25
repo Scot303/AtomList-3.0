@@ -26,7 +26,7 @@ public class MonthlyListScheduler {
 	private boolean autoCreate;
 
 
-	@Scheduled(cron = "0 15 4 1 * *", zone = "${app.time-zone}")
+	@Scheduled(cron = "0 10 2 1 * *", zone = "UTC")
 	public void createCurrentMonthList() {
 		if (!autoCreate) {
 			return;
