@@ -1,11 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, UserPlus } from 'lucide-react';
+import { Save, UserPlus, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Alert } from '@/components/feedback/Alert';
 import { Button } from '@/components/ui/buttons/Button';
 import { Textarea } from '@/components/ui/fields';
 import { notifySuccess } from '@/lib/toast';
+import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
+import { usePrefetchMemberships } from '../../hooks/useMemberships';
 import { useCreatePerson, useUpdatePerson } from '../../hooks/usePersonMutations';
 import { personFormSchema, type PersonFormValues } from '../../schemas/personSchemas';
 import { blankPersonForm, buildCreatePayload, buildUpdatePayload, personToForm } from '../../utils/personForm';
@@ -26,9 +28,14 @@ interface PersonFormProps {
  */
 export const PersonForm = ({ person }: PersonFormProps) => {
 	const closeModal = useModalStore((state) => state.closeModal);
+	const openModal = useModalStore((state) => state.openModal);
 
 	const createPerson = useCreatePerson();
 	const updatePerson = useUpdatePerson();
+
+	const prefetchMemberships = usePrefetchMemberships();
+
+	const personId = person?.id;
 
 	const form = useForm<PersonFormValues>({
 		resolver: zodResolver(personFormSchema),
@@ -38,14 +45,35 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 
 	const { register, control, handleSubmit, formState: { errors } } = form;
 
+	const primeGroupsAction = () => {
+		preloadModal('persons.groups');
 
-	const onSubmit = handleSubmit((values) => {
+		if (personId !== undefined) {
+			prefetchMemberships(personId);
+		}
+	};
+
+	const onSubmit = handleSubmit((values, event) => {
 		if (person === undefined) {
+			const shouldOpenGroups = ( event?.nativeEvent as SubmitEvent | undefined )?.submitter?.getAttribute('value') === 'groups';
+
 			createPerson.mutate(
 				buildCreatePayload(values),
 				{
 					onSuccess: (created) => {
 						notifySuccess(`Dodano ${ created.fullName }.`);
+
+						if (shouldOpenGroups) {
+							prefetchMemberships(created.id);
+
+							void openModal('persons.groups', {
+								personId: created.id,
+								personName: created.fullName,
+							});
+
+							return;
+						}
+
 						closeModal();
 					}
 				}
@@ -106,13 +134,45 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 				</Button>
 
 				{ person === undefined ? (
-					<Button type="submit" size="md" isLoading={ busy } leftIcon={ <UserPlus size={ 16 }/> }>
-						Dodaj osobę
-					</Button>
+					<>
+						<Button type="submit" size="md" isLoading={ busy } leftIcon={ <UserPlus size={ 16 }/> }>
+							Dodaj osobę
+						</Button>
+
+						<Button
+							type="submit"
+							value="groups"
+							size="md"
+							isLoading={ busy }
+							leftIcon={ <Users size={ 16 }/> }
+							onMouseEnter={ primeGroupsAction }
+							onFocus={ primeGroupsAction }
+						>
+							Dodaj i przejdź do grup
+						</Button>
+					</>
 				) : (
-					<Button type="submit" size="md" isLoading={ busy } leftIcon={ <Save size={ 16 }/> }>
-						Zapisz
-					</Button>
+					<>
+						<Button
+							type="button"
+							variant="secondary_muted"
+							size="md"
+							disabled={ busy }
+							leftIcon={ <Users size={ 16 }/> }
+							onMouseEnter={ primeGroupsAction }
+							onFocus={ primeGroupsAction }
+							onClick={ () => void openModal('persons.groups', {
+								personId: person.id,
+								personName: person.fullName,
+							}) }
+						>
+							Grupy osoby
+						</Button>
+
+						<Button type="submit" size="md" isLoading={ busy } leftIcon={ <Save size={ 16 }/> }>
+							Zapisz
+						</Button>
+					</>
 				) }
 			</div>
 		</form>
