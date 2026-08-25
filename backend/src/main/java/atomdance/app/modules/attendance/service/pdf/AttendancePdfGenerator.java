@@ -22,73 +22,78 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+
 @Component
 @RequiredArgsConstructor
 public class AttendancePdfGenerator {
-    private static final ClassLoaderTemplateResolver resolver;
-    private static final String TEMPLATE_CLASSPATH = "templates/attendance/";
-    private static final int[] DEFAULT_COLUMN_DEPTH = new int[10];
-    private static final String FILENAME_TEMPLATE = "%s_%s";
-    private final AppClock appClock;
-    private final MembershipRepository membershipRepository;
 
-    static {
-        resolver = new ClassLoaderTemplateResolver();
-        resolver.setPrefix(TEMPLATE_CLASSPATH);
-        resolver.setSuffix(".html");
-        resolver.setTemplateMode("HTML");
-        resolver.setCharacterEncoding("UTF-8");
-    }
+	private static final ClassLoaderTemplateResolver resolver;
+	private static final String TEMPLATE_CLASSPATH = "templates/attendance/";
+	private static final int[] DEFAULT_COLUMN_DEPTH = new int[10];
+	private static final String FILENAME_TEMPLATE = "%s_%s.pdf";
+	private final AppClock appClock;
+	private final MembershipRepository membershipRepository;
 
-    public GenResultPayload generateAttendancePdf(Group group) throws IOException {
-        TemplateEngine templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(resolver);
+	static {
+		resolver = new ClassLoaderTemplateResolver();
+		resolver.setPrefix(TEMPLATE_CLASSPATH);
+		resolver.setSuffix(".html");
+		resolver.setTemplateMode("HTML");
+		resolver.setCharacterEncoding("UTF-8");
+	}
 
-        var currentYearMonth = appClock.currentYearMonth();
+	public GenResultPayload generateAttendancePdf(Group group) throws IOException {
+		TemplateEngine templateEngine = new TemplateEngine();
+		templateEngine.setTemplateResolver(resolver);
 
-        var context = getTemplateContext(group, currentYearMonth);
-        String fileName = FILENAME_TEMPLATE.formatted(group.getName().replace(" ", "_"), currentYearMonth.toString());
+		var currentYearMonth = appClock.currentYearMonth();
 
-        String processedHtmlTemplate = templateEngine.process("attendance_template", context);
+		var context = getTemplateContext(group, currentYearMonth);
+		String fileName = FILENAME_TEMPLATE.formatted(group.getName().replace(" ", "_"), currentYearMonth.toString());
 
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            var renderer = getTemplateRenderer();
+		String processedHtmlTemplate = templateEngine.process("attendance_template", context);
 
-            renderer.setDocumentFromString(processedHtmlTemplate);
-            renderer.layout();
-            renderer.createPDF(outputStream);
+		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+			var renderer = getTemplateRenderer();
 
-            return new GenResultPayload(fileName, outputStream.toByteArray());
-        }
-    }
+			renderer.setDocumentFromString(processedHtmlTemplate);
+			renderer.layout();
+			renderer.createPDF(outputStream);
 
-    private Context getTemplateContext(Group group, YearMonth currentYearMonth) {
-        Context context = new Context();
+			return new GenResultPayload(fileName, outputStream.toByteArray());
+		}
+	}
 
-        var localizedFormatter = DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("pl"));
-        var genDateLocalized = currentYearMonth.format(localizedFormatter);
-        genDateLocalized = genDateLocalized.substring(0,1).toUpperCase() + genDateLocalized.substring(1);
 
-        List<String> membersNames = getGroupMembersNames(group.getId());
-        context.setVariable("names", membersNames);
-        context.setVariable("groupName", group.getName());
-        context.setVariable("genDate", genDateLocalized);
-        context.setVariable("sessions", DEFAULT_COLUMN_DEPTH);
-        return context;
-    }
+	private Context getTemplateContext(Group group, YearMonth currentYearMonth) {
+		Context context = new Context();
 
-    private ITextRenderer getTemplateRenderer() throws IOException {
-        ITextRenderer renderer = new ITextRenderer();
+		var localizedFormatter = DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("pl"));
+		var genDateLocalized = currentYearMonth.format(localizedFormatter);
+		genDateLocalized = genDateLocalized.substring(0, 1).toUpperCase() + genDateLocalized.substring(1);
 
-        URL fontUrl = getClass().getClassLoader().getResource(TEMPLATE_CLASSPATH + "arial_unicode_ms.otf");
-        renderer.getFontResolver().addFont(fontUrl.toExternalForm(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+		List<String> membersNames = getGroupMembersNames(group.getId());
+		context.setVariable("names", membersNames);
+		context.setVariable("groupName", group.getName());
+		context.setVariable("genDate", genDateLocalized);
+		context.setVariable("sessions", DEFAULT_COLUMN_DEPTH);
+		return context;
+	}
 
-        return renderer;
-    }
 
-    private List<String> getGroupMembersNames(UUID groupId) {
-    return membershipRepository.findActivePersonsInGroup(groupId).stream()
-            .map(Person::getFullName)
-            .toList();
-    }
+	private ITextRenderer getTemplateRenderer() throws IOException {
+		ITextRenderer renderer = new ITextRenderer();
+
+		URL fontUrl = getClass().getClassLoader().getResource(TEMPLATE_CLASSPATH + "arial_unicode_ms.otf");
+		renderer.getFontResolver().addFont(fontUrl.toExternalForm(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
+		return renderer;
+	}
+
+
+	private List<String> getGroupMembersNames(UUID groupId) {
+		return membershipRepository.findActivePersonsInGroup(groupId).stream()
+				.map(Person::getFullName)
+				.toList();
+	}
 }
