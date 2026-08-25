@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, UserPlus, Users } from 'lucide-react';
+import { Percent, Save, UserPlus, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Alert } from '@/components/feedback/Alert';
 import { Button } from '@/components/ui/buttons/Button';
@@ -8,6 +8,7 @@ import { notifySuccess } from '@/lib/toast';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { usePrefetchMemberships } from '../../hooks/useMemberships';
+import { usePrefetchPersonDiscounts } from '../../hooks/usePersonDiscounts';
 import { useCreatePerson, useUpdatePerson } from '../../hooks/usePersonMutations';
 import { personFormSchema, type PersonFormValues } from '../../schemas/personSchemas';
 import { blankPersonForm, buildCreatePayload, buildUpdatePayload, personToForm } from '../../utils/personForm';
@@ -34,6 +35,7 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 	const updatePerson = useUpdatePerson();
 
 	const prefetchMemberships = usePrefetchMemberships();
+	const prefetchDiscounts = usePrefetchPersonDiscounts();
 
 	const personId = person?.id;
 
@@ -50,6 +52,14 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 
 		if (personId !== undefined) {
 			prefetchMemberships(personId);
+		}
+	};
+
+	const primeDiscountsAction = () => {
+		preloadModal('persons.discounts');
+
+		if (personId !== undefined) {
+			prefetchDiscounts(personId);
 		}
 	};
 
@@ -153,6 +163,22 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 					</>
 				) : (
 					<>
+						<Button
+							type="button"
+							variant="secondary_muted"
+							size="md"
+							disabled={ busy }
+							leftIcon={ <Percent size={ 16 }/> }
+							onMouseEnter={ primeDiscountsAction }
+							onFocus={ primeDiscountsAction }
+							onClick={ () => void openModal('persons.discounts', {
+								personId: person.id,
+								personName: person.fullName,
+							}) }
+						>
+							Zniżki osoby
+						</Button>
+
 						<Button
 							type="button"
 							variant="secondary_muted"
