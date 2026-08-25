@@ -24,6 +24,7 @@ public class PaymentListController {
 	private final ListSummaryService listSummaryService;
 	private final ListReportService listReportService;
 	private final CreditSweepService creditSweepService;
+	private final PaymentSpreadsheetService paymentSpreadsheetService;
 
 
 	@GetMapping
@@ -67,6 +68,11 @@ public class PaymentListController {
 		return listReportService.build(id);
 	}
 
+	@GetMapping("{id}/spreadsheet")
+	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
+	public byte[] reportSpreadsheet(@PathVariable UUID id) {
+		return paymentSpreadsheetService.getPaymentSpreadsheet(id);
+	}
 
 	/**
 	 * Every bit of leftover credit that could be spent on this list, and what each bit would settle here.

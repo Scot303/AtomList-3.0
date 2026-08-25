@@ -46,9 +46,15 @@ public class ListReportService {
 	private final MessageSource messageSource;
 	private final AppClock clock;
 
-
 	@Transactional(readOnly = true)
 	public ListReportView build(UUID listId) {
+		var listReportView = buildListReportView(listId);
+		auditLogger.record(securityService.getCurrentUserId(), listId, AuditEventType.LIST_PREVIEW, AuditOutcome.SUCCESS, "List report generated.");
+
+		return listReportView;
+	}
+
+	protected ListReportView buildListReportView(UUID listId) {
 		PaymentList list = paymentListService.getOrThrow(listId);
 
 		List<Payment> payments = paymentRepository.findByListIdWithSettlements(listId).stream()
@@ -60,8 +66,6 @@ public class ListReportService {
 
 		List<ListReportView.Row> rows = payments.stream().map(payment -> row(payment, refs)).toList();
 		List<ListReportView.Deposit> cashIn = cash.deposits().stream().map(deposit -> deposit(deposit, list, refs, cash.belongsHere(deposit))).toList();
-
-		auditLogger.record(securityService.getCurrentUserId(), listId, AuditEventType.LIST_PREVIEW, AuditOutcome.SUCCESS, "List report generated.");
 
 		return new ListReportView(
 				list.getId(),
