@@ -6,15 +6,31 @@ import { depositKeys } from '../api/depositKeys';
 
 /* ------------------ MULTIPLE ------------------ */
 
+export function depositsQuery(year: number | null) {
+	return {
+		queryKey: depositKeys.history(year),
+		queryFn: () => fetchDeposits(year),
+	};
+}
+
+
 export function useDeposits(year: number | null) {
 	const { hasPermission } = useAuth();
 
 	return useQuery({
-		queryKey: depositKeys.history(year),
-		queryFn: () => fetchDeposits(year),
+		...depositsQuery(year),
 		enabled: hasPermission('READ_PAYMENTS'),
 		placeholderData: keepPreviousData,
 	});
+}
+
+
+export function usePrefetchDeposits() {
+	const queryClient = useQueryClient();
+
+	return (year: number) => {
+		void queryClient.prefetchQuery({ ...depositsQuery(year), meta: { silent: true } });
+	};
 }
 
 
