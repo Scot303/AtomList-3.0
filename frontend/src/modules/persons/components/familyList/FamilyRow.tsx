@@ -24,6 +24,7 @@ export const FamilyRow = ({ family, canModify }: FamilyRowProps) => {
 	const popover = usePopover({
 		width: 'trigger',
 		maxHeight: PANEL_MAX_HEIGHT,
+		lockScroll: true,
 
 		outsidePress: () => !useDialogStore.getState().isOpen,
 	});

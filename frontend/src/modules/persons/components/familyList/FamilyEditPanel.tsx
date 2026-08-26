@@ -127,7 +127,7 @@ export const FamilyEditPanel = ({ family, onClose }: FamilyEditPanelProps) => {
 			onKeyDown={ handleKeyDown }
 			className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-os-primary popover-surface shadow-xl"
 		>
-			<div className="themed-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+			<div className="themed-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4">
 				<div className="grid gap-3 sm:grid-cols-2">
 					<Input
 						label="Nazwa"

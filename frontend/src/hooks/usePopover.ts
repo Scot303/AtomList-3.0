@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { autoUpdate, type DetectOverflowOptions, flip, hide, offset, shift, type SideObject, size, useClick, useDismiss, useFloating, useInteractions, useTransitionStyles, } from '@floating-ui/react';
+import { useScrollLock } from '@/hooks/useScrollLock';
 import { resolvePopoverAnchor } from '@/lib/popoverAnchor';
 import { usePopoverClip } from './usePopoverClip';
 
@@ -33,6 +34,8 @@ interface UsePopoverOptions {
 	align?: 'start' | 'end';
 	/** Whether a press outside the panel dismisses it. */
 	outsidePress?: (event: MouseEvent) => boolean;
+	/** Holds the page still while the panel is open. */
+	lockScroll?: boolean;
 }
 
 
@@ -40,7 +43,7 @@ interface UsePopoverOptions {
  * Open state, dismissal, and positioning for a panel that hangs off a trigger.
  */
 export function usePopover(options: UsePopoverOptions = {}) {
-	const { onBlur, onOpenChange, width = 'trigger', expandedWidth, maxHeight = MAX_PANEL_HEIGHT, align = 'start', outsidePress } = options;
+	const { onBlur, onOpenChange, width = 'trigger', expandedWidth, maxHeight = MAX_PANEL_HEIGHT, align = 'start', outsidePress, lockScroll = false } = options;
 
 	const [open, setOpen] = useState(false);
 	const [isExpanded, setExpanded] = useState(false);
@@ -86,6 +89,12 @@ export function usePopover(options: UsePopoverOptions = {}) {
 			hide(clip),
 		],
 	});
+
+
+	const { floating: floatingRef } = refs;
+
+	/* The panel keeps its own scrolling; the page under it stays put, so the trigger cannot drift away. */
+	useScrollLock(lockScroll && open, floatingRef);
 
 
 	useEffect(() => {
