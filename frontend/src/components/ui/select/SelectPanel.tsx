@@ -8,6 +8,13 @@ import type { SelectAddNew, SelectOption, SelectPanelMode, SelectPanelTheme } fr
 
 export const ADD_FORM_WIDTH = '25rem';
 
+const ADD_OPTION_ID = '__add-new__';
+
+const rowHighlight = (active: boolean, selected = false) => cn(
+	active && 'ring-1 ring-os-primary/30 ring-inset',
+	active && !selected && 'bg-white/2',
+);
+
 
 interface SelectPanelProps {
 	options: SelectOption[];
@@ -63,12 +70,21 @@ export const SelectPanel = (props: SelectPanelProps) => {
 	const needle = query.trim().toLowerCase();
 	const filtered = needle ? options.filter((option) => option.name.toLowerCase().includes(needle)) : options;
 
-	/** Arrow keys and Enter only ever land on an option that can actually be picked. */
-	const navigable = filtered.filter((option) => !option.disabled);
+	const pickable = filtered.filter((option) => !option.disabled);
+
+	const navigable = addNew ? [{ id: ADD_OPTION_ID }, ...pickable] : pickable;
 
 	const { listRef, activeOptionId, setActiveId, handleKeyDown } = useListboxNavigation(navigable, {
-		onPick: onSelect,
-		leadFirstOption: needle.length > 0,
+		onPick: (id) => {
+			if (id === ADD_OPTION_ID) {
+				changeMode('add');
+				return;
+			}
+
+			onSelect(id);
+		},
+		// Typing and then hitting Enter has to land on a match, never on the add row.
+		leadOptionId: needle.length > 0 ? pickable[0]?.id ?? null : null,
 		focusList: !searchable && mode === 'select',
 	});
 
@@ -111,7 +127,7 @@ export const SelectPanel = (props: SelectPanelProps) => {
 					{ showClear && (
 						<button
 							type="button"
-							title="Wyczyść"
+							title="Wyczyść wybór"
 							onMouseDown={ (event) => {
 								event.preventDefault();
 								onClear();
@@ -136,12 +152,20 @@ export const SelectPanel = (props: SelectPanelProps) => {
 				{ addNew && (
 					<button
 						type="button"
+						role="option"
+						id={ `${ panelId }-${ ADD_OPTION_ID }` }
+						aria-selected={ false }
+						data-active={ activeOptionId === ADD_OPTION_ID }
 						onMouseDown={ (event) => {
 							event.preventDefault();
 							event.stopPropagation();
 							changeMode('add');
 						} }
-						className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-os-text-muted transition-colors hover:bg-white/6"
+						onMouseEnter={ () => setActiveId(ADD_OPTION_ID) }
+						className={ cn(
+							'flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-os-text-muted transition-colors',
+							rowHighlight(activeOptionId === ADD_OPTION_ID),
+						) }
 					>
 						<Plus size={ 12 }/>
 						{ addNew.label }
@@ -173,8 +197,7 @@ export const SelectPanel = (props: SelectPanelProps) => {
 							className={ cn(
 								'flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-left text-sm transition-colors',
 								option.disabled ? 'cursor-not-allowed opacity-55' : 'cursor-pointer',
-								!selected && active && 'bg-white/2',
-								active && 'ring-1 ring-os-primary/30 ring-inset',
+								rowHighlight(active, selected),
 							) }
 						>
 							<span className="flex min-w-0 flex-1 items-center gap-2.5">
