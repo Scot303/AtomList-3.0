@@ -5,7 +5,9 @@ import { cn } from '@/lib/cn';
 import { useListboxNavigation } from '@/hooks/useListboxNavigation';
 import type { SelectAddNew, SelectOption, SelectPanelMode, SelectPanelTheme } from './selectTypes';
 
-export const ADD_FORM_WIDTH = '22rem';
+
+export const ADD_FORM_WIDTH = '25rem';
+
 
 interface SelectPanelProps {
 	options: SelectOption[];
@@ -25,6 +27,7 @@ interface SelectPanelProps {
 	/** Draws an option's body. Defaults to icon plus name; tags draw a badge instead. */
 	renderOption?: (option: SelectOption, selected: boolean) => React.ReactNode;
 }
+
 
 /**
  * The one option list behind every select in the application - both the form field and the inline cell variants, for plain options and for tags.
