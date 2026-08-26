@@ -4,6 +4,7 @@ import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { notifyApiError } from '@/lib/toast.ts';
+import { monthHasEnded, parseISODate, todayInTimeZone } from '@/utils/dateUtils.ts';
 import { useUpdateMembership } from '../../hooks/useMembershipMutations.ts';
 import type { MembershipView, UpdateMembershipPayload } from '../../types/types.ts';
 
@@ -27,9 +28,11 @@ export function MembershipCostControl({ membership, personId, canModify }: Membe
 		update.mutate({ id: membership.id, payload }, { onError: notifyApiError });
 	};
 
-	const showFirstMonth = membership.billingType === 'MONTHLY' && membership.joinedMidMonth;
+	const hasFirstMonthRate = membership.billingType === 'MONTHLY' && membership.joinedMidMonth;
+	const canEditFirstMonthRate = hasFirstMonthRate && isFirstMonthInProgress(membership.joinedAt);
+
 	const [showingFirstMonthRate, setShowingFirstMonthRate] = useState(false);
-	const displayFirstMonthRate = showFirstMonth && showingFirstMonthRate;
+	const displayFirstMonthRate = canEditFirstMonthRate && showingFirstMonthRate;
 
 	if (!canModify) {
 		return (
@@ -39,7 +42,7 @@ export function MembershipCostControl({ membership, personId, canModify }: Membe
 					{ membership.customMonthlyCost !== null && <span className="ml-2 text-xs text-os-text-muted">własna stawka</span> }
 				</p>
 
-				{ showFirstMonth && membership.firstMonthCost !== null && <p className="mt-1 text-xs text-os-text-muted">Pierwszy miesiąc: { formatCurrency(membership.firstMonthCost) }</p> }
+				{ hasFirstMonthRate && membership.firstMonthCost !== null && <p className="mt-1 text-xs text-os-text-muted">Pierwszy miesiąc: { formatCurrency(membership.firstMonthCost) }</p> }
 			</RowField>
 		);
 	}
@@ -47,7 +50,7 @@ export function MembershipCostControl({ membership, personId, canModify }: Membe
 	return (
 		<div className="flex min-w-0 flex-wrap items-end gap-x-2 gap-y-3">
 			<div className="relative w-32 shrink-0">
-				{ showFirstMonth && (
+				{ canEditFirstMonthRate && (
 					<Tooltip focusable={ false } content={ displayFirstMonthRate ? 'Pokaż stawkę osoby' : 'Pokaż stawkę za pierwszy miesiąc' } className="absolute bottom-1 -left-8">
 						<button
 							type="button"
@@ -110,6 +113,16 @@ export function MembershipCostControl({ membership, personId, canModify }: Membe
 			</RowField>
 		</div>
 	);
+}
+
+
+/** Whether the membership has started and its joining month has not yet ended. */
+function isFirstMonthInProgress(joinedAt: string): boolean {
+	const joinedDate = parseISODate(joinedAt);
+	const today = todayInTimeZone();
+
+	return joinedDate !== null && joinedDate <= today
+		&& !monthHasEnded(joinedDate.getFullYear(), joinedDate.getMonth() + 1);
 }
 
 
