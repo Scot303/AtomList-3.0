@@ -10,5 +10,6 @@ springdoc:
 
 logging:
   level:
-    org.hibernate.SQL: warn
-    org.springframework.security: warn
+    atomdance.app: DEBUG
+    org.hibernate.SQL: WARN
+    org.springframework.security: WARN
