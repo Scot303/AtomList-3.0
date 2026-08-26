@@ -1,8 +1,11 @@
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
 import { personKeys } from '@/modules/persons/api/personKeys';
-import { createGroup, updateGroup } from '../api/groupsApi';
+import { createGroup, getAttendanceList, updateGroup } from '../api/groupsApi';
 import { groupKeys } from '../api/groupKeys';
 import type { CreateGroupPayload, GroupView, UpdateGroupPayload } from '../types/types.ts';
+import { useAuth } from "@/modules/auth/hooks/useAuth.ts";
+import { openBlobInNewTab } from "@/lib/download.ts";
+import { notifyApiError } from "@/lib/toast.ts";
 
 
 /* ------------------ CREATE ------------------ */
@@ -57,6 +60,28 @@ export function useUpdateGroup() {
 			}
 		},
 	});
+}
+
+
+/* ------------------ ATTENDANCE ------------------ */
+
+/**
+ * Fetches a group's attendance PDF on demand and opens it.
+ */
+export function usePrintAttendanceList() {
+	const { hasPermission } = useAuth();
+
+	const download = useMutation({
+		mutationFn: (groupId: string) => getAttendanceList(groupId),
+		onSuccess: ({ blob, fileName }) => openBlobInNewTab(blob, fileName),
+		onError: notifyApiError,
+	});
+
+	return {
+		canPrint: hasPermission('PRINT_ATTENDANCE'),
+		isPending: download.isPending,
+		print: download.mutate,
+	};
 }
 
 

@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 /**
  * The shape every error the backend produces on purpose comes back as.
  */
@@ -9,6 +10,7 @@ interface BackendErrorBody {
 	message: string;
 	timestamp: string;
 }
+
 
 /**
  * Error codes worth branching on. Anything not listed here should just have its message shown.
@@ -37,6 +39,7 @@ export const SESSION_EXPIRED_MESSAGE = 'Twoja sesja wygasła. Zaloguj się ponow
 /** Never shown - an aborted request is something the application did, not something to report. */
 const CANCELED_MESSAGE = 'Żądanie zostało anulowane.';
 
+
 interface ApiErrorOptions {
 	status?: number | null;
 	errorCode?: string | null;
@@ -44,6 +47,7 @@ interface ApiErrorOptions {
 	isNetworkError?: boolean;
 	isCanceled?: boolean;
 }
+
 
 /**
  * One error type for everything that comes back from the API.
@@ -57,6 +61,7 @@ export class ApiError extends Error {
 	/** The request was aborted deliberately - a query cancelled, a component gone. Not a failure. */
 	readonly isCanceled: boolean;
 
+
 	constructor(message: string, options: ApiErrorOptions = {}) {
 		super(message);
 
@@ -68,10 +73,12 @@ export class ApiError extends Error {
 		this.isCanceled = options.isCanceled ?? false;
 	}
 
+
 	is(code: string): boolean {
 		return this.errorCode === code;
 	}
 }
+
 
 /**
  * Normalizes anything thrown into an {@link ApiError}.
@@ -107,6 +114,7 @@ export function toApiError(error: unknown): ApiError {
 	return new ApiError(timedOut ? TIMEOUT_MESSAGE : NETWORK_MESSAGE, { isNetworkError: true });
 }
 
+
 /**
  * True when the failure is the caller's fault and repeating the identical request cannot help.
  */
@@ -116,6 +124,7 @@ export function isClientError(error: ApiError): boolean {
 	);
 }
 
+
 function asBackendErrorBody(data: unknown): BackendErrorBody | null {
 	if (typeof data !== 'object' || data === null) {
 		return null;
@@ -124,20 +133,22 @@ function asBackendErrorBody(data: unknown): BackendErrorBody | null {
 	const candidate = data as Partial<BackendErrorBody>;
 
 	return typeof candidate.message === 'string' && candidate.message.length > 0
-		? (candidate as BackendErrorBody)
+		? ( candidate as BackendErrorBody )
 		: null;
 }
+
 
 function readRetryAfter(headers: unknown): number | null {
 	if (typeof headers !== 'object' || headers === null) {
 		return null;
 	}
 
-	const raw = (headers as Record<string, unknown>)['retry-after'];
+	const raw = ( headers as Record<string, unknown> )['retry-after'];
 	const seconds = Number(raw);
 
 	return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
 }
+
 
 function messageForStatus(status: number): string {
 	if (status === 401) {

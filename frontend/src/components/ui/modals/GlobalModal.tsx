@@ -1,20 +1,35 @@
-import { Fragment, useEffect } from 'react';
+import { Fragment } from 'react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { X } from 'lucide-react';
 import { useCloseOnNavigate } from '@/hooks/useCloseOnNavigate';
 import { cn } from '@/lib/cn';
-import { loadedModals, MODAL_REGISTRY, type ModalSize, preloadAllModals, resolveModalTitle } from '@/stores/modalRegistry.ts';
+import { loadedModals, MODAL_REGISTRY, type ModalSize, type ModalSizePreset, type ModalViewportHeight, resolveModalTitle } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore';
 import { ModalBody } from './ModalBody';
 
 
-const SIZES: Record<ModalSize, string> = {
+const SIZES: Record<ModalSizePreset, string> = {
 	sm: 'max-w-sm',
 	md: 'max-w-md',
 	lg: 'max-w-2xl',
 	xl: 'max-w-4xl',
-	custom: 'max-w-[100dvw]'
 };
+
+
+function maxWidthClass(size: ModalSize): string {
+	return Object.hasOwn(SIZES, size) ? SIZES[size as ModalSizePreset] : size;
+}
+
+
+function viewportHeight(value: ModalViewportHeight | undefined): string | undefined {
+	if (value === undefined) {
+		return undefined;
+	}
+
+	const percent = Number.parseFloat(value);
+
+	return Number.isFinite(percent) ? `${ Math.min(Math.max(percent, 0), 100) }dvh` : undefined;
+}
 
 
 /**
@@ -28,13 +43,17 @@ export function GlobalModal() {
 
 	useCloseOnNavigate(closeModal);
 
-	// Every modal's chunk, fetched once the browser has nothing better to do, so that the await inside `openModal` has nothing left to wait for.
-	useEffect(preloadAllModals, []);
 
 	const definition = current === null ? null : MODAL_REGISTRY[current.key];
+
 	// `options.title` first, so a `setModalTitle` from inside the modal wins over the registry's.
 	const title = current === null ? '' : current.options.title ?? resolveModalTitle(current.key, current.props);
+
 	const size = current?.options.size ?? definition?.size ?? 'md';
+
+	const height = viewportHeight(current?.options.height ?? definition?.height);
+	const maxHeight = viewportHeight(current?.options.maxHeight ?? definition?.maxHeight);
+
 	const dismissible = current?.options.dismissible ?? definition?.dismissible ?? true;
 
 	const Content = current === null ? undefined : loadedModals[current.key];
@@ -63,10 +82,11 @@ export function GlobalModal() {
 						leaveTo="opacity-0 scale-95"
 					>
 						<DialogPanel
+							style={ { height, maxHeight } }
 							className={ cn(
 								'popover-surface relative flex max-h-[calc(100dvh-2rem)] w-full flex-col rounded-3xl shadow-2xl will-change-transform',
 								'transition-[max-width,transform,border-color,box-shadow] duration-200 motion-reduce:transition-none',
-								SIZES[size],
+								maxWidthClass(size),
 								current?.options.className,
 							) }
 						>

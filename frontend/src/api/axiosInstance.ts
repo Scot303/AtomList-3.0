@@ -55,6 +55,8 @@ axiosInstance.interceptors.response.use(
 		const config = error.config as InternalAxiosRequestConfig;
 		const status = error.response?.status;
 
+		await unwrapBlobErrorBody(error);
+
 		if (status === 401 && shouldRenewToken(config)) {
 			config.tokenRenewalAttempted = true;
 
@@ -76,6 +78,25 @@ axiosInstance.interceptors.response.use(
 		throw apiError;
 	},
 );
+
+
+/**
+ * Replaces a Blob error body with the JSON it holds, so the rest of the error path sees the same
+ * shape it would have for an ordinary request. Leaves the body alone if it is not JSON.
+ */
+async function unwrapBlobErrorBody(error: AxiosError): Promise<void> {
+	const data: unknown = error.response?.data;
+
+	if (!error.response || !( data instanceof Blob ) || !data.type.includes('json')) {
+		return;
+	}
+
+	try {
+		error.response.data = JSON.parse(await data.text());
+	} catch {
+		// Truncated or not actually JSON.
+	}
+}
 
 
 function shouldRenewToken(config: InternalAxiosRequestConfig): boolean {
@@ -100,10 +121,4 @@ function matchesPath(url: string | undefined, paths: readonly string[]): boolean
 
 	// endsWith covers a caller that passed an absolute URL rather than a path relative to baseURL.
 	return paths.some((candidate) => path === candidate || path.endsWith(candidate));
-}
-
-
-/** Narrowing helper for the rare caller that needs the raw axios error rather than an ApiError. */
-export function isAxiosError(error: unknown): error is AxiosError {
-	return axios.isAxiosError(error);
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+
 /**
  * Mirrors the rules `CreatePersonRequest` and `UpdatePersonRequest` share.
  */
@@ -23,7 +24,8 @@ const phoneSpaces = /\s/g;
 /** A whole number, no shorter. */
 export const PHONE_DIGIT_COUNT = 9;
 
-const phoneValue = z
+
+export const phoneValue = z
 	.string()
 	.trim()
 	.refine(
@@ -45,6 +47,7 @@ const emailValue = z
 
 const noteValue = z.string().trim().max(512, 'Notatka może mieć najwyżej 512 znaków.');
 
+
 /**
  * What the person form holds, whether it is filling in a new person or editing one.
  */
@@ -63,6 +66,7 @@ export interface PersonFormValues {
 	contractSigned: boolean;
 	note: string;
 }
+
 
 export const personFormSchema: z.ZodType<PersonFormValues, PersonFormValues> = z.object({
 	name: nameValue,

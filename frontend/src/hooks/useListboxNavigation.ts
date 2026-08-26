@@ -1,43 +1,42 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-/** All the hook needs of an option - it only ever deals in ids. */
+
 interface NavigableOption {
 	id: string;
 }
+
 
 interface UseListboxNavigationConfig {
 	/** Picks the active option. Wired to Enter. */
 	onPick: (id: string) => void;
 	/**
-	 * Leads with the first option instead of waiting for an arrow key.
+	 * Option to lead with instead of waiting for an arrow key.
 	 * Set while a search is narrowing the list - it is what makes type-then-Enter work.
 	 */
-	leadFirstOption?: boolean;
+	leadOptionId?: string | null;
 	/** Focuses the list itself, for when there is no search box to put focus within reach of the arrow keys. */
 	focusList?: boolean;
 }
+
 
 /**
  * Roving highlight for a listbox: arrows to move, Home/End to jump, Enter to pick.
  * Escape is deliberately left alone - the panel's own dismissal handles it.
  */
 export function useListboxNavigation(options: readonly NavigableOption[], config: UseListboxNavigationConfig) {
-	const { onPick, leadFirstOption = false, focusList = false } = config;
+	const { onPick, leadOptionId = null, focusList = false } = config;
 
 	const listRef = useRef<HTMLDivElement>(null);
 	const [activeId, setActiveId] = useState<string | null>(null);
+
+	const isShown = (id: string | null) => id !== null && options.some((option) => option.id === id);
 
 	/**
 	 * Derived rather than stored, so filtering can never leave the highlight on an option that is no longer shown.
 	 * With nothing leading, nothing is active until an arrow key says so.
 	 */
-	const activeOptionId =
-		activeId !== null && options.some((option) => option.id === activeId)
-			? activeId
-			: leadFirstOption
-				? options[0]?.id ?? null
-				: null;
+	const activeOptionId = isShown(activeId) ? activeId : isShown(leadOptionId) ? leadOptionId : null;
 
 	// Keeps the highlight in view when it is moved by keyboard rather than by pointer.
 	useEffect(() => {
@@ -60,7 +59,7 @@ export function useListboxNavigation(options: readonly NavigableOption[], config
 		const next =
 			current === -1
 				? delta > 0 ? 0 : options.length - 1
-				: (current + delta + options.length) % options.length;
+				: ( current + delta + options.length ) % options.length;
 
 		setActiveId(options[next].id);
 	};

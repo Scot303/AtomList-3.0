@@ -38,8 +38,7 @@ export function GlobalDialog() {
 
 	return (
 		<Transition show={ isOpen } as={ Fragment } afterLeave={ resetDialog }>
-			{/* `closeDialog` ignores this while a confirm is in flight, so escape and the backdrop cannot walk away from a request that is already out. */ }
-			<Dialog onClose={ closeDialog } className="relative z-1600">
+			<Dialog onClose={ closeDialog } className="relative z-10000">
 				<TransitionChild
 					as={ Fragment }
 					enter="ease-out duration-300"

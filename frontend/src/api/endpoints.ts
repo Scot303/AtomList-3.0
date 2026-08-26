@@ -44,6 +44,7 @@ const FAMILIES = '/api/families';
 const LISTS = '/api/lists';
 const PAYMENTS = '/api/payments';
 const DEPOSITS = '/api/deposits';
+const ATTENDANCE = '/api/attendance';
 
 
 /**
@@ -75,6 +76,7 @@ export const PERSON_ENDPOINTS = {
 export const GROUP_ENDPOINTS = {
 	base: GROUPS,
 	byId: (id: string) => `${ GROUPS }/${ id }`,
+	attendanceList: (groupId: string) => `${ ATTENDANCE }/${ groupId }`,
 } as const;
 
 
@@ -92,6 +94,7 @@ export const MEMBERSHIP_ENDPOINTS = {
 export const FAMILY_ENDPOINTS = {
 	base: FAMILIES,
 	byId: (id: string) => `${ FAMILIES }/${ id }`,
+	members: (id: string) => `${ FAMILIES }/${ id }/members`,
 } as const;
 
 
