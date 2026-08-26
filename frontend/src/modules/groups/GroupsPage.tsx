@@ -1,5 +1,5 @@
 import { type MouseEvent } from 'react';
-import { Info, Plus, Users } from 'lucide-react';
+import { Info, Plus, Printer, Users } from 'lucide-react';
 import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { notifyApiError } from '@/lib/toast';
@@ -10,7 +10,7 @@ import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { ACTIVE_ID } from '@/types/rowTags.ts';
 import { useGroups } from './hooks/useGroups';
-import { useUpdateGroup } from './hooks/useGroupMutations';
+import { usePrintAttendanceList, useUpdateGroup } from './hooks/useGroupMutations';
 import { buildGroupColumns } from './types/groupColumns.tsx';
 import { GROUP_TYPE_OPTIONS, type GroupRow, toGroupRow } from './types/groupRows.ts';
 import type { UpdateGroupPayload } from './types/types.ts';
@@ -41,6 +41,7 @@ export function GroupsPage() {
 
 	const groups = useGroups();
 	const updateGroup = useUpdateGroup();
+	const { canPrint, isPending: isPrintingAttendanceList, print } = usePrintAttendanceList();
 
 	const prefetchPersons = usePrefetchPersons();
 
@@ -97,6 +98,14 @@ export function GroupsPage() {
 					groupName: row.name,
 				}),
 			},
+			...( canPrint ? [{
+				id: 'print-attendance-list',
+				label: 'Drukuj listę obecności',
+				icon: Printer,
+				separatorBefore: true,
+				disabled: isPrintingAttendanceList,
+				onSelect: () => print(row.id),
+			}] : [] ),
 		]);
 	};
 
