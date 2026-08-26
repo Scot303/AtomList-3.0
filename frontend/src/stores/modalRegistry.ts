@@ -1,7 +1,10 @@
 import type { ComponentType } from 'react';
 
 
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'custom';
+export type ModalSizePreset = 'sm' | 'md' | 'lg' | 'xl';
+
+/** A preset, or any Tailwind max-width utility - `'max-w-5xl'`, `'max-w-[52rem]'`, `'max-w-[90dvw]'`. */
+export type ModalSize = ModalSizePreset | `max-w-${ string }`;
 
 /** Any percentage of the viewport height, e.g. `'90%'`. Values above `100%` are clamped. */
 export type ModalViewportHeight = `${ number }%`;
@@ -71,8 +74,8 @@ export const MODAL_REGISTRY = {
 	'persons.families': defineModal({
 		load: () => import('@/modules/persons/modals/FamiliesModal.tsx'),
 		title: 'Rodziny',
-		size: 'xl',
-		height: '70%',
+		size: 'max-w-6xl',
+		height: '75%',
 	}),
 
 	'persons.discounts': defineModal({

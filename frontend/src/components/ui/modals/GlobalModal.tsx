@@ -3,18 +3,22 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Transition, Transitio
 import { X } from 'lucide-react';
 import { useCloseOnNavigate } from '@/hooks/useCloseOnNavigate';
 import { cn } from '@/lib/cn';
-import { loadedModals, MODAL_REGISTRY, type ModalSize, type ModalViewportHeight, resolveModalTitle } from '@/stores/modalRegistry.ts';
+import { loadedModals, MODAL_REGISTRY, type ModalSize, type ModalSizePreset, type ModalViewportHeight, resolveModalTitle } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore';
 import { ModalBody } from './ModalBody';
 
 
-const SIZES: Record<ModalSize, string> = {
+const SIZES: Record<ModalSizePreset, string> = {
 	sm: 'max-w-sm',
 	md: 'max-w-md',
 	lg: 'max-w-2xl',
 	xl: 'max-w-4xl',
-	custom: 'max-w-[100dvw]'
 };
+
+
+function maxWidthClass(size: ModalSize): string {
+	return Object.hasOwn(SIZES, size) ? SIZES[size as ModalSizePreset] : size;
+}
 
 
 function viewportHeight(value: ModalViewportHeight | undefined): string | undefined {
@@ -82,7 +86,7 @@ export function GlobalModal() {
 							className={ cn(
 								'popover-surface relative flex max-h-[calc(100dvh-2rem)] w-full flex-col rounded-3xl shadow-2xl will-change-transform',
 								'transition-[max-width,transform,border-color,box-shadow] duration-200 motion-reduce:transition-none',
-								SIZES[size],
+								maxWidthClass(size),
 								current?.options.className,
 							) }
 						>
