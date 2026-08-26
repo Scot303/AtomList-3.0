@@ -1,5 +1,5 @@
 /** Origin of the backend, without a trailing slash. Inlined at build time - see .env.example. */
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
+export const API_BASE_URL = ( import.meta.env.VITE_API_BASE_URL ?? '' ).replace(/\/+$/, '');
 
 /** CookieAuthCsrfFilter rejects the two cookie-authenticated endpoints (/refresh and /logout) unless this header is present. */
 export const CSRF_HEADER = 'X-Auth-Request';
