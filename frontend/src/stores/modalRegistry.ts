@@ -63,6 +63,12 @@ export const MODAL_REGISTRY = {
 		size: 'xl',
 	}),
 
+	'persons.families': defineModal({
+		load: () => import('@/modules/persons/modals/FamiliesModal.tsx'),
+		title: 'Rodziny',
+		size: 'xl',
+	}),
+
 	'persons.discounts': defineModal({
 		load: () => import('@/modules/persons/modals/PersonDiscountsModal.tsx'),
 		title: ({ personName }) => `Zniżki osoby - ${ personName }`,
