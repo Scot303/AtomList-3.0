@@ -74,7 +74,7 @@ export const MODAL_REGISTRY = {
 	'persons.families': defineModal({
 		load: () => import('@/modules/persons/modals/FamiliesModal.tsx'),
 		title: 'Rodziny',
-		size: 'max-w-6xl',
+		size: 'max-w-5xl',
 		height: '75%',
 	}),
 
