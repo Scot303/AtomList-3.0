@@ -3,6 +3,9 @@ import type { ComponentType } from 'react';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'custom';
 
+/** Any percentage of the viewport height, e.g. `'90%'`. Values above `100%` are clamped. */
+export type ModalViewportHeight = `${ number }%`;
+
 /**
  * A fixed heading, or one built from the props the modal was opened with - for a modal titled after the record it is showing.
  *
@@ -15,6 +18,8 @@ export interface ModalDefinition<P> {
 	load: () => Promise<{ default: ComponentType<P> }>;
 	title: ModalTitle<P>;
 	size?: ModalSize;
+	height?: ModalViewportHeight;
+	maxHeight?: ModalViewportHeight;
 	/** False stops escape and the backdrop from closing it, and hides the close button. */
 	dismissible?: boolean;
 }
@@ -67,6 +72,7 @@ export const MODAL_REGISTRY = {
 		load: () => import('@/modules/persons/modals/FamiliesModal.tsx'),
 		title: 'Rodziny',
 		size: 'xl',
+		height: '70%',
 	}),
 
 	'persons.discounts': defineModal({
