@@ -127,6 +127,16 @@ export interface FamilyMemberView {
 }
 
 
+/**
+ * Mirror of the backend's `CreateUpdateFamilyRequest`.
+ */
+export interface CreateUpdateFamilyPayload {
+	name: string;
+	phone?: string;
+	note?: string;
+}
+
+
 /** Mirror of the backend's `FamilyView`. */
 export interface FamilyView {
 	id: string;
