@@ -106,6 +106,7 @@ export const MODAL_REGISTRY = {
 		load: () => import('@/modules/sms/modals/SendSmsModal.tsx'),
 		title: 'Nowa wiadomość SMS',
 		size: 'lg',
+		maxHeight: '80%',
 		dismissible: false
 	}),
 
