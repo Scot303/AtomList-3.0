@@ -4,7 +4,6 @@ import atomdance.app.common.utils.AppClock;
 import atomdance.app.modules.attendance.model.GenResultPayload;
 import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.repository.MembershipRepository;
-import atomdance.app.modules.person.model.Person;
 import lombok.RequiredArgsConstructor;
 import org.openpdf.pdf.ITextRenderer;
 import org.openpdf.text.pdf.BaseFont;
@@ -21,6 +20,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+
+import static atomdance.app.common.utils.StaticValuesUtil.PHONE_COUNTRY_CODE;
 
 
 @Component
@@ -93,7 +94,8 @@ public class AttendancePdfGenerator {
 
 	private List<String> getGroupMembersNames(UUID groupId) {
 		return membershipRepository.findActivePersonsInGroup(groupId).stream()
-				.map(Person::getFullName)
+				.map(person ->
+						"%s (+%s %s)".formatted(person.getFullName(), PHONE_COUNTRY_CODE, person.getEffectivePhone()))
 				.toList();
 	}
 }
