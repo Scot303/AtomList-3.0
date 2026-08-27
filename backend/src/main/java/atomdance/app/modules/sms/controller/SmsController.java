@@ -1,20 +1,17 @@
 package atomdance.app.modules.sms.controller;
 
-import atomdance.app.modules.sms.dto.CreateSmsRequest;
+import atomdance.app.modules.sms.dto.SendSmsRequest;
+import atomdance.app.modules.sms.dto.SmsSendResultView;
 import atomdance.app.modules.sms.dto.SmsView;
 import atomdance.app.modules.sms.service.SmsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/sms")
@@ -22,20 +19,25 @@ import java.util.List;
 public class SmsController {
 
 
-    private final SmsService smsService;
+	private final SmsService smsService;
 
-    @GetMapping
-    @PreAuthorize("hasAuthority('READ_SMS')")
-    public List<SmsView> getAll() {
-        return smsService.getAll();
-    }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('SEND_SMS')")
-    public SmsView create(@RequestBody @Valid CreateSmsRequest request) {
-        return smsService.create(request);
-    }
+	@GetMapping
+	@PreAuthorize("hasAuthority('READ_SMS')")
+	public List<SmsView> getAll() {
+		return smsService.getAll();
+	}
+
+
+	/**
+	 * One message to any number of people, named directly or through the groups they attend.
+	 */
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	@PreAuthorize("hasAuthority('SEND_SMS')")
+	public SmsSendResultView send(@RequestBody @Valid SendSmsRequest request) {
+		return smsService.send(request);
+	}
 
 
 }

@@ -45,6 +45,7 @@ const LISTS = '/api/lists';
 const PAYMENTS = '/api/payments';
 const DEPOSITS = '/api/deposits';
 const ATTENDANCE = '/api/attendance';
+const SMS = '/api/sms';
 
 
 /**
@@ -141,4 +142,12 @@ export const DEPOSIT_ENDPOINTS = {
 	credit: (personId: string) => `${ DEPOSITS }/credit/${ personId }`,
 	allocate: (id: string) => `${ DEPOSITS }/${ id }/allocate`,
 	settlement: (id: string, settlementId: string) => `${ DEPOSITS }/${ id }/settlements/${ settlementId }`,
+} as const;
+
+
+/**
+ * `READ_SMS` / `SEND_SMS`.
+ */
+export const SMS_ENDPOINTS = {
+	base: SMS,
 } as const;

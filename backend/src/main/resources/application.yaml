@@ -126,4 +126,4 @@ app:
 
 logging:
   level:
-    atomdance.app: DEBUG
+    atomdance.app: ${APP_LOG_LEVEL:DEBUG}

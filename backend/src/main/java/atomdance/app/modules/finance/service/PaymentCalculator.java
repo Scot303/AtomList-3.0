@@ -47,10 +47,13 @@ public class PaymentCalculator {
 
 		YearMonth month = list.yearMonth();
 
+		// Memberships billed on this specific sheet
 		Map<UUID, List<Membership>> billableByPerson = FamilyPositions.byPerson(billableMemberships);
+		// All memberships active that month, including ones billed on another sheet
 		Map<UUID, List<Membership>> monthByPerson = FamilyPositions.byPerson(monthMemberships);
 
 		List<Payment> oneOffs = new ArrayList<>();
+		// Membership-derived payments, indexed by personId -> groupId -> payment
 		Map<UUID, Map<UUID, Payment>> membershipDerived = indexByPersonAndGroup(existing, oneOffs);
 
 		List<Payment> current = new ArrayList<>(oneOffs);
@@ -58,10 +61,12 @@ public class PaymentCalculator {
 
 		Map<UUID, Person> persons = personsOf(existing, billableMemberships);
 
+		// For every person who has billable memberships, process one membership per group.
 		for (Map.Entry<UUID, List<Membership>> entry : billableByPerson.entrySet()) {
 			Map<UUID, Payment> byGroup = membershipDerived.getOrDefault(entry.getKey(), Map.of());
 
 			for (Membership membership : oneMembershipPerGroup(entry.getValue())) {
+				// For each person/group pair, try to reuse an existing payment
 				Payment payment = byGroup.get(membership.getGroup().getId());
 
 				if (payment == null) {
@@ -69,14 +74,21 @@ public class PaymentCalculator {
 					created.add(payment);
 				}
 
+				// Updates membership-derived information
 				refresh(payment, membership, month);
 
+				// Every resulting membership-derived payment is added to current, alongside the manual charges preserved earlier
 				current.add(payment);
 			}
 		}
 
+		// Applies discounts to every payment in current.
+		// For each person, the discount is calculated once and reused across all their group payments:
 		applyDiscounts(current, monthByPerson, persons, rules, month);
 
+		// current: payments that belong in the recalculated result
+		// created: new payments the service must save
+		// obsolete: former membership-derived payments no longer represented by a billable membership and with no money settled against them
 		return new Recalculation(current, created, obsoleteAmong(existing, current));
 	}
 
