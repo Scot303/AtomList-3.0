@@ -25,12 +25,15 @@ export function useSmsRowMenu(): SmsRowMenuBuilder {
 		preloadModal('sms.details');
 		preloadModal('sms.send');
 
+		prefetchPersons();
+		prefetchGroups();
+
 		return [
 			{
 				id: 'details',
 				label: 'Szczegóły',
 				icon: Eye,
-				onSelect: () => void openModal('sms.details', { sms: row.sms }),
+				onSelect: () => void openModal('sms.details', { sms: row.sms })
 			},
 			{
 				id: 'resend',
@@ -38,12 +41,7 @@ export function useSmsRowMenu(): SmsRowMenuBuilder {
 				icon: Send,
 				separatorBefore: true,
 				disabled: !canSend,
-				onSelect: () => {
-					prefetchPersons();
-					prefetchGroups();
-
-					void openModal('sms.send', { message: row.message });
-				},
+				onSelect: () => void openModal('sms.send', { message: row.message })
 			},
 		];
 	};
