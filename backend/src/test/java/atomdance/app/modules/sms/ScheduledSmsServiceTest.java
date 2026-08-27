@@ -34,13 +34,13 @@ import static org.mockito.Mockito.when;
 
 class ScheduledSmsServiceTest {
 
-    private AppClock appClock = new AppClock("Europe/Warsaw");
-    private SmsService smsService = mock(SmsService.class);
-    private PaymentListRepository paymentListRepository = mock(PaymentListRepository.class);
-    private PaymentRepository paymentRepository = mock(PaymentRepository.class);
-    private SmsApiClient smsApiClient = mock(SmsApiClient.class);
-    private AuditLogger auditLogger = mock(AuditLogger.class);
-    private List<String> phoneWhitelist = new ArrayList<>();
+    private final AppClock appClock = new AppClock("Europe/Warsaw");
+    private final SmsService smsService = mock(SmsService.class);
+    private final PaymentListRepository paymentListRepository = mock(PaymentListRepository.class);
+    private final PaymentRepository paymentRepository = mock(PaymentRepository.class);
+    private final SmsApiClient smsApiClient = mock(SmsApiClient.class);
+    private final AuditLogger auditLogger = mock(AuditLogger.class);
+    private final List<String> phoneWhitelist = new ArrayList<>();
     private static ScheduledSmsService scheduledSmsService;
 
     @BeforeEach
@@ -56,7 +56,7 @@ class ScheduledSmsServiceTest {
 
         // when
         when(paymentListRepository.findByYearAndMonthAndType(anyInt(), anyInt(), any(ListType.class)))
-                .thenAnswer((Answer<Optional<PaymentList>>) invocation -> mockPaymentList());
+                .thenReturn(mockPaymentList());
 
         when(paymentRepository.findUnpaidByListId(any(UUID.class)))
                 .thenAnswer((Answer<List<Payment>>) invocation -> mockUnpaidPayment(invocation.getArgument(0), familyPhoneNumber));
