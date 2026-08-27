@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { fetchDeposit, fetchDepositByCode, fetchDeposits } from '../api/depositsApi';
-import { depositKeys } from '../api/depositKeys';
+import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { fetchDeposit, fetchDepositByCode, fetchDeposits } from '../../api/depositsApi.ts';
+import { depositKeys } from '../../api/depositKeys.ts';
 
 
 /* ------------------ MULTIPLE ------------------ */

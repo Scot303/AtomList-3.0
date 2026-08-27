@@ -2,7 +2,7 @@ import { Eye, Hash, Pencil, StickyNote, Trash2, Wallet } from 'lucide-react';
 import { formatCurrency } from '@/lib/locale.ts';
 import { notifyApiError, notifySuccess } from '@/lib/toast.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
-import { usePrefetchPersonCredit } from '@/modules/deposits/hooks/usePersonCredit.ts';
+import { usePrefetchPersonCredit } from '@/modules/deposits/hooks/queries/usePersonCredit.ts';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups.ts';
 import { useConfirm } from '@/stores/dialogStore.ts';
 import type { ContextMenuItem } from '@/stores/menuStore.ts';

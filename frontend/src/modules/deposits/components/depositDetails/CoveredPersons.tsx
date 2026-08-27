@@ -1,5 +1,5 @@
 import { Coins } from 'lucide-react';
-import { usePrefetchPersonCredit } from '@/modules/deposits/hooks/usePersonCredit';
+import { usePrefetchPersonCredit } from '@/modules/deposits/hooks/queries/usePersonCredit.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { coveredPersonLabel, type CoveredPersonView } from '@/types/finance.ts';

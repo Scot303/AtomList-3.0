@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { fetchPersonCredit } from '../api/depositsApi';
-import { depositKeys } from '../api/depositKeys';
+import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { fetchPersonCredit } from '../../api/depositsApi.ts';
+import { depositKeys } from '../../api/depositKeys.ts';
 
 
 export function personCreditQuery(personId: string) {

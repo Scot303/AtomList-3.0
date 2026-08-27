@@ -8,7 +8,7 @@ import { cn } from '@/lib/cn';
 import { formatCurrency } from '@/lib/locale';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { useConfirm } from '@/stores/dialogStore';
-import { useRemoveDepositSettlement } from '@/modules/deposits/hooks/useDepositMutations';
+import { useRemoveDepositSettlement } from '@/modules/deposits/hooks/mutations/useDepositMutations.ts';
 import { PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
 import type { SettlementView } from '../../types/types.ts';
 

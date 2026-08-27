@@ -6,7 +6,7 @@ import logo from '@public/atomlisticon.png';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { usePrefetchDeposits } from '@/modules/deposits/hooks/useDeposits';
+import { usePrefetchDeposits } from '@/modules/deposits/hooks/queries/useDeposits.ts';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
 import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { usePrefetchSmsHistory } from '@/modules/sms/hooks/useSmsHistory';

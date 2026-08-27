@@ -13,8 +13,8 @@ import { useConfirm } from '@/stores/dialogStore';
 import { useModalStore } from '@/stores/modalStore';
 import { CoveredPersons } from '../components/depositDetails/CoveredPersons';
 import { DepositSettlements } from '../components/depositDetails/DepositSettlements';
-import { useDeposit } from '../hooks/useDeposits';
-import { useDeleteDeposit } from '../hooks/useDepositMutations';
+import { useDeposit } from '../hooks/queries/useDeposits.ts';
+import { useDeleteDeposit } from '../hooks/mutations/useDepositMutations.ts';
 import { ORIGIN_OPTIONS, SCOPE_OPTIONS } from '../types/depositRows';
 import type { DepositView } from '../types/types.ts';
 

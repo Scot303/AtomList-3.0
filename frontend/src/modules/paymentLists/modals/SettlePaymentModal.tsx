@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { formatCurrency } from '@/lib/locale';
-import { usePersonCredit } from '@/modules/deposits/hooks/usePersonCredit';
+import { usePersonCredit } from '@/modules/deposits/hooks/queries/usePersonCredit.ts';
 import { PaymentIdentity } from '../components/PaymentIdentity';
 import { FreshHandoverForm } from '../components/settlePayment/FreshHandoverForm';
 import { type SettleMode, SettleModeSwitch } from '../components/settlePayment/SettleModeSwitch';
