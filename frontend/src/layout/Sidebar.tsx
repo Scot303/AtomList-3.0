@@ -9,6 +9,7 @@ import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { usePrefetchDeposits } from '@/modules/deposits/hooks/useDeposits';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
 import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
+import { usePrefetchSmsHistory } from '@/modules/sms/hooks/useSmsHistory';
 import { MODULES } from '@/modules/registry';
 import { useUiStore } from '@/stores/uiStore';
 import { todayInTimeZone } from '@/utils/dateUtils';
@@ -28,6 +29,7 @@ export function Sidebar() {
 	const prefetchPersons = usePrefetchPersons();
 	const prefetchGroups = usePrefetchGroups();
 	const prefetchDeposits = usePrefetchDeposits();
+	const prefetchSmsHistory = usePrefetchSmsHistory();
 
 	const open = isDesktop ? sidebarOpen : mobileNavOpen;
 
@@ -57,6 +59,10 @@ export function Sidebar() {
 
 		if (moduleId === 'deposits') {
 			prefetchDeposits(todayInTimeZone().getFullYear());
+		}
+
+		if (moduleId === 'sms') {
+			prefetchSmsHistory();
 		}
 
 		if (( moduleId === 'groups' || moduleId === 'persons' ) && hasPermission('READ_GROUPS')) {
