@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { notifyApiError } from '@/lib/toast.ts';
 import { monthHasEnded, parseISODate, todayInTimeZone } from '@/utils/dateUtils.ts';
-import { useUpdateMembership } from '../../hooks/useMembershipMutations.ts';
+import { useUpdateMembership } from '../../hooks/mutations/useMembershipMutations.ts';
 import type { MembershipView, UpdateMembershipPayload } from '../../types/types.ts';
 
 

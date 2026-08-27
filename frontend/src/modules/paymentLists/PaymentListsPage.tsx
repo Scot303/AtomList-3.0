@@ -5,7 +5,7 @@ import { FullPageLoader } from '@/components/feedback/FullPageLoader';
 import { BirthdayIndicator } from '@/components/shared/BirthdayIndicator';
 import { useIsDesktop, useMediaQuery } from '@/hooks/useMediaQuery';
 import { cn } from '@/lib/cn';
-import { usePersons } from '@/modules/persons/hooks/usePersons';
+import { usePersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { CustomListsPanel } from './components/paymentListsOverview/CustomListsPanel.tsx';
 import { SeasonSwitcher } from './components/paymentListsOverview/SeasonSwitcher.tsx';
 import { useCustomLists } from './hooks/usePaymentLists';

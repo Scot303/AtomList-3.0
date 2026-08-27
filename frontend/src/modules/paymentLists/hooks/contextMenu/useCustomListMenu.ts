@@ -9,7 +9,7 @@ import { useDeletePaymentList } from '../usePaymentListMutations.ts';
 import { describeList } from '../../types/listLabels.ts';
 import type { PaymentListView } from '../../types/types.ts';
 import { usePrefetchGroups } from "@/modules/groups/hooks/useGroups.ts";
-import { usePrefetchPersons } from "@/modules/persons/hooks/usePersons.ts";
+import { usePrefetchPersons } from "@/modules/persons/hooks/queries/usePersons.ts";
 
 
 export type CustomListMenuBuilder = (list: PaymentListView) => ContextMenuItem[];

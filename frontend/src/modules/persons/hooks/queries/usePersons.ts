@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchPersons } from '../api/personsApi';
-import { personKeys } from '../api/personKeys';
+import { fetchPersons } from '../../api/personsApi.ts';
+import { personKeys } from '../../api/personKeys.ts';
 
 
 export function personsQuery() {

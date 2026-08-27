@@ -5,7 +5,7 @@ import { Spinner } from '@/components/feedback/Spinner';
 import { Input } from '@/components/ui/fields/Input';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { FamilyList } from '../components/familyList/FamilyList';
-import { useFamilies } from '../hooks/useFamilies';
+import { useFamilies } from '../hooks/queries/useFamilies.ts';
 
 
 export default function FamiliesModal() {

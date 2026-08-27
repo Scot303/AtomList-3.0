@@ -3,7 +3,7 @@ import { DataTable } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
-import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
+import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { useContextMenu } from '@/stores/menuStore';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';

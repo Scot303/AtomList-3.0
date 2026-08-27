@@ -8,7 +8,7 @@ import { formatCurrency } from '@/lib/locale';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
-import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
+import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { paths } from '@/routes/paths';
 import { useConfirm } from '@/stores/dialogStore';
 import { preloadModal } from '@/stores/modalRegistry';

@@ -10,7 +10,7 @@ import { pluralise } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
 import { buildGroupOptions } from '@/modules/groups/types/groupRows.ts';
-import { usePersons } from '@/modules/persons/hooks/usePersons';
+import { usePersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { toPersonOptions } from '@/modules/persons/utils/personOptions';
 import { useModalStore } from '@/stores/modalStore';
 import { SmsMessageMeter } from '../components/sendSms/SmsMessageMeter';

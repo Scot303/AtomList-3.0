@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchMemberships } from '../api/membershipsApi';
-import { personKeys } from '../api/personKeys';
+import { fetchMemberships } from '../../api/membershipsApi.ts';
+import { personKeys } from '../../api/personKeys.ts';
 
 
 function membershipsQuery(personId: string) {

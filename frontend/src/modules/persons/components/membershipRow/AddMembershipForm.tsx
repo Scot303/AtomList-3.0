@@ -9,7 +9,7 @@ import { dateToISO, parseISODate, todayInTimeZone } from '@/utils/dateUtils.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { notifySuccess } from '@/lib/toast.ts';
 import type { GroupView } from '@/modules/groups/types/types.ts';
-import { useCreateMembership } from '../../hooks/useMembershipMutations.ts';
+import { useCreateMembership } from '../../hooks/mutations/useMembershipMutations.ts';
 import type { MembershipView } from '../../types/types.ts';
 
 

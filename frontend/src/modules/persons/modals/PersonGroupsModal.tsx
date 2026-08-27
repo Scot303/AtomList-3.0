@@ -5,7 +5,7 @@ import { useGroups } from '@/modules/groups/hooks/useGroups';
 import { indexGroups } from '@/modules/groups/types/groupRows.ts';
 import { AddMembershipForm } from '@/modules/persons/components/membershipRow/AddMembershipForm.tsx';
 import { MembershipRow } from '@/modules/persons/components/membershipRow/MembershipRow.tsx';
-import { useMemberships } from '../hooks/useMemberships';
+import { useMemberships } from '../hooks/queries/useMemberships.ts';
 
 
 interface PersonGroupsModalProps {

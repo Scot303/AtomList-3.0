@@ -7,7 +7,7 @@ import { TagSelect } from '@/components/ui/tags';
 import { pluralise } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
-import { usePersons } from '@/modules/persons/hooks/usePersons';
+import { usePersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { toPersonOptions } from '@/modules/persons/utils/personOptions';
 import { useListGroupOptions } from '../hooks/ui/useListGroupOptions.ts';
 import { useAddPersonsToList } from '../hooks/usePaymentListMutations';

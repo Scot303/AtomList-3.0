@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { LOCALE } from '@/lib/locale';
-import { paymentListKeys } from '@/modules/paymentLists/api/paymentListKeys';
-import { createFamily, deleteFamily, setFamilyMembers, updateFamily } from '../api/familiesApi';
-import { familyKeys, personKeys } from '../api/personKeys';
-import type { CreateUpdateFamilyPayload, FamilyView } from '../types/types.ts';
+import { LOCALE } from '@/lib/locale.ts';
+import { paymentListKeys } from '@/modules/paymentLists/api/paymentListKeys.ts';
+import { createFamily, deleteFamily, setFamilyMembers, updateFamily } from '../../api/familiesApi.ts';
+import { familyKeys, personKeys } from '../../api/personKeys.ts';
+import type { CreateUpdateFamilyPayload, FamilyView } from '../../types/types.ts';
 
 
 /* ------------------ INVALIDATE ------------------ */

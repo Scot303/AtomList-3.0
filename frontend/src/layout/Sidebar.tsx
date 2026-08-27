@@ -8,7 +8,7 @@ import { cn } from '@/lib/cn';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { usePrefetchDeposits } from '@/modules/deposits/hooks/useDeposits';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
-import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
+import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { usePrefetchSmsHistory } from '@/modules/sms/hooks/useSmsHistory';
 import { type AppModule, MODULE_GROUPS, MODULES } from '@/modules/registry';
 import { useUiStore } from '@/stores/uiStore';

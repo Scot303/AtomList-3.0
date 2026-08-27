@@ -9,7 +9,7 @@ import { TagSelect } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
-import { usePersons } from '@/modules/persons/hooks/usePersons';
+import { usePersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { useListGroupOptions } from '../hooks/ui/useListGroupOptions.ts';
 import { useAddOneOffPayment, useUpdateOneOffPayment } from '../hooks/usePaymentMutations';
 import { oneOffFormSchema, type OneOffFormValues, parseAmount } from '../schemas/paymentSchemas';

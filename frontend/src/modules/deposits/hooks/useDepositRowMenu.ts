@@ -4,7 +4,7 @@ import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { coveredPersonLabel } from '@/types/finance.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
-import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
+import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { useConfirm } from '@/stores/dialogStore';
 import type { ContextMenuItem } from '@/stores/menuStore';
 import { preloadModal } from '@/stores/modalRegistry';
