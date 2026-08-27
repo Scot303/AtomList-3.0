@@ -3,7 +3,7 @@ import { Trash2 } from 'lucide-react';
 import { notifyApiError, notifySuccess } from '@/lib/toast.ts';
 import { useConfirm } from '@/stores/dialogStore.ts';
 import { useContextMenu } from '@/stores/menuStore.ts';
-import { useDeleteMembership, useLeaveMembership } from '../../hooks/useMembershipMutations.ts';
+import { useDeleteMembership, useLeaveMembership } from '../../hooks/mutations/useMembershipMutations.ts';
 import type { MembershipView } from '../../types/types.ts';
 import { formatShortDate } from '../../utils/personFormat.ts';
 

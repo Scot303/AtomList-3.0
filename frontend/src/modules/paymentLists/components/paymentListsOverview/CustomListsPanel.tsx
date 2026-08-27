@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/buttons/Button.tsx';
 import { useMediaQuery } from '@/hooks/useMediaQuery.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups.ts';
-import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons.ts';
+import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { preloadModal } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore.ts';
 import { CustomListRow } from './CustomListRow.tsx';

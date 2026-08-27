@@ -8,7 +8,7 @@ import { useModalStore } from '@/stores/modalStore';
 import { ChargeBreakdown } from '../components/paymentDetails/ChargeBreakdown';
 import { PaymentIdentity } from '../components/PaymentIdentity';
 import { SettlementList } from '../components/paymentDetails/SettlementList';
-import { usePayment } from '../hooks/usePayments';
+import { usePayment } from '../hooks/queries/usePayments.ts';
 import { hasCountableQuantity, isMembershipDerived } from '../types/paymentRows';
 import type { PaymentListView, PaymentView } from '../types/types.ts';
 

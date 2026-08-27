@@ -1,7 +1,7 @@
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addPersonsToList, closeList, createCustomList, deletePaymentList, recalculateList, reopenList, repopulateList, updateCustomList, } from '../api/paymentListsApi';
-import { paymentListKeys } from '../api/paymentListKeys';
-import type { AddPersonsPayload, CreateCustomListPayload, PaymentListView, UpdateCustomListPayload } from '../types/types.ts';
+import { addPersonsToList, closeList, createCustomList, deletePaymentList, recalculateList, reopenList, repopulateList, updateCustomList, } from '../../api/paymentListsApi.ts';
+import { paymentListKeys } from '../../api/paymentListKeys.ts';
+import type { AddPersonsPayload, CreateCustomListPayload, PaymentListView, UpdateCustomListPayload } from '../../types/types.ts';
 
 
 /* ------------------ CREATE ------------------ */

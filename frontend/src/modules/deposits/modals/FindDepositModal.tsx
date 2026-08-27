@@ -11,7 +11,7 @@ import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { formatCurrency } from '@/lib/locale';
 import { coveredPersonsNames, coveredPersonsSummary, PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
 import { useModalStore } from '@/stores/modalStore';
-import { useDepositByCode } from '../hooks/useDeposits';
+import { useDepositByCode } from '../hooks/queries/useDeposits.ts';
 import { SCOPE_OPTIONS } from '../types/depositRows.ts';
 import { type DepositCodeFormValues, depositCodeSchema } from '../schemas/depositSchemas';
 import { cn } from "@/lib/cn.ts";

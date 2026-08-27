@@ -4,7 +4,7 @@ import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/data
 import { Button } from '@/components/ui/buttons/Button';
 import { notifyApiError } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
+import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { useContextMenu } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';

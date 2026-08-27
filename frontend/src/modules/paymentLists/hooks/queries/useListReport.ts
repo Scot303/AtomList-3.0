@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { fetchListReport } from '../api/paymentListsApi';
-import { paymentListKeys } from '../api/paymentListKeys';
+import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { fetchListReport } from '../../api/paymentListsApi.ts';
+import { paymentListKeys } from '../../api/paymentListKeys.ts';
 
 
 export function listReportQuery(listId: string) {

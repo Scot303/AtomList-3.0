@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { paymentListKeys } from '@/modules/paymentLists/api/paymentListKeys';
-import { createMembership, deleteMembership, leaveMembership, updateMembership } from '../api/membershipsApi';
-import { personKeys } from '../api/personKeys';
-import type { CreateMembershipPayload, UpdateMembershipPayload } from '../types/types.ts';
+import { paymentListKeys } from '@/modules/paymentLists/api/paymentListKeys.ts';
+import { createMembership, deleteMembership, leaveMembership, updateMembership } from '../../api/membershipsApi.ts';
+import { personKeys } from '../../api/personKeys.ts';
+import type { CreateMembershipPayload, UpdateMembershipPayload } from '../../types/types.ts';
 
 
 /* ------------------ INVALIDATE ------------------ */

@@ -6,7 +6,7 @@ import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { FamilyCreateForm } from '../familyList/FamilyCreateForm';
 import { PhoneField } from '../PhoneField';
-import { useFamilies } from '../../hooks/useFamilies';
+import { useFamilies } from '../../hooks/queries/useFamilies.ts';
 import { type PersonFormValues } from '../../schemas/personSchemas';
 import { formatFamilyName, formatPhone } from '../../utils/personFormat';
 

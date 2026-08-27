@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/buttons/Button';
 import { Input } from '@/components/ui/fields';
 import { notifySuccess } from '@/lib/toast';
 import { PhoneField } from '../PhoneField';
-import { useCreateFamily } from '../../hooks/useFamilyMutations';
+import { useCreateFamily } from '../../hooks/mutations/useFamilyMutations.ts';
 import { familyFormSchema, type FamilyFormValues } from '../../schemas/familySchemas';
 import { toFamilyPayload } from '../../utils/familyForm';
 

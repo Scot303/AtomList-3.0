@@ -1,7 +1,7 @@
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createPerson, updatePerson } from '../api/personsApi';
-import { personKeys } from '../api/personKeys';
-import type { CreatePersonPayload, PersonView, UpdatePersonPayload } from '../types/types.ts';
+import { createPerson, updatePerson } from '../../api/personsApi.ts';
+import { personKeys } from '../../api/personKeys.ts';
+import type { CreatePersonPayload, PersonView, UpdatePersonPayload } from '../../types/types.ts';
 
 
 /* ------------------ CREATE ------------------ */

@@ -7,7 +7,7 @@ import { TagSelect } from '@/components/ui/tags';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
 import { buildGroupOptions } from '@/modules/groups/types/groupRows.ts';
-import { usePersons } from '@/modules/persons/hooks/usePersons';
+import { usePersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { toPersonOptions } from '@/modules/persons/utils/personOptions';
 import type { CustomListFormValues } from '../../schemas/listSchemas';
 

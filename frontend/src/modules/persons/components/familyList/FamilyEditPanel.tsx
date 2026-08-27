@@ -9,7 +9,7 @@ import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { useConfirm } from '@/stores/dialogStore';
 import { PhoneField } from '../PhoneField';
-import { useDeleteFamily, useSetFamilyMembers, useUpdateFamily } from '../../hooks/useFamilyMutations';
+import { useDeleteFamily, useSetFamilyMembers, useUpdateFamily } from '../../hooks/mutations/useFamilyMutations.ts';
 import { familyFormSchema, type FamilyFormValues } from '../../schemas/familySchemas';
 import { toFamilyPayload } from '../../utils/familyForm';
 import type { FamilyMemberView, FamilyView } from '../../types/types.ts';

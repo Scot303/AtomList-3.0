@@ -1,8 +1,8 @@
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
-import { paymentListKeys } from '@/modules/paymentLists/api/paymentListKeys';
-import { allocateDeposit, createDeposit, deleteDeposit, planDeposit, removeDepositSettlement, } from '../api/depositsApi';
-import { depositKeys } from '../api/depositKeys';
-import type { AllocateDepositPayload, CreateDepositPayload, PlanDepositPayload, } from '../types/types.ts';
+import { paymentListKeys } from '@/modules/paymentLists/api/paymentListKeys.ts';
+import { allocateDeposit, createDeposit, deleteDeposit, planDeposit, removeDepositSettlement, } from '../../api/depositsApi.ts';
+import { depositKeys } from '../../api/depositKeys.ts';
+import type { AllocateDepositPayload, CreateDepositPayload, PlanDepositPayload, } from '../../types/types.ts';
 
 
 /* ------------------ PLAN ------------------ */

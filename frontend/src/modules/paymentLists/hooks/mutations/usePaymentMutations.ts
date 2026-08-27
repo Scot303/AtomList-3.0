@@ -1,7 +1,7 @@
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
-import { addOneOffPayment, deleteOneOffPayment, settlePayment, updateOneOffPayment, updatePayment, updatePaymentQuantity, } from '../api/paymentsApi';
-import { paymentListKeys } from '../api/paymentListKeys';
-import type { PaymentView, SaveOneOffPaymentPayload, SettleDirectPayload, UpdatePaymentPayload, UpdateQuantityPayload, } from '../types/types.ts';
+import { addOneOffPayment, deleteOneOffPayment, settlePayment, updateOneOffPayment, updatePayment, updatePaymentQuantity, } from '../../api/paymentsApi.ts';
+import { paymentListKeys } from '../../api/paymentListKeys.ts';
+import type { PaymentView, SaveOneOffPaymentPayload, SettleDirectPayload, UpdatePaymentPayload, UpdateQuantityPayload, } from '../../types/types.ts';
 
 
 /** Which list's cached rows to patch. Not sent to the backend, which finds the payment by its own id. */

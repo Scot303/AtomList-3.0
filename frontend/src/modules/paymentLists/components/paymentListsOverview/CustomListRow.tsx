@@ -5,7 +5,7 @@ import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { paymentListDetailPath } from '@/routes/paths.ts';
 import { useContextMenu } from '@/stores/menuStore.ts';
-import { usePrefetchList } from '../../hooks/usePaymentLists.ts';
+import { usePrefetchList } from '../../hooks/queries/usePaymentLists.ts';
 import type { CustomListMenuBuilder } from '../../hooks/contextMenu/useCustomListMenu.ts';
 import type { PaymentListView } from '../../types/types.ts';
 

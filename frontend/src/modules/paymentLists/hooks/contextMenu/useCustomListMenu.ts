@@ -5,11 +5,11 @@ import { useConfirm } from '@/stores/dialogStore.ts';
 import type { ContextMenuItem } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore.ts';
-import { useDeletePaymentList } from '../usePaymentListMutations.ts';
+import { useDeletePaymentList } from '../mutations/usePaymentListMutations.ts';
 import { describeList } from '../../types/listLabels.ts';
 import type { PaymentListView } from '../../types/types.ts';
 import { usePrefetchGroups } from "@/modules/groups/hooks/useGroups.ts";
-import { usePrefetchPersons } from "@/modules/persons/hooks/usePersons.ts";
+import { usePrefetchPersons } from "@/modules/persons/hooks/queries/usePersons.ts";
 
 
 export type CustomListMenuBuilder = (list: PaymentListView) => ContextMenuItem[];

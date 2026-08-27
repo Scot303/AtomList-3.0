@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn';
 import { formatPercent } from '@/lib/locale';
 import { FamilyDiscountSection } from '../components/discountBreakdown/FamilyDiscountSection';
 import { GroupCountDiscountSection } from '../components/discountBreakdown/GroupCountDiscountSection';
-import { usePersonDiscounts } from '../hooks/usePersonDiscounts';
+import { usePersonDiscounts } from '../hooks/mutations/usePersonDiscounts.ts';
 import type { PersonDiscountView } from '../types/types.ts';
 
 

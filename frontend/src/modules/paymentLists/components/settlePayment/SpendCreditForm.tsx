@@ -9,7 +9,7 @@ import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { formatCurrency } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
-import { useAllocateDeposit } from '@/modules/deposits/hooks/useDepositMutations';
+import { useAllocateDeposit } from '@/modules/deposits/hooks/mutations/useDepositMutations.ts';
 import { allocateFormSchema, type AllocateFormValues, parseAmount } from '../../schemas/paymentSchemas';
 import { PAYMENT_METHOD_NAMES } from '@/types/finance.ts';
 import type { DepositView } from '@/modules/deposits/types/types.ts';

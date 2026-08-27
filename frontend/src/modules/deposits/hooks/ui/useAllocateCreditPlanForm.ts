@@ -4,7 +4,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { formatCurrency } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
-import { useAllocateDeposit, usePlanDeposit } from '../useDepositMutations';
+import { useAllocateDeposit, usePlanDeposit } from '../mutations/useDepositMutations.ts';
 import { type CreditAllocationFormValues, creditAllocationSchema } from '../../schemas/depositSchemas';
 import type { DepositPlanView, DepositView, PlanDepositPayload } from '../../types/types.ts';
 

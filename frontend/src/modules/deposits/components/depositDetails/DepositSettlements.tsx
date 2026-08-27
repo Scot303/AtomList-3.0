@@ -11,7 +11,7 @@ import { useGroups } from '@/modules/groups/hooks/useGroups';
 import { indexGroups, resolveGroupColor } from '@/modules/groups/types/groupRows';
 import { describeSheet } from '../../types/sheetLabels';
 import { useConfirm } from '@/stores/dialogStore';
-import { useRemoveDepositSettlement } from '../../hooks/useDepositMutations';
+import { useRemoveDepositSettlement } from '../../hooks/mutations/useDepositMutations.ts';
 import type { DepositSettlementView } from '../../types/types.ts';
 
 

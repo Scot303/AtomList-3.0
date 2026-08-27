@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { fetchOverpayments, settleOverpayments } from '../api/paymentListsApi';
-import { paymentListKeys } from '../api/paymentListKeys';
-import type { SettleCreditPayload } from '../types/types.ts';
+import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { fetchOverpayments, settleOverpayments } from '../../api/paymentListsApi.ts';
+import { paymentListKeys } from '../../api/paymentListKeys.ts';
+import type { SettleCreditPayload } from '../../types/types.ts';
 
 
 /**

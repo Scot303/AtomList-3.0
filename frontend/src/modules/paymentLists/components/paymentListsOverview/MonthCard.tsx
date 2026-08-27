@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn.ts';
 import { formatCurrency } from '@/lib/locale.ts';
 import { MonthCardTabs } from './MonthCardTabs.tsx';
 import { monthName } from '@/utils/dateUtils.ts';
-import { usePrefetchList } from '../../hooks/usePaymentLists.ts';
+import { usePrefetchList } from '../../hooks/queries/usePaymentLists.ts';
 import type { ListSummaryView, MonthSummaryView } from '../../types/types.ts';
 import { usePrefetchGroups } from "@/modules/groups/hooks/useGroups.ts";
 

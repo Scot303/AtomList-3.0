@@ -1,18 +1,18 @@
 import { Coins, Eye, Trash2, Wallet } from 'lucide-react';
-import { formatCurrency } from '@/lib/locale';
-import { notifyApiError, notifySuccess } from '@/lib/toast';
+import { formatCurrency } from '@/lib/locale.ts';
+import { notifyApiError, notifySuccess } from '@/lib/toast.ts';
 import { coveredPersonLabel } from '@/types/finance.ts';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
-import { usePrefetchPersons } from '@/modules/persons/hooks/usePersons';
-import { useConfirm } from '@/stores/dialogStore';
-import type { ContextMenuItem } from '@/stores/menuStore';
-import { preloadModal } from '@/stores/modalRegistry';
-import { useModalStore } from '@/stores/modalStore';
-import { useDeleteDeposit } from './useDepositMutations';
-import { usePrefetchPersonCredit } from './usePersonCredit';
-import { usePrefetchDeposit } from './useDeposits';
-import type { DepositRow } from '../types/depositRows.ts';
+import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups.ts';
+import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
+import { useConfirm } from '@/stores/dialogStore.ts';
+import type { ContextMenuItem } from '@/stores/menuStore.ts';
+import { preloadModal } from '@/stores/modalRegistry.ts';
+import { useModalStore } from '@/stores/modalStore.ts';
+import { useDeleteDeposit } from '../mutations/useDepositMutations.ts';
+import { usePrefetchPersonCredit } from '../queries/usePersonCredit.ts';
+import { usePrefetchDeposit } from '../queries/useDeposits.ts';
+import type { DepositRow } from '../../types/depositRows.ts';
 
 
 export type DepositRowMenuBuilder = (row: DepositRow) => ContextMenuItem[];

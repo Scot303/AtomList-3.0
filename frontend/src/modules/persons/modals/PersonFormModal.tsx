@@ -1,12 +1,14 @@
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { PersonForm } from '../components/personForm/PersonForm';
-import { usePersons } from '../hooks/usePersons';
+import { usePersons } from '../hooks/queries/usePersons.ts';
+
 
 interface PersonFormModalProps {
 	/** The person to edit. Leave it out to fill in a new one. */
 	personId?: string;
 }
+
 
 /**
  * Everything held about one person.
