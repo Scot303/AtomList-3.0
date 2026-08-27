@@ -7,6 +7,7 @@ export const paths = {
 	users: '/uzytkownicy',
 	persons: '/osoby',
 	groups: '/grupy',
+	sms: '/wiadomosci',
 } as const;
 
 

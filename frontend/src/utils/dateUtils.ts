@@ -87,6 +87,30 @@ export function formatInstantDate(value: string | null | undefined): string {
 }
 
 
+const instantDateTimeFormat = new Intl.DateTimeFormat(LOCALE, {
+	timeZone: TIME_ZONE,
+	day: 'numeric',
+	month: 'long',
+	year: 'numeric',
+	hour: '2-digit',
+	minute: '2-digit',
+});
+
+
+/**
+ * The moment an `Instant` fell on, to the minute, read in the studio's time-zone.
+ */
+export function formatInstantDateTime(value: string | null | undefined): string {
+	if (value === null || value === undefined || value === '') {
+		return '';
+	}
+
+	const date = new Date(value);
+
+	return Number.isNaN(date.getTime()) ? '' : instantDateTimeFormat.format(date);
+}
+
+
 /**
  * The month an `Instant` fell in, read in the studio's time-zone - "Sierpień 2026".
  */

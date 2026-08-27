@@ -102,6 +102,19 @@ export const MODAL_REGISTRY = {
 		size: 'lg',
 	}),
 
+	'sms.send': defineModal({
+		load: () => import('@/modules/sms/modals/SendSmsModal.tsx'),
+		title: 'Nowa wiadomość SMS',
+		size: 'lg',
+		dismissible: false
+	}),
+
+	'sms.details': defineModal({
+		load: () => import('@/modules/sms/modals/SmsDetailsModal.tsx'),
+		title: 'Szczegóły wiadomości',
+		size: 'lg',
+	}),
+
 	'payments.deposit': defineModal({
 		load: () => import('@/modules/paymentLists/modals/DepositModal.tsx'),
 		title: 'Wprowadź wpłatę',
