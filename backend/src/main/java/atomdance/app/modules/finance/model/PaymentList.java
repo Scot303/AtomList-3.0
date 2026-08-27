@@ -146,6 +146,11 @@ public class PaymentList {
 	}
 
 
+	public boolean isOffSeason() {
+		return Season.isOffSeason(yearMonth());
+	}
+
+
 	public void assertOpen() {
 		if (isClosed()) {
 			throw new ListClosedException();

@@ -5,6 +5,7 @@ import atomdance.app.modules.finance.dto.ListSummaryView;
 import atomdance.app.modules.finance.dto.MonthSummaryView;
 import atomdance.app.modules.finance.model.ListType;
 import atomdance.app.modules.finance.model.PaymentList;
+import atomdance.app.modules.finance.model.Season;
 import atomdance.app.modules.finance.model.TransactionType;
 import atomdance.app.modules.finance.repository.PaymentListRepository;
 import atomdance.app.modules.finance.repository.PaymentRepository;
@@ -25,7 +26,6 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 
 /**
@@ -35,13 +35,6 @@ import java.util.stream.IntStream;
 @Service
 @RequiredArgsConstructor
 public class ListSummaryService {
-
-	private static final int MONTHS = 12;
-
-	/**
-	 * The month a season opens with. Everything else follows it.
-	 */
-	private static final int SEASON_START_MONTH = 9;
 
 	private final PaymentListRepository paymentListRepository;
 	private final PaymentRepository paymentRepository;
@@ -57,7 +50,7 @@ public class ListSummaryService {
 	 */
 	@Transactional(readOnly = true)
 	public List<MonthSummaryView> summariseSeason(int startYear) {
-		List<YearMonth> season = seasonMonths(startYear);
+		List<YearMonth> season = Season.months(startYear);
 
 		List<PaymentList> lists = paymentListRepository.findByYearInAndTypeIn(List.of(startYear, startYear + 1), ListType.standardTypes());
 
@@ -72,20 +65,13 @@ public class ListSummaryService {
 
 		Map<YearMonth, List<PaymentList>> byMonth = lists.stream().collect(Collectors.groupingBy(PaymentList::yearMonth));
 
-		List<MonthSummaryView> months = new ArrayList<>(MONTHS);
+		List<MonthSummaryView> months = new ArrayList<>(Season.MONTHS);
 
 		for (YearMonth month : season) {
 			months.add(summarise(month, byMonth.getOrDefault(month, List.of()), counts, billed, collected, cleared, outstanding, transactions, readable));
 		}
 
 		return months;
-	}
-
-
-	private static List<YearMonth> seasonMonths(int startYear) {
-		YearMonth first = YearMonth.of(startYear, SEASON_START_MONTH);
-
-		return IntStream.range(0, MONTHS).mapToObj(first::plusMonths).toList();
 	}
 
 

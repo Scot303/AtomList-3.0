@@ -119,7 +119,9 @@ public class PaymentListService {
 
 		syncStandardPayments(list);
 
-		instructorExpenseService.seed(list, instructorService.findActive(ContractType.valueOf(list.scope().name())));
+		if (!list.isOffSeason()) {
+			instructorExpenseService.seed(list, instructorService.findActive(ContractType.valueOf(list.scope().name())));
+		}
 
 		log.info("Created {} list {} for {}", list.getType(), list.getId(), ym);
 		auditLogger.recordOnCommit(null, list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Monthly list for %s has been created.", describe(list)));
@@ -287,7 +289,9 @@ public class PaymentListService {
 	 */
 	@Transactional
 	public int recalculateOpenStandardLists() {
-		List<PaymentList> open = paymentListRepository.findOpenStandard();
+		List<PaymentList> open = paymentListRepository.findOpenStandard().stream()
+				.filter(list -> !list.isOffSeason())
+				.toList();
 
 		for (PaymentList list : open) {
 			syncStandardPayments(list);
@@ -373,12 +377,18 @@ public class PaymentListService {
 
 	/**
 	 * Brings a monthly list's rows and amounts into line with the memberships that were running that month and belong on this sheet.
+	 * <p>
+	 * Does nothing for a month outside the season - where no membership bills anything.
 	 */
 	private void syncStandardPayments(PaymentList list) {
 		YearMonth month = list.yearMonth();
 
 		if (month == null) {
 			throw new InvalidOperationException("error.standard_list_requires_month");
+		}
+
+		if (Season.isOffSeason(month)) {
+			return;
 		}
 
 		List<Membership> monthMemberships = membershipRepository.findActiveDuring(month.atDay(1), month.atEndOfMonth(), true);
