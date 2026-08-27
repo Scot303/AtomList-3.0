@@ -26,9 +26,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AuditRetentionService {
 
-	private static final Duration FINANCIAL_RETENTION = Duration.ofDays(5 * 365);
-	private static final Duration BUSINESS_RECORD_RETENTION = Duration.ofDays(365);
-	private static final Duration DEFAULT_RETENTION = Duration.ofDays(90);
+	private static final Duration FINANCIAL_RETENTION = Duration.ofDays(365L * 5);
+	private static final Duration BUSINESS_RECORD_RETENTION = Duration.ofDays(365L);
+	private static final Duration DEFAULT_RETENTION = Duration.ofDays(90L);
 
 	/**
 	 * How long each kind of event is kept.
@@ -50,6 +50,10 @@ public class AuditRetentionService {
 			Map.entry(AuditEventType.LIST_PREVIEW, DEFAULT_RETENTION),
 			Map.entry(AuditEventType.PAYMENT_PREVIEW, DEFAULT_RETENTION),
 			Map.entry(AuditEventType.TRANSACTION_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.SMS_CREATION, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.SMS_SEND, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.SMS_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.ATTENDANCE_PDF_CREATION, DEFAULT_RETENTION),
 
 			Map.entry(AuditEventType.PERSON_MANAGEMENT, BUSINESS_RECORD_RETENTION),
 			Map.entry(AuditEventType.FAMILY_MANAGEMENT, BUSINESS_RECORD_RETENTION),
