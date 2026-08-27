@@ -8,8 +8,8 @@ import { useConfirm } from '@/stores/dialogStore.ts';
 import type { ContextMenuItem } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore.ts';
-import { useDeleteOneOffPayment } from '../usePaymentMutations.ts';
-import { usePrefetchPayment } from '../usePayments.ts';
+import { useDeleteOneOffPayment } from '../mutations/usePaymentMutations.ts';
+import { usePrefetchPayment } from '../queries/usePayments.ts';
 import { hasCountableQuantity, isMembershipDerived, type PaymentRow } from '../../types/paymentRows.ts';
 import type { PaymentListView } from '../../types/types.ts';
 

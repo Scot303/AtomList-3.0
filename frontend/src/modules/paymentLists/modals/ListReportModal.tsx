@@ -3,7 +3,7 @@ import { Spinner } from '@/components/feedback/Spinner';
 import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { formatCurrency, pluralise } from '@/lib/locale';
 import { LinePanel, MoneyLine, TextLine } from '@/components/shared/MoneyLines.tsx';
-import { useListReport } from '../hooks/useListReport';
+import { useListReport } from '../hooks/queries/useListReport.ts';
 import { coveredPersonsNames, PAYMENT_METHOD_NAMES } from '@/types/finance.ts';
 import type { ListReportView, ReportDepositView } from '../types/types.ts';
 import { TagBadge } from "@/components/ui/tags";

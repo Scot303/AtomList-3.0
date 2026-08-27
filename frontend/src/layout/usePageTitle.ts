@@ -1,14 +1,16 @@
 import { useLocation, useMatch } from 'react-router';
 
-import { usePaymentList } from '@/modules/paymentLists/hooks/usePaymentLists';
+import { usePaymentList } from '@/modules/paymentLists/hooks/queries/usePaymentLists.ts';
 import { describeList } from '@/modules/paymentLists/types/listLabels';
 import { MODULES } from '@/modules/registry';
 import { paths } from '@/routes/paths';
+
 
 export interface PageTitle {
 	text: string;
 	closed: boolean;
 }
+
 
 /**
  * What the top bar calls the current screen.

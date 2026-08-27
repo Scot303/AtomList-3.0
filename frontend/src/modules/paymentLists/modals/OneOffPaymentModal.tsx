@@ -11,7 +11,7 @@ import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
 import { usePersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { useListGroupOptions } from '../hooks/ui/useListGroupOptions.ts';
-import { useAddOneOffPayment, useUpdateOneOffPayment } from '../hooks/usePaymentMutations';
+import { useAddOneOffPayment, useUpdateOneOffPayment } from '../hooks/mutations/usePaymentMutations.ts';
 import { oneOffFormSchema, type OneOffFormValues, parseAmount } from '../schemas/paymentSchemas';
 import { toPersonOptions } from '@/modules/persons/utils/personOptions';
 import type { PaymentListView, PaymentView, SaveOneOffPaymentPayload } from '../types/types.ts';

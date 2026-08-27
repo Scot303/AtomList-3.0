@@ -7,7 +7,7 @@ import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
 import { SweepEntry } from '../components/creditSweep/SweepEntry';
 import { SweepTotals } from '../components/creditSweep/SweepTotals';
-import { useCreditSweep, useSettleOverpayments } from '../hooks/useCreditSweep';
+import { useCreditSweep, useSettleOverpayments } from '../hooks/mutations/useCreditSweep.ts';
 import { describeList } from '../types/listLabels';
 import type { CreditSweepResultView, CreditSweepView, PaymentListView } from '../types/types.ts';
 

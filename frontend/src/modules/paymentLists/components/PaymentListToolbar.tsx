@@ -13,9 +13,9 @@ import { paths } from '@/routes/paths';
 import { useConfirm } from '@/stores/dialogStore';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
-import { useCreditSweep } from '../hooks/useCreditSweep';
-import { useCloseList, useDeletePaymentList, useRecalculateList, useReopenList, useRepopulateList, } from '../hooks/usePaymentListMutations';
-import { usePrefetchListReport } from '../hooks/useListReport';
+import { useCreditSweep } from '../hooks/mutations/useCreditSweep.ts';
+import { useCloseList, useDeletePaymentList, useRecalculateList, useReopenList, useRepopulateList, } from '../hooks/mutations/usePaymentListMutations.ts';
+import { usePrefetchListReport } from '../hooks/queries/useListReport.ts';
 import { describeList, isCustomList } from '../types/listLabels';
 import type { PaymentListView } from '../types/types.ts';
 

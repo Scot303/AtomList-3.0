@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { openStandardList } from '../api/paymentListsApi';
-import { paymentListKeys } from '../api/paymentListKeys';
-import { seasonStartOf } from '../types/seasons';
+import { openStandardList } from '../../api/paymentListsApi.ts';
+import { paymentListKeys } from '../../api/paymentListKeys.ts';
+import { seasonStartOf } from '../../types/seasons.ts';
 
 
 export interface OpenStandardListVariables {

@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/modules/auth/hooks/useAuth';
-import { fetchCustomLists, fetchPaymentList } from '../api/paymentListsApi';
-import { paymentListKeys } from '../api/paymentListKeys';
-import { paymentsQuery } from './usePayments';
+import { useAuth } from '@/modules/auth/hooks/useAuth.ts';
+import { fetchCustomLists, fetchPaymentList } from '../../api/paymentListsApi.ts';
+import { paymentListKeys } from '../../api/paymentListKeys.ts';
+import { paymentsQuery } from './usePayments.ts';
 
 
 /* ------------------ STANDARD LISTS ------------------ */
