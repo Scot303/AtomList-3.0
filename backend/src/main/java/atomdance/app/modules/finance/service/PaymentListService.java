@@ -389,7 +389,7 @@ public class PaymentListService {
 
 		paymentRepository.saveAll(result.created());
 
-		// A row whose group is no longer billed here, and which nobody has paid anything towards.
+		// Removes former membership-derived payments no longer represented by a billable membership and with no money settled against them
 		if (!result.obsolete().isEmpty()) {
 			paymentRepository.deleteAll(result.obsolete());
 		}
