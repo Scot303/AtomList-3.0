@@ -24,7 +24,7 @@ public class Sms {
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
 
-	@Column(length = 140)
+	@Column(length = 320)
 	private String message;
 
 	/**
