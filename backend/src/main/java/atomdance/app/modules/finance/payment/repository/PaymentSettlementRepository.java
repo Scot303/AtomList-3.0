@@ -41,7 +41,7 @@ public interface PaymentSettlementRepository extends JpaRepository<PaymentSettle
 	 * Clearances are excluded. Their cash is reported in the month their deposit was booked to.
 	 */
 	@Query("""
-			SELECT new atomdance.app.modules.finance.repository.projection.ListAmount(
+			SELECT new atomdance.app.modules.finance.paymentList.repository.projection.ListAmount(
 				s.payment.list.id,
 				SUM(s.amount))
 			FROM PaymentSettlement s
@@ -55,7 +55,7 @@ public interface PaymentSettlementRepository extends JpaRepository<PaymentSettle
 	 * What was settled on each list out of another month's money - reported as income there, not here.
 	 */
 	@Query("""
-			SELECT new atomdance.app.modules.finance.repository.projection.ListAmount(
+			SELECT new atomdance.app.modules.finance.paymentList.repository.projection.ListAmount(
 				s.payment.list.id,
 				SUM(s.amount))
 			FROM PaymentSettlement s

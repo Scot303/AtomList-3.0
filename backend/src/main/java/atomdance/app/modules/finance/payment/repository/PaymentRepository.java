@@ -138,7 +138,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 	 * How many rows each list holds and how many are dealt with, for the year overview.
 	 */
 	@Query("""
-			SELECT new atomdance.app.modules.finance.repository.projection.PaymentCounts(
+			SELECT new atomdance.app.modules.finance.paymentList.repository.projection.PaymentCounts(
 				p.list.id,
 				COUNT(p),
 				COUNT(CASE WHEN p.amountSettled >= p.amountToPay THEN 1 END))
@@ -152,7 +152,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 	 * What each list is still owed, for the year overview.
 	 */
 	@Query("""
-			SELECT new atomdance.app.modules.finance.repository.projection.PaymentOutstanding(
+			SELECT new atomdance.app.modules.finance.paymentList.repository.projection.PaymentOutstanding(
 				p.list.id,
 				SUM(CAST(p.amountToPay - p.amountSettled AS BigDecimal)))
 			FROM Payment p
@@ -166,7 +166,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 	 * What each list billed, counting every row - what a month charged is a fact about that month, whoever ended up paying it and when.
 	 */
 	@Query("""
-			SELECT new atomdance.app.modules.finance.repository.projection.ListAmount(
+			SELECT new atomdance.app.modules.finance.paymentList.repository.projection.ListAmount(
 				p.list.id,
 				SUM(p.amountToPay))
 			FROM Payment p

@@ -36,7 +36,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 	 * Each list's income and expense sides, summed, for the year overview.
 	 */
 	@Query("""
-			SELECT new atomdance.app.modules.finance.repository.projection.TransactionTotals(
+			SELECT new atomdance.app.modules.finance.paymentList.repository.projection.TransactionTotals(
 				t.list.id, t.type, SUM(t.amount * t.quantity))
 			FROM Transaction t
 			WHERE t.list.id IN :listIds AND t.type IN :types
