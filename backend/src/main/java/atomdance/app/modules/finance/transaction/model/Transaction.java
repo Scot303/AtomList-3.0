@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 
@@ -45,6 +46,8 @@ public class Transaction {
 
 	@Column(length = 64)
 	private String invoiceNumber;
+
+	private LocalDate paymentDate;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "instructor_id")

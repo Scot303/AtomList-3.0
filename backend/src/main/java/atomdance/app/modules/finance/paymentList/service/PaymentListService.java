@@ -127,12 +127,8 @@ public class PaymentListService {
 
 		syncStandardPayments(list);
 
-		if (!list.isOffSeason()) {
-			instructorExpenseService.seed(list, instructorService.findActive(ContractType.valueOf(list.scope().name())));
-		}
-
 		log.info("Created {} list {} for {}", list.getType(), list.getId(), ym);
-		auditLogger.recordOnCommit(null, list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Monthly list for %s has been created.", describeList(list)));
+		auditLogger.recordOnCommit(currentUserOrSystem(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Monthly list for %s has been created.", describeList(list)));
 
 		return list;
 	}
@@ -364,7 +360,6 @@ public class PaymentListService {
 	 */
 	@Transactional
 	public void delete(UUID id) {
-		//TODO: admin bypass needed - cascade all (only for custom / camp lists)
 		PaymentList list = getOrThrow(id);
 		list.assertOpen();
 
@@ -384,7 +379,8 @@ public class PaymentListService {
 
 
 	/**
-	 * Brings a monthly list's rows and amounts into line with the memberships that were running that month and belong on this sheet.
+	 * Brings a monthly list's rows into line with everything it derives rather than owns: the memberships that were
+	 * running that month and belong on this sheet, and the instructors this sheet's account pays.
 	 * <p>
 	 * Does nothing for a month outside the season - where no membership bills anything.
 	 */
@@ -411,6 +407,19 @@ public class PaymentListService {
 		if (!result.obsolete().isEmpty()) {
 			paymentRepository.deleteAll(result.obsolete());
 		}
+
+		int expensesAdded = instructorExpenseService.seed(list, instructorService.findActive(ContractType.valueOf(list.scope().name())));
+
+		String message = String.format(
+				"List %s has been synced with the latest data. New payments added: %d, payments deleted: %d, new instructor expenses added: %d.",
+				describeList(list),
+				result.created().size(),
+				result.obsolete().size(),
+				expensesAdded
+		);
+
+		log.info(message);
+		auditLogger.recordOnCommit(currentUserOrSystem(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, message);
 	}
 
 

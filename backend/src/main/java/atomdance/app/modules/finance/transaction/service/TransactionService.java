@@ -80,6 +80,7 @@ public class TransactionService {
 				.amount(Money.normalize(request.amount()))
 				.quantity(request.quantity() != null ? Money.normalize(request.quantity()) : BigDecimal.ONE)
 				.invoiceNumber(request.invoiceNumber())
+				.paymentDate(request.paymentDate())
 				.instructor(instructor)
 				.note(request.note())
 				.build());
@@ -112,6 +113,10 @@ public class TransactionService {
 
 		if (request.invoiceNumber() != null) {
 			transaction.setInvoiceNumber(request.invoiceNumber());
+		}
+
+		if (request.paymentDate() != null) {
+			transaction.setPaymentDate(request.paymentDate());
 		}
 
 		if (request.note() != null) {

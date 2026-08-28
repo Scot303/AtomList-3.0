@@ -5,8 +5,12 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 
+/**
+ * Every field is optional: null leaves what is already there alone.
+ */
 public record UpdateTransactionRequest(
 
 		@Size(min = 1, max = 1024, message = "Name must be between 1 and 1024 characters")
@@ -25,6 +29,8 @@ public record UpdateTransactionRequest(
 
 		@Size(max = 64, message = "Invoice number is too long")
 		String invoiceNumber,
+
+		LocalDate paymentDate,
 
 		@Size(max = 512, message = "Note is too long")
 		String note
