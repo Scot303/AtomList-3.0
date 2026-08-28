@@ -4,6 +4,7 @@ import atomdance.app.modules.finance.transaction.model.Transaction;
 import atomdance.app.modules.finance.transaction.model.TransactionType;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 
@@ -16,6 +17,7 @@ public record TransactionView(
 		BigDecimal quantity,
 		BigDecimal total,
 		String invoiceNumber,
+		LocalDate paymentDate,
 		UUID instructorId,
 		String instructorName,
 		String note
@@ -31,6 +33,7 @@ public record TransactionView(
 				transaction.getQuantity(),
 				transaction.getTotal(),
 				transaction.getInvoiceNumber(),
+				transaction.getPaymentDate(),
 				transaction.getInstructor() == null ? null : transaction.getInstructor().getId(),
 				transaction.getInstructor() == null ? null : transaction.getInstructor().getFullName(),
 				transaction.getNote()

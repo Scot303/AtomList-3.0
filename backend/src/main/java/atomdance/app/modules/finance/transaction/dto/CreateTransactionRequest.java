@@ -4,6 +4,7 @@ import atomdance.app.modules.finance.transaction.model.TransactionType;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 
@@ -21,15 +22,14 @@ public record CreateTransactionRequest(
 		@Digits(integer = 10, fraction = 2, message = "Amount may have at most 2 decimal places")
 		BigDecimal amount,
 
-		/*
-		 * Defaults to 1.
-		 */
 		@DecimalMin(value = "0.00", message = "Quantity cannot be negative")
 		@Digits(integer = 10, fraction = 2, message = "Quantity may have at most 2 decimal places")
 		BigDecimal quantity,
 
 		@Size(max = 64, message = "Invoice number is too long")
 		String invoiceNumber,
+
+		LocalDate paymentDate,
 
 		UUID instructorId,
 
