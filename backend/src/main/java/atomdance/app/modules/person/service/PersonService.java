@@ -5,7 +5,7 @@ import atomdance.app.common.utils.AppClock;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.finance.service.PaymentListService;
+import atomdance.app.modules.finance.paymentList.service.PaymentListService;
 import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.person.dto.CreatePersonRequest;
 import atomdance.app.modules.person.dto.PersonView;
@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,10 +37,12 @@ public class PersonService {
 	private final AuditLogger auditLogger;
 	private final AppClock clock;
 
+
 	public Person getOrThrow(UUID id) {
 		return personRepository.findByIdWithFamily(id)
 				.orElseThrow(() -> new NotFoundException("entity.person"));
 	}
+
 
 	@Transactional(readOnly = true)
 	public List<PersonView> getAll() {
@@ -54,11 +57,13 @@ public class PersonService {
 				.toList();
 	}
 
+
 	@Transactional(readOnly = true)
 	public PersonView get(UUID id) {
 		auditLogger.record(securityService.getCurrentUserId(), id, AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all data of a person.");
 		return toView(getOrThrow(id));
 	}
+
 
 	@Transactional
 	public PersonView create(CreatePersonRequest request) {
@@ -84,6 +89,7 @@ public class PersonService {
 
 		return PersonView.from(person);
 	}
+
 
 	@Transactional
 	public PersonView update(UUID id, UpdatePersonRequest request) {
@@ -147,6 +153,7 @@ public class PersonService {
 		return PersonView.from(person, activeGroupIdsOf(List.of(person.getId())).getOrDefault(person.getId(), Set.of()));
 	}
 
+
 	/**
 	 * The groups each of these people is currently attending, in one query.
 	 */
@@ -161,6 +168,7 @@ public class PersonService {
 						Collectors.mapping(MembershipRepository.PersonGroupId::getGroupId, Collectors.toCollection(LinkedHashSet::new))
 				));
 	}
+
 
 	/**
 	 * @return whether the person actually changed household, rather than merely being sent the one they were already in.
@@ -185,9 +193,11 @@ public class PersonService {
 		return true;
 	}
 
+
 	private static boolean isAlreadyIn(Person person, UUID familyId) {
 		return person.getFamily() != null && familyId.equals(person.getFamily().getId());
 	}
+
 
 	private Family getFamilyOrThrow(UUID familyId) {
 		return familyRepository.findById(familyId)
