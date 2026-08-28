@@ -53,8 +53,8 @@ class AttendancePdfGeneratorTest {
 
     private List<Person> mockPersons() {
         return List.of(
-                Person.builder().name("Kornel").lastName("Marciniak").phone("212349237").build(),
-                Person.builder().name("Amelia").lastName("Szymańska").phone("457376090").build(),
+                Person.builder().name("Kornel").lastName("Marciniak").phone("").build(),
+                Person.builder().name("Amelia").lastName("Szymańska").phone(null).build(),
                 Person.builder().name("Pola").lastName("Król").phone("19514182").build(),
                 Person.builder().name("Noemi").lastName("Szulc").phone("882118593").build(),
                 Person.builder().name("Kazimierz").lastName("Szymczak").phone("213945268").build()
