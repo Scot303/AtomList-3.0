@@ -1,11 +1,13 @@
-import { Ban } from 'lucide-react';
+import { AlertTriangle, Ban } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
+import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { MONTH_NAMES } from '@/utils/dateUtils.ts';
 import { cn } from '@/lib/cn';
 import { formatPercent } from '@/lib/locale';
 import { FamilyDiscountSection } from '../components/discountBreakdown/FamilyDiscountSection';
 import { GroupCountDiscountSection } from '../components/discountBreakdown/GroupCountDiscountSection';
+import { StudentDiscountSection } from '../components/discountBreakdown/StudentDiscountSection';
 import { usePersonDiscounts } from '../hooks/mutations/usePersonDiscounts.ts';
 import type { PersonDiscountView } from '../types/types.ts';
 
@@ -20,7 +22,8 @@ interface PersonDiscountsModalProps {
  * Why one person's discount comes out the way it does.
  *
  * Reads back the whole calculation rather than only its result: the two ladders, which rung of each was matched,
- * the household order and the figure it was decided on, and the memberships the group count was read off.
+ * the household order and the figure it was decided on, the memberships the group count was read off, and whether
+ * the flat student rate was added on top.
  */
 export default function PersonDiscountsModal({ personId }: PersonDiscountsModalProps) {
 	const discounts = usePersonDiscounts(personId);
@@ -44,21 +47,12 @@ export default function PersonDiscountsModal({ personId }: PersonDiscountsModalP
 function Breakdown({ discount }: { discount: PersonDiscountView }) {
 	return (
 		<div className="mt-2 space-y-6">
-			<div className="flex flex-row items-stretch gap-4">
-				<div className="flex-1">
-					<Total
-						percent={ discount.totalPercent }
-						month={ monthLabel(discount.year, discount.month) }
-						billed={ discount.billed }
-					/>
-				</div>
-
-				<div className="flex-1">
-					<Alert tone="warning" title="Zniżki wyliczone na teraz, nie wstecz." className="h-full text-base" contentClassName="text-sm">
-						Kwoty na już zamkniętej liście mają zapisany własny procent i nie zmieniają się po edycji drabinki.
-					</Alert>
-				</div>
-			</div>
+			<Total
+				percent={ discount.totalPercent }
+				month={ monthLabel(discount.year, discount.month) }
+				billed={ discount.billed }
+				student={ discount.studentDiscount }
+			/>
 
 			{ !discount.billed ? (
 				<NotBilled active={ discount.active }/>
@@ -68,9 +62,13 @@ function Breakdown({ discount }: { discount: PersonDiscountView }) {
 
 					<GroupCountDiscountSection component={ discount.groupCountDiscount } memberships={ discount.memberships }/>
 
+					<StudentDiscountSection held={ discount.studentDiscount } percent={ discount.studentPercent }/>
+
 					<Sum
 						familyPercent={ discount.familyDiscount.percent }
 						groupCountPercent={ discount.groupCountDiscount.percent }
+						hasStudentDiscount={ discount.studentDiscount }
+						studentPercent={ discount.studentPercent }
 						total={ discount.totalPercent }
 						capped={ discount.capped }
 					/>
@@ -85,6 +83,7 @@ interface TotalProps {
 	percent: number;
 	month: string;
 	billed: boolean;
+	student: boolean;
 }
 
 
@@ -93,12 +92,21 @@ interface TotalProps {
  */
 function Total({ percent, month, billed }: TotalProps) {
 	return (
-		<div className="styled-card flex items-center shrink-0 flex-col gap-1 rounded-2xl px-5 py-4">
-			<p className="text-lg font-semibold tracking-wide text-os-text-muted uppercase">Zniżka na { month }</p>
+		<div className="styled-card flex w-full min-w-0 items-center gap-3 rounded-2xl px-5 py-3">
+			<p className="min-w-0 flex-1 truncate text-lg font-semibold tracking-wide text-os-text-muted uppercase">Zniżka na { month }</p>
 
-			<p className={ cn('text-3xl font-bold', billed ? 'text-os-green' : 'text-os-text-muted') }>
+			<p className={ cn('shrink-0 text-3xl font-bold', billed ? 'text-os-green' : 'text-os-text-muted') }>
 				{ formatPercent(percent) }
 			</p>
+
+			<Tooltip
+				content="Zniżki wyliczone na teraz, nie wstecz. Kwoty na już zamkniętej liście mają zapisany własny procent i nie zmieniają się po edycji drabinki."
+				className="shrink-0 text-os-warning"
+				placement="bottom"
+			>
+				<AlertTriangle aria-hidden className="size-6"/>
+				<span className="sr-only">Zniżki wyliczone na teraz, nie wstecz.</span>
+			</Tooltip>
 		</div>
 	);
 }
@@ -123,12 +131,14 @@ function NotBilled({ active }: { active: boolean }) {
 interface SumProps {
 	familyPercent: number;
 	groupCountPercent: number;
+	hasStudentDiscount: boolean;
+	studentPercent: number;
 	total: number;
 	capped: boolean;
 }
 
 
-function Sum({ familyPercent, groupCountPercent, total, capped }: SumProps) {
+function Sum({ familyPercent, groupCountPercent, hasStudentDiscount, studentPercent, total, capped }: SumProps) {
 	return (
 		<section className="space-y-2 border-t border-os-border-highlight pt-4">
 			<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-base">
@@ -136,6 +146,12 @@ function Sum({ familyPercent, groupCountPercent, total, capped }: SumProps) {
 				<span>{ formatPercent(familyPercent) } (rodzina)</span>
 				<span>+</span>
 				<span>{ formatPercent(groupCountPercent) } (grupy)</span>
+				{ hasStudentDiscount && (
+					<>
+						<span>+</span>
+						<span>{ formatPercent(studentPercent) } (zniżka studencka)</span>
+					</>
+				) }
 				<span>=</span>
 				<span className="font-semibold text-os-green">{ formatPercent(total) }</span>
 			</div>
