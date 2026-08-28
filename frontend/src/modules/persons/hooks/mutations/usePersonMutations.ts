@@ -46,7 +46,11 @@ export function useUpdatePerson() {
 			return { previous };
 		},
 
-		onSuccess: (updated) => replacePerson(queryClient, updated),
+		onSuccess: (updated) => {
+			replacePerson(queryClient, updated);
+
+			void queryClient.invalidateQueries({ queryKey: personKeys.discounts() });
+		},
 
 		onError: (_error, _variables, context) => {
 			if (context?.previous !== undefined) {
@@ -102,12 +106,28 @@ function applyPayload(person: PersonView, payload: UpdatePersonPayload): PersonV
 		next.joinedStudioAt = payload.joinedStudioAt;
 	}
 
+	if (payload.clearJoinedClubDate === true) {
+		next.joinedClubDate = null;
+	} else if (payload.joinedClubDate !== undefined) {
+		next.joinedClubDate = payload.joinedClubDate;
+	}
+
+	if (payload.clearLeftClubDate === true) {
+		next.leftClubDate = null;
+	} else if (payload.leftClubDate !== undefined) {
+		next.leftClubDate = payload.leftClubDate;
+	}
+
 	if (payload.active !== undefined) {
 		next.active = payload.active;
 	}
 
 	if (payload.contractSigned !== undefined) {
 		next.contractSigned = payload.contractSigned;
+	}
+
+	if (payload.studentDiscount !== undefined) {
+		next.studentDiscount = payload.studentDiscount;
 	}
 
 	if (payload.note !== undefined) {

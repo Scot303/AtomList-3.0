@@ -6,9 +6,10 @@ interface DiscountSectionProps {
 	icon: ReactNode;
 	title: string;
 	percent: number;
-	lead: string;
+	lead?: string;
 	children: ReactNode;
 }
+
 
 /**
  * The shell both parts of the discount are read in: what it is worth, the one-line reason, then the working.

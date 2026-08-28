@@ -1,7 +1,24 @@
 import { type Control, Controller, useFormState } from 'react-hook-form';
-import { DatePicker, FormSection, Toggle } from '@/components/ui/fields';
+import { ExtendedSelect, type ExtendedSelectOption } from '@/components/ui/extendedSelect';
+import { DatePicker, FormSection } from '@/components/ui/fields';
+import { TagSelect } from '@/components/ui/tags';
+import { ACTIVE_ID, ACTIVE_TAG_OPTIONS, toActiveTag } from '@/types/rowTags.ts';
+import { STUDENT_DISCOUNT_PERCENT } from '../../types/discountConstants.ts';
 import type { PersonFormValues } from '../../schemas/personSchemas';
-import { cn } from "@/lib/cn.ts";
+
+
+const YES_ID = 'yes';
+const NO_ID = 'no';
+
+const CONTRACT_OPTIONS: ExtendedSelectOption[] = [
+	{ id: YES_ID, name: 'Tak', hint: 'oddana do studia' },
+	{ id: NO_ID, name: 'Nie' },
+];
+
+const STUDENT_OPTIONS: ExtendedSelectOption[] = [
+	{ id: YES_ID, name: 'Tak', hint: `dodatkowe -${ STUDENT_DISCOUNT_PERCENT }% na wszystko` },
+	{ id: NO_ID, name: 'Nie' },
+];
 
 
 interface PersonStudioSectionProps {
@@ -34,42 +51,105 @@ export const PersonStudioSection = ({ control, busy, showActive }: PersonStudioS
 				) }
 			/>
 
-			<div className={ cn(
-				'flex flex-col justify-center sm:col-span-2 styled-card px-3 py-1 rounded-xl',
-				!showActive && 'mt-3'
-			) }>
+			<Controller
+				control={ control }
+				name="joinedClubDate"
+				render={ ({ field }) => (
+					<DatePicker
+						label="Data dołączenia do klubu"
+						value={ field.value }
+						onChange={ field.onChange }
+						onBlur={ field.onBlur }
+						disabled={ busy }
+						error={ errors.joinedClubDate?.message }
+					/>
+				) }
+			/>
+
+			<Controller
+				control={ control }
+				name="leftClubDate"
+				render={ ({ field }) => (
+					<DatePicker
+						label="Data odejścia z klubu"
+						value={ field.value }
+						onChange={ field.onChange }
+						onBlur={ field.onBlur }
+						disabled={ busy }
+						error={ errors.leftClubDate?.message }
+					/>
+				) }
+			/>
+
+			<Controller
+				control={ control }
+				name="contractSigned"
+				render={ ({ field }) => (
+					<ExtendedSelect
+						label="Umowa podpisana"
+						options={ CONTRACT_OPTIONS }
+						value={ toYesNo(field.value) }
+						onChange={ (id) => {
+							if (id !== undefined) {
+								field.onChange(id === YES_ID);
+							}
+						} }
+						onBlur={ field.onBlur }
+						disabled={ busy }
+						searchable={ false }
+						error={ errors.contractSigned?.message }
+					/>
+				) }
+			/>
+
+			<Controller
+				control={ control }
+				name="studentDiscount"
+				render={ ({ field }) => (
+					<ExtendedSelect
+						label="Zniżka studencka"
+						options={ STUDENT_OPTIONS }
+						value={ toYesNo(field.value) }
+						onChange={ (id) => {
+							if (id !== undefined) {
+								field.onChange(id === YES_ID);
+							}
+						} }
+						onBlur={ field.onBlur }
+						disabled={ busy }
+						searchable={ false }
+						error={ errors.studentDiscount?.message }
+					/>
+				) }
+			/>
+
+			{ showActive && (
 				<Controller
 					control={ control }
-					name="contractSigned"
+					name="active"
 					render={ ({ field }) => (
-						<Toggle
-							label="Umowa podpisana"
-							description="Osoba oddała podpisaną umowę do studia."
-							checked={ field.value }
-							onChange={ field.onChange }
+						<TagSelect
+							label="Status osoby"
+							options={ ACTIVE_TAG_OPTIONS }
+							searchable={ false }
+							value={ toActiveTag(field.value) }
+							onChange={ (value) => {
+								if (value !== undefined) {
+									field.onChange(value === ACTIVE_ID);
+								}
+							} }
+							onBlur={ field.onBlur }
 							disabled={ busy }
-							compact
+							error={ errors.active?.message }
 						/>
 					) }
 				/>
-
-				{ showActive && (
-					<Controller
-						control={ control }
-						name="active"
-						render={ ({ field }) => (
-							<Toggle
-								label="Aktywna"
-								description="Nieaktywne osoby nie trafiają na nowe listy płatności."
-								checked={ field.value }
-								onChange={ field.onChange }
-								disabled={ busy }
-								compact
-							/>
-						) }
-					/>
-				) }
-			</div>
+			) }
 		</FormSection>
 	);
 };
+
+
+function toYesNo(value: boolean): string {
+	return value ? YES_ID : NO_ID;
+}

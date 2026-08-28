@@ -30,12 +30,12 @@ export const phoneValue = z
 	.trim()
 	.refine(
 		(value) => value === '' || /^[0-9\s]*$/.test(value),
-		'Numer telefonu może zawierać tylko cyfry.',
+		'Może zawierać tylko cyfry.',
 	)
 	.refine(
 		// Left empty on purpose is still fine - the family's number then stands in for it.
 		(value) => value === '' || value.replace(phoneSpaces, '').length === PHONE_DIGIT_COUNT,
-		'Numer telefonu musi mieć 9 cyfr.',
+		'Numer musi mieć 9 cyfr.',
 	)
 	.transform((value) => value.replace(phoneSpaces, ''));
 
@@ -61,9 +61,14 @@ export interface PersonFormValues {
 	/** A family's id, or `''` for no household. */
 	familyId: string;
 	joinedStudioAt: string;
+	/** `YYYY-MM-DD`, or `''`. */
+	joinedClubDate: string;
+	/** `YYYY-MM-DD`, or `''`. */
+	leftClubDate: string;
 	/** Editing only - a new person is always created active. */
 	active: boolean;
 	contractSigned: boolean;
+	studentDiscount: boolean;
 	note: string;
 }
 
@@ -76,7 +81,10 @@ export const personFormSchema: z.ZodType<PersonFormValues, PersonFormValues> = z
 	email: emailValue,
 	familyId: z.string(),
 	joinedStudioAt: z.string().min(1, 'Podaj datę dołączenia.'),
+	joinedClubDate: z.string(),
+	leftClubDate: z.string(),
 	active: z.boolean(),
 	contractSigned: z.boolean(),
+	studentDiscount: z.boolean(),
 	note: noteValue,
 });

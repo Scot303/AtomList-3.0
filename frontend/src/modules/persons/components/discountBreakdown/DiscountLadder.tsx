@@ -14,6 +14,7 @@ interface DiscountLadderProps {
 	hint?: string;
 }
 
+
 /**
  * Every configured rung, with the matched one marked.
  */
@@ -29,7 +30,7 @@ export function DiscountLadder({ component, caption, thresholdLabel, hint }: Dis
 	const note = ladderNote(component, thresholdLabel);
 
 	return (
-		<div className="space-y-2 mt-5 mb-8">
+		<div className="space-y-2 mt-4 px-1">
 			<div className="flex items-center gap-1.5">
 				<p className="text-sm tracking-wide text-os-text uppercase">{ caption }</p>
 
@@ -65,6 +66,7 @@ export function DiscountLadder({ component, caption, thresholdLabel, hint }: Dis
 		</div>
 	);
 }
+
 
 /**
  * Why the marked rung is the one that answered, when that is not obvious from the ladder alone.
