@@ -12,12 +12,14 @@ import java.util.UUID;
  * It is not a record of anything: what somebody was actually charged is snapshotted onto their payment lines when the sheet is built,
  * and editing a ladder afterwards does not move it. A closed month can therefore disagree with this quite legitimately.
  *
- * @param billed       whether anything is being charged for this person this month. False leaves both parts at zero: somebody inactive, with no membership
- *                     running, or with nothing but free ones, takes up no slot in their household's ladder and so does not push their siblings down either.
- * @param household    the household ladder this person sits in, or null when they have no family - in which case they are positioned as the first person.
- * @param memberships  every membership running this month, counted towards {@code groupCountDiscount.input} or not - a group that charges nothing is shown but does not count.
- * @param totalPercent the two parts added together and capped, which is what a sheet built now would apply.
- * @param capped       whether the cap actually bit, meaning the parts summed past 100%.
+ * @param billed          whether anything is being charged for this person this month. False leaves both parts at zero: somebody inactive, with no membership
+ *                        running, or with nothing but free ones, takes up no slot in their household's ladder and so does not push their siblings down either.
+ * @param household       the household ladder this person sits in, or null when they have no family - in which case they are positioned as the first person.
+ * @param memberships     every membership running this month, counted towards {@code groupCountDiscount.input} or not - a group that charges nothing is shown but does not count.
+ * @param studentDiscount whether this person holds a student status.
+ * @param studentPercent  what that student status is worth here, which is zero whenever nothing is charged.
+ * @param totalPercent    the three parts added together and capped, which is what a sheet built now would apply.
+ * @param capped          whether the cap actually bit, meaning the parts summed past 100%.
  */
 public record PersonDiscountView(
 		UUID personId,
@@ -30,6 +32,8 @@ public record PersonDiscountView(
 		List<CountedMembership> memberships,
 		Component familyDiscount,
 		Component groupCountDiscount,
+		boolean studentDiscount,
+		BigDecimal studentPercent,
 		BigDecimal totalPercent,
 		boolean capped
 ) {

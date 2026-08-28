@@ -94,7 +94,7 @@ public class PaymentCalculator {
 
 
 	/**
-	 * Applies the month's two discount ladders. A one-off charge is left alone - it is a figure somebody typed, not a fee a rule applies to.
+	 * Applies the month's two discount ladders and the person's flat student rate. A one-off charge is left alone - it is a figure somebody typed, not a fee a rule applies to.
 	 * <p>
 	 * Neither ladder counts a group somebody pays nothing for, so a free membership neither deepens their own discount nor moves a sibling down the household ladder.
 	 */
@@ -103,11 +103,12 @@ public class PaymentCalculator {
 		Map<UUID, BigDecimal> percentByPerson = new HashMap<>();
 
 		for (Payment payment : payments) {
-			UUID personId = payment.getPerson().getId();
+			Person person = payment.getPerson();
 
-			BigDecimal percent = percentByPerson.computeIfAbsent(personId, key -> rules.combinedPercent(
+			BigDecimal percent = percentByPerson.computeIfAbsent(person.getId(), key -> rules.combinedPercent(
 					familyPositions.getOrDefault(key, 1),
-					ChargedMemberships.groupCount(monthByPerson.get(key), month)));
+					ChargedMemberships.groupCount(monthByPerson.get(key), month),
+					person.isStudentDiscount()));
 
 			payment.applyDiscount(payment.getChargeKind().isMembershipDerived() ? percent : Money.ZERO);
 		}

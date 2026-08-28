@@ -7,6 +7,7 @@ import atomdance.app.modules.discount.model.GroupCountDiscount;
 import java.math.BigDecimal;
 import java.util.*;
 
+
 /**
  * An immutable snapshot of the discount configuration, read once per calculation.
  */
@@ -14,13 +15,17 @@ public final class DiscountRules {
 
 	private static final BigDecimal MAX_PERCENT = BigDecimal.valueOf(100);
 
+	public static final BigDecimal STUDENT_DISCOUNT_PERCENT = BigDecimal.valueOf(10);
+
 	private final NavigableMap<Integer, BigDecimal> byFamilyPosition;
 	private final NavigableMap<Integer, BigDecimal> byGroupCount;
+
 
 	private DiscountRules(NavigableMap<Integer, BigDecimal> byFamilyPosition, NavigableMap<Integer, BigDecimal> byGroupCount) {
 		this.byFamilyPosition = byFamilyPosition;
 		this.byGroupCount = byGroupCount;
 	}
+
 
 	public static DiscountRules of(Collection<FamilySizeDiscount> familyDiscounts, Collection<GroupCountDiscount> groupCountDiscounts) {
 		NavigableMap<Integer, BigDecimal> family = new TreeMap<>();
@@ -37,6 +42,7 @@ public final class DiscountRules {
 		return new DiscountRules(family, groups);
 	}
 
+
 	/**
 	 * For tests and for the empty-configuration case.
 	 */
@@ -44,9 +50,11 @@ public final class DiscountRules {
 		return new DiscountRules(new TreeMap<>(), new TreeMap<>());
 	}
 
+
 	public static DiscountRules fromMaps(Map<Integer, BigDecimal> byFamilyPosition, Map<Integer, BigDecimal> byGroupCount) {
 		return new DiscountRules(new TreeMap<>(byFamilyPosition), new TreeMap<>(byGroupCount));
 	}
+
 
 	/**
 	 * @param position which person in the family this is, counting from 1.
@@ -55,19 +63,32 @@ public final class DiscountRules {
 		return floorPercent(byFamilyPosition, position);
 	}
 
+
 	public BigDecimal groupCountPercent(int groupCount) {
 		return floorPercent(byGroupCount, groupCount);
 	}
 
+
 	/**
-	 * The two discounts add up rather than compounding.
+	 * The flat student rate, or nothing for somebody without a student status.
+	 */
+	public BigDecimal studentPercent(boolean studentDiscount) {
+		return studentDiscount ? Money.normalize(STUDENT_DISCOUNT_PERCENT) : Money.ZERO;
+	}
+
+
+	/**
+	 * The three discounts add up rather than compounding.
 	 * Capped at 100%, so a future misconfiguration cannot produce a negative charge.
 	 */
-	public BigDecimal combinedPercent(int familyPosition, int groupCount) {
-		BigDecimal total = familyPercent(familyPosition).add(groupCountPercent(groupCount));
+	public BigDecimal combinedPercent(int familyPosition, int groupCount, boolean studentDiscount) {
+		BigDecimal total = familyPercent(familyPosition)
+				.add(groupCountPercent(groupCount))
+				.add(studentPercent(studentDiscount));
 
 		return Money.min(total, MAX_PERCENT);
 	}
+
 
 	/**
 	 * The configured family-position rungs, lowest position first.
@@ -76,6 +97,7 @@ public final class DiscountRules {
 		return Collections.unmodifiableNavigableMap(byFamilyPosition);
 	}
 
+
 	/**
 	 * The configured group-count rungs, lowest count first.
 	 */
@@ -83,13 +105,16 @@ public final class DiscountRules {
 		return Collections.unmodifiableNavigableMap(byGroupCount);
 	}
 
+
 	public Integer familyThreshold(int position) {
 		return floorThreshold(byFamilyPosition, position);
 	}
 
+
 	public Integer groupCountThreshold(int groupCount) {
 		return floorThreshold(byGroupCount, groupCount);
 	}
+
 
 	/**
 	 * Looks up the highest configured threshold at or below the given value, so a value past the end of
@@ -100,6 +125,7 @@ public final class DiscountRules {
 
 		return entry == null ? Money.ZERO : entry.getValue();
 	}
+
 
 	/**
 	 * The key {@link #floorPercent} would have matched.
