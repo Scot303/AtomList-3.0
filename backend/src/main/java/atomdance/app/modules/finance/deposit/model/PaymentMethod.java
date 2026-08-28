@@ -1,4 +1,4 @@
-package atomdance.app.modules.finance.model;
+package atomdance.app.modules.finance.deposit.model;
 
 public enum PaymentMethod {
 
