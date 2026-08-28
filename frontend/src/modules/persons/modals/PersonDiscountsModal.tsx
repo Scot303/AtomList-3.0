@@ -46,7 +46,7 @@ export default function PersonDiscountsModal({ personId }: PersonDiscountsModalP
 
 function Breakdown({ discount }: { discount: PersonDiscountView }) {
 	return (
-		<div className="mt-2 space-y-6">
+		<div className="mt-2 space-y-4">
 			<Total
 				percent={ discount.totalPercent }
 				month={ monthLabel(discount.year, discount.month) }
@@ -58,11 +58,17 @@ function Breakdown({ discount }: { discount: PersonDiscountView }) {
 				<NotBilled active={ discount.active }/>
 			) : (
 				<>
-					<FamilyDiscountSection component={ discount.familyDiscount } household={ discount.household }/>
+					<div className="rounded-2xl border border-os-border p-4 pt-3">
+						<FamilyDiscountSection component={ discount.familyDiscount } household={ discount.household }/>
+					</div>
 
-					<GroupCountDiscountSection component={ discount.groupCountDiscount } memberships={ discount.memberships }/>
+					<div className="rounded-2xl border border-os-border p-4 pt-3">
+						<GroupCountDiscountSection component={ discount.groupCountDiscount } memberships={ discount.memberships }/>
+					</div>
 
-					<StudentDiscountSection held={ discount.studentDiscount } percent={ discount.studentPercent }/>
+					<div className="rounded-2xl border border-os-border p-4 pt-3">
+						<StudentDiscountSection held={ discount.studentDiscount } percent={ discount.studentPercent }/>
+					</div>
 
 					<Sum
 						familyPercent={ discount.familyDiscount.percent }
@@ -92,10 +98,10 @@ interface TotalProps {
  */
 function Total({ percent, month, billed }: TotalProps) {
 	return (
-		<div className="styled-card flex w-full min-w-0 items-center gap-3 rounded-2xl px-5 py-3">
+		<div className="styled-card flex w-full min-w-0 items-center gap-3 rounded-2xl px-5 py-2">
 			<p className="min-w-0 flex-1 truncate text-lg font-semibold tracking-wide text-os-text-muted uppercase">Zniżka na { month }</p>
 
-			<p className={ cn('shrink-0 text-3xl font-bold', billed ? 'text-os-green' : 'text-os-text-muted') }>
+			<p className={ cn('shrink-0 text-2xl font-bold', billed ? 'text-os-green' : 'text-os-text-muted') }>
 				{ formatPercent(percent) }
 			</p>
 
@@ -104,7 +110,7 @@ function Total({ percent, month, billed }: TotalProps) {
 				className="shrink-0 text-os-warning"
 				placement="bottom"
 			>
-				<AlertTriangle aria-hidden className="size-6"/>
+				<AlertTriangle aria-hidden className="size-5"/>
 				<span className="sr-only">Zniżki wyliczone na teraz, nie wstecz.</span>
 			</Tooltip>
 		</div>
@@ -122,7 +128,7 @@ function NotBilled({ active }: { active: boolean }) {
 				? 'Ta osoba nie ma w tym miesiącu żadnej aktywnej grupy, więc nie ma za co wyliczyć zniżki.'
 				: 'Ta osoba jest nieaktywna, więc nie jest rozliczana.' }
 			{ ' ' }
-			Nie zajmuje też miejsca w drabince rodzinnej - rodzeństwo nie przesuwa się z tego powodu w dół.
+			Nie zajmuje też miejsca w drabince rodzinnej.
 		</Alert>
 	);
 }
@@ -140,7 +146,7 @@ interface SumProps {
 
 function Sum({ familyPercent, groupCountPercent, hasStudentDiscount, studentPercent, total, capped }: SumProps) {
 	return (
-		<section className="space-y-2 border-t border-os-border-highlight pt-4">
+		<section className="space-y-2 border-t border-os-border-highlight pt-4 px-3">
 			<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-base">
 				<span>Razem: </span>
 				<span>{ formatPercent(familyPercent) } (rodzina)</span>
