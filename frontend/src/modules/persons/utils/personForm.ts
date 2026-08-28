@@ -18,8 +18,11 @@ export function blankPersonForm(): PersonFormValues {
 		email: '',
 		familyId: '',
 		joinedStudioAt: dateToISO(todayInTimeZone()),
+		joinedClubDate: '',
+		leftClubDate: '',
 		active: true,
 		contractSigned: false,
+		studentDiscount: false,
 		note: '',
 	};
 }
@@ -34,8 +37,11 @@ export function personToForm(person: PersonView): PersonFormValues {
 		email: person.email ?? '',
 		familyId: person.familyId ?? '',
 		joinedStudioAt: person.joinedStudioAt,
+		joinedClubDate: person.joinedClubDate ?? '',
+		leftClubDate: person.leftClubDate ?? '',
 		active: person.active,
 		contractSigned: person.contractSigned,
+		studentDiscount: person.studentDiscount,
 		note: person.note ?? '',
 	};
 }
@@ -50,6 +56,7 @@ export function buildCreatePayload(values: PersonFormValues): CreatePersonPayloa
 		name: values.name,
 		lastName: values.lastName,
 		contractSigned: values.contractSigned,
+		studentDiscount: values.studentDiscount,
 	};
 
 	if (values.dateOfBirth !== '') {
@@ -58,6 +65,14 @@ export function buildCreatePayload(values: PersonFormValues): CreatePersonPayloa
 
 	if (values.joinedStudioAt !== '') {
 		payload.joinedStudioAt = values.joinedStudioAt;
+	}
+
+	if (values.joinedClubDate !== '') {
+		payload.joinedClubDate = values.joinedClubDate;
+	}
+
+	if (values.leftClubDate !== '') {
+		payload.leftClubDate = values.leftClubDate;
 	}
 
 	if (values.phone !== '') {
@@ -105,6 +120,23 @@ export function buildUpdatePayload(values: PersonFormValues, person: PersonView)
 		payload.joinedStudioAt = values.joinedStudioAt;
 	}
 
+	// Unlike the dates above, these two can be emptied - but only by asking for it by name.
+	if (values.joinedClubDate !== before.joinedClubDate) {
+		if (values.joinedClubDate === '') {
+			payload.clearJoinedClubDate = true;
+		} else {
+			payload.joinedClubDate = values.joinedClubDate;
+		}
+	}
+
+	if (values.leftClubDate !== before.leftClubDate) {
+		if (values.leftClubDate === '') {
+			payload.clearLeftClubDate = true;
+		} else {
+			payload.leftClubDate = values.leftClubDate;
+		}
+	}
+
 	if (values.phone !== phoneDigits(before.phone)) {
 		payload.phone = values.phone;
 	}
@@ -119,6 +151,10 @@ export function buildUpdatePayload(values: PersonFormValues, person: PersonView)
 
 	if (values.contractSigned !== before.contractSigned) {
 		payload.contractSigned = values.contractSigned;
+	}
+
+	if (values.studentDiscount !== before.studentDiscount) {
+		payload.studentDiscount = values.studentDiscount;
 	}
 
 	if (values.note !== before.note) {

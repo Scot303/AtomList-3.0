@@ -1,9 +1,11 @@
+import type { ReactNode } from 'react';
 import type { AppColumnDef } from '@/components/dataTable';
+import { CellPlaceholder } from '@/components/dataTable/cells/CellPlaceholder.tsx';
 import type { TagOption } from '@/components/ui/tags';
 import { TagBadgeList, TagBadgeSingle } from '@/components/ui/tags';
 import { GROUP_TYPE_OPTIONS } from '@/modules/groups/types/groupRows.ts';
 import { ACTIVE_TAG_OPTIONS } from '@/types/rowTags.ts';
-import { formatAge } from '../utils/personFormat';
+import { formatAge, formatShortDate } from '../utils/personFormat';
 import type { PersonRow } from './personRows.ts';
 
 
@@ -52,6 +54,13 @@ export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<Pers
 			meta: { editable: true },
 		},
 		{
+			accessorKey: 'studentDiscount',
+			header: 'Student',
+			fieldType: 'boolean',
+			size: 110,
+			meta: { editable: true },
+		},
+		{
 			accessorKey: 'groupIds',
 			header: 'Grupy',
 			fieldType: 'tag',
@@ -78,6 +87,35 @@ export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<Pers
 			size: 160,
 			meta: { editable: true, groupable: true, tagOptions: ACTIVE_TAG_OPTIONS, globalSearch: true },
 			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ ACTIVE_TAG_OPTIONS }/>,
+		},
+		{
+			accessorKey: 'joinedClubDate',
+			header: 'Dołączenie do klubu',
+			fieldType: 'date',
+			size: 190,
+			meta: {
+				displayFormatter: (value) => formatShortDate(value == null ? '' : String(value)),
+				globalSearch: true,
+			},
+			cell: ({ getValue }) => renderClubDate(getValue<string>()),
+		},
+		{
+			accessorKey: 'leftClubDate',
+			header: 'Odejście z klubu',
+			fieldType: 'date',
+			size: 190,
+			meta: {
+				displayFormatter: (value) => formatShortDate(value == null ? '' : String(value)),
+				globalSearch: true,
+			},
+			cell: ({ getValue }) => renderClubDate(getValue<string>()),
 		}
 	];
+}
+
+
+function renderClubDate(value: string): ReactNode {
+	const display = formatShortDate(value);
+
+	return display === '' ? <CellPlaceholder/> : display;
 }
