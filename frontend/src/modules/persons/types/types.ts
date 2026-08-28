@@ -22,7 +22,7 @@ export interface PersonView {
 	leftClubDate: string | null;
 	active: boolean;
 	contractSigned: boolean;
-	/** A student card, worth a permanent reduction on every membership fee. */
+	/** A student status, worth a permanent reduction on every membership fee. */
 	studentDiscount: boolean;
 	familyId: string | null;
 	/** Ids of the currently attended groups, in group-name order. */

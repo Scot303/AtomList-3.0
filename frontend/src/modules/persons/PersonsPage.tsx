@@ -20,16 +20,15 @@ import type { UpdatePersonPayload } from './types/types.ts';
 import type { ColumnVisibilityState } from "@tanstack/react-table";
 
 
-/**
- * Identifies this table's saved layout.
- */
 const TABLE_KEY = 'persons';
 
 const HIDDEN_COLS: ColumnVisibilityState = {
-	groupKinds: false
+	groupTypes: false,
+	joinedClubDate: false,
+	leftClubDate: false,
 };
 
-/** The id the kind chips keep their filter under, and the column they filter. */
+
 const KIND_FILTER_ID = 'persons-quick-group-kind';
 const KIND_FIELD = 'groupTypes';
 
@@ -175,6 +174,9 @@ function toUpdatePayload(columnId: string, value: unknown): UpdatePersonPayload 
 
 		case 'contractSigned':
 			return { contractSigned: Boolean(value) };
+
+		case 'studentDiscount':
+			return { studentDiscount: Boolean(value) };
 
 		case 'activeTag':
 			return { active: value === ACTIVE_ID };
