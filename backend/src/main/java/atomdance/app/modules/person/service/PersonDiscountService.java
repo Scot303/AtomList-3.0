@@ -80,9 +80,12 @@ public class PersonDiscountService {
 
 		DiscountRules rules = discountService.currentRules();
 
+		boolean student = person.isStudentDiscount();
+
 		BigDecimal familyPercent = billed ? rules.familyPercent(position) : Money.ZERO;
 		BigDecimal groupCountPercent = billed ? rules.groupCountPercent(groupCount) : Money.ZERO;
-		BigDecimal total = billed ? rules.combinedPercent(position, groupCount) : Money.ZERO;
+		BigDecimal studentPercent = billed ? rules.studentPercent(student) : Money.ZERO;
+		BigDecimal total = billed ? rules.combinedPercent(position, groupCount, student) : Money.ZERO;
 
 		auditLogger.record(securityService.getCurrentUserId(), personId, AuditEventType.DISCOUNT_PREVIEW, AuditOutcome.SUCCESS,
 				String.format("Previewed the discount calculation of %s.", person.getFullName()));
@@ -98,8 +101,10 @@ public class PersonDiscountService {
 				running.stream().map(membership -> countedMembership(membership, month)).toList(),
 				component(billed ? position : null, familyPercent, rules.familyLadder(), billed ? rules.familyThreshold(position) : null),
 				component(billed ? groupCount : null, groupCountPercent, rules.groupCountLadder(), billed ? rules.groupCountThreshold(groupCount) : null),
+				student,
+				studentPercent,
 				total,
-				Money.isGreaterThan(Money.add(familyPercent, groupCountPercent), total)
+				Money.isGreaterThan(Money.add(Money.add(familyPercent, groupCountPercent), studentPercent), total)
 		);
 	}
 

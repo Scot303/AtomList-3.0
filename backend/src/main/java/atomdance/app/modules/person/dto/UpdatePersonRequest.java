@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.UUID;
 
+
 public record UpdatePersonRequest(
 
 		@Size(min = 1, max = 64, message = "First name must be between 1 and 128 characters")
@@ -27,9 +28,19 @@ public record UpdatePersonRequest(
 
 		LocalDate joinedStudioAt,
 
+		LocalDate joinedClubDate,
+
+		Boolean clearJoinedClubDate,
+
+		LocalDate leftClubDate,
+
+		Boolean clearLeftClubDate,
+
 		Boolean active,
 
 		Boolean contractSigned,
+
+		Boolean studentDiscount,
 
 		UUID familyId,
 
