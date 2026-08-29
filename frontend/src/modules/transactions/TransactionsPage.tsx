@@ -22,10 +22,6 @@ import type { UpdateTransactionPayload } from './types/types.ts';
 
 const TABLE_KEY = 'payment-list-transactions';
 
-const HIDDEN_COLS = {
-	type: false,
-};
-
 
 export function TransactionsPage() {
 	const { listId = '' } = useParams();
@@ -117,7 +113,6 @@ function TransactionsTable({ list }: { list: PaymentListView }) {
 				isLoading={ transactions.isLoading }
 				enableGrouping
 				emptyMessage="Brak dodatkowych przychodów i wydatków na tej liście"
-				initialColumnVisibility={ HIDDEN_COLS }
 				onCellEdit={ canEdit ? handleCellEdit : undefined }
 				onRowContextMenu={ (event, row: TransactionRow) => openContextMenu(event, buildRowMenu(row)) }
 				toolbarStart={ toolbarStart }
