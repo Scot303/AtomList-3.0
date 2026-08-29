@@ -102,6 +102,18 @@ export const MODAL_REGISTRY = {
 		size: 'lg',
 	}),
 
+	'instructors.form': defineModal({
+		load: () => import('@/modules/instructors/modals/InstructorFormModal.tsx'),
+		title: ({ instructorId, instructorName }) => {
+			if (instructorId === undefined) {
+				return 'Nowy instruktor';
+			}
+			return instructorName === undefined ? 'Szczegóły instruktora' : `Szczegóły instruktora - ${ instructorName }`;
+		},
+		size: 'lg',
+		dismissible: false
+	}),
+
 	'sms.send': defineModal({
 		load: () => import('@/modules/sms/modals/SendSmsModal.tsx'),
 		title: 'Nowa wiadomość SMS',

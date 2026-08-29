@@ -8,6 +8,7 @@ export const paths = {
 	users: '/uzytkownicy',
 	persons: '/osoby',
 	groups: '/grupy',
+	instructors: '/instruktorzy',
 	sms: '/wiadomosci',
 } as const;
 
