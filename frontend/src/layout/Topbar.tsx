@@ -2,8 +2,10 @@ import { Lock, Menu as MenuIcon, PanelLeftClose } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { useIsDesktop } from '@/hooks/useMediaQuery';
 import { useUiStore } from '@/stores/uiStore';
+import { PaymentListViewSwitch } from './PaymentListViewSwitch.tsx';
 import { usePageTitle } from './usePageTitle';
 import { UserMenu } from './UserMenu';
+
 
 export function Topbar() {
 	const isDesktop = useIsDesktop();
@@ -48,6 +50,8 @@ export function Topbar() {
 					</>
 				) }
 			</h1>
+
+			<PaymentListViewSwitch/>
 
 			<div className="ml-auto flex items-center">
 				<UserMenu/>

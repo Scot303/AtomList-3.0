@@ -4,6 +4,8 @@ import { fetchPayment, fetchPayments } from '../../api/paymentsApi.ts';
 import { paymentListKeys } from '../../api/paymentListKeys.ts';
 
 
+/* ------------------ ALL LIST'S PAYMENTS ------------------ */
+
 export function paymentsQuery(listId: string) {
 	return {
 		queryKey: paymentListKeys.payments(listId),
@@ -21,6 +23,17 @@ export function usePayments(listId: string) {
 	});
 }
 
+
+export function usePrefetchPayments() {
+	const queryClient = useQueryClient();
+
+	return (listId: string) => {
+		void queryClient.prefetchQuery({ ...paymentsQuery(listId), meta: { silent: true } });
+	};
+}
+
+
+/* ------------------ SINGLE PAYMENT ------------------ */
 
 export function paymentQuery(id: string) {
 	return {
