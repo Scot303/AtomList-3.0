@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { usePrefetchDeposits } from '@/modules/deposits/hooks/queries/useDeposits.ts';
 import { usePrefetchGroups } from '@/modules/groups/hooks/useGroups';
+import { usePrefetchInstructors } from '@/modules/instructors/hooks/useInstructors.ts';
 import { usePrefetchPersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { usePrefetchSmsHistory } from '@/modules/sms/hooks/useSmsHistory';
 import { type AppModule, MODULE_GROUPS, MODULES } from '@/modules/registry';
@@ -91,6 +92,7 @@ export function Sidebar() {
 
 	const prefetchPersons = usePrefetchPersons();
 	const prefetchGroups = usePrefetchGroups();
+	const prefetchInstructors = usePrefetchInstructors();
 	const prefetchDeposits = usePrefetchDeposits();
 	const prefetchSmsHistory = usePrefetchSmsHistory();
 
@@ -122,6 +124,10 @@ export function Sidebar() {
 
 		if (moduleId === 'deposits' && hasPermission('READ_PAYMENTS')) {
 			prefetchDeposits(todayInTimeZone().getFullYear());
+		}
+
+		if (moduleId === 'instructors' && hasPermission('READ_INSTRUCTORS')) {
+			prefetchInstructors();
 		}
 
 		if (moduleId === 'sms' && hasPermission('READ_SMS')) {

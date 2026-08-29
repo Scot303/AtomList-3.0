@@ -17,3 +17,29 @@ export interface InstructorView {
 	active: boolean;
 	note: string | null;
 }
+
+
+/** Mirror of the backend's `CreateInstructorRequest`. */
+export interface CreateInstructorPayload {
+	name: string;
+	lastName: string;
+	costPerHour: number;
+	contractSignedDate?: string;
+	contractNumber?: string;
+	contractType?: ContractType;
+	active?: boolean;
+	note?: string;
+}
+
+
+/** Mirror of `UpdateInstructorRequest`. */
+export interface UpdateInstructorPayload {
+	name?: string;
+	lastName?: string;
+	costPerHour?: number;
+	contractSignedDate?: string;
+	contractNumber?: string;
+	contractType?: ContractType;
+	active?: boolean;
+	note?: string;
+}

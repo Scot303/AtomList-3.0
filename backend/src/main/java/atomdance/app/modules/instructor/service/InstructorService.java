@@ -4,6 +4,7 @@ import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.finance.transaction.repository.TransactionRepository;
 import atomdance.app.modules.instructor.dto.CreateInstructorRequest;
 import atomdance.app.modules.instructor.dto.InstructorView;
 import atomdance.app.modules.instructor.dto.UpdateInstructorRequest;
@@ -29,6 +30,7 @@ public class InstructorService {
 	private static final Sort BY_NAME = Sort.by("lastName", "name");
 
 	private final InstructorRepository instructorRepository;
+	private final TransactionRepository transactionRepository;
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
@@ -146,9 +148,12 @@ public class InstructorService {
 	public void delete(UUID id) {
 		Instructor instructor = getOrThrow(id);
 
+		int released = transactionRepository.releaseInstructor(id);
+
 		instructorRepository.delete(instructor);
 
-		log.info("Deleted instructor {} ({})", instructor.getId(), instructor.getFullName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), instructor.getId(), AuditEventType.INSTRUCTOR_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Instructor %s has been deleted.", instructor.getFullName()));
+		log.info("Deleted instructor {} ({}), releasing {} transaction row(s)", instructor.getId(), instructor.getFullName(), released);
+		auditLogger.recordOnCommit(securityService.getCurrentUserId(), instructor.getId(), AuditEventType.INSTRUCTOR_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Instructor %s has been deleted, releasing %d transaction row(s) raised for them.",
+				instructor.getFullName(), released));
 	}
 }
