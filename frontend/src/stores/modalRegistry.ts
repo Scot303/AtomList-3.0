@@ -110,7 +110,7 @@ export const MODAL_REGISTRY = {
 			}
 			return instructorName === undefined ? 'Szczegóły instruktora' : `Szczegóły instruktora - ${ instructorName }`;
 		},
-		size: 'lg',
+		size: 'xl',
 		dismissible: false
 	}),
 
