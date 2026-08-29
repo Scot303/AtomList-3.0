@@ -43,6 +43,8 @@ const MEMBERSHIPS = '/api/memberships';
 const FAMILIES = '/api/families';
 const LISTS = '/api/lists';
 const PAYMENTS = '/api/payments';
+const TRANSACTIONS = '/api/transactions';
+const INSTRUCTORS = '/api/instructors';
 const DEPOSITS = '/api/deposits';
 const ATTENDANCE = '/api/attendance';
 const SMS = '/api/sms';
@@ -128,6 +130,26 @@ export const PAYMENT_ENDPOINTS = {
 	byId: (id: string) => `${ PAYMENTS }/${ id }`,
 	settle: (id: string) => `${ PAYMENTS }/${ id }/settle`,
 	quantity: (id: string) => `${ PAYMENTS }/${ id }/quantity`,
+} as const;
+
+
+/**
+ * `READ_INCOME_TRANSACTIONS` / `MODIFY_INCOME_TRANSACTIONS` for the income side
+ * `READ_EXPENSE_TRANSACTIONS` / `MODIFY_EXPENSE_TRANSACTIONS` for the expense side
+ */
+export const TRANSACTION_ENDPOINTS = {
+	forList: (listId: string) => `${ LISTS }/${ listId }/transactions`,
+	byId: (id: string) => `${ TRANSACTIONS }/${ id }`,
+	instructorExpenses: (listId: string) => `${ LISTS }/${ listId }/instructor-expenses`,
+} as const;
+
+
+/**
+ * `READ_INSTRUCTORS` / `MODIFY_INSTRUCTORS`.
+ */
+export const INSTRUCTOR_ENDPOINTS = {
+	base: INSTRUCTORS,
+	byId: (id: string) => `${ INSTRUCTORS }/${ id }`,
 } as const;
 
 

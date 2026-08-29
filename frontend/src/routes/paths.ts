@@ -3,6 +3,7 @@ export const paths = {
 	verifyEmail: '/verify-email',
 	paymentLists: '/listy-platnosci',
 	paymentListDetail: '/listy-platnosci/:listId',
+	paymentListTransactions: '/listy-platnosci/:listId/przychody-wydatki',
 	deposits: '/wplaty',
 	users: '/uzytkownicy',
 	persons: '/osoby',
@@ -13,6 +14,11 @@ export const paths = {
 
 export function paymentListDetailPath(listId: string): string {
 	return `${ paths.paymentLists }/${ listId }`;
+}
+
+
+export function paymentListTransactionsPath(listId: string): string {
+	return `${ paymentListDetailPath(listId) }/przychody-wydatki`;
 }
 
 

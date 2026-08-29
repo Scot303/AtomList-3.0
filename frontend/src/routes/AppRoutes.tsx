@@ -3,6 +3,7 @@ import { Dashboard } from '@/layout/Dashboard';
 import { LoginPage } from '@/modules/auth/pages/LoginPage';
 import { VerifyEmailPage } from '@/modules/auth/pages/VerifyEmailPage';
 import { PaymentListDetailPage } from '@/modules/paymentLists/PaymentListDetailPage';
+import { TransactionsPage } from '@/modules/transactions/TransactionsPage';
 import { MODULES } from '@/modules/registry';
 import { DEFAULT_AUTHENTICATED_PATH, paths } from './paths';
 import { ProtectedRoute, RequirePermission } from './ProtectedRoute';
@@ -37,6 +38,15 @@ export function AppRoutes() {
 						element={
 							<RequirePermission permissions={ ['READ_LISTS'] }>
 								<PaymentListDetailPage/>
+							</RequirePermission>
+						}
+					/>
+
+					<Route
+						path={ paths.paymentListTransactions }
+						element={
+							<RequirePermission permissions={ ['READ_INCOME_TRANSACTIONS', 'READ_EXPENSE_TRANSACTIONS'] }>
+								<TransactionsPage/>
 							</RequirePermission>
 						}
 					/>

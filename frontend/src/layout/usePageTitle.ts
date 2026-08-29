@@ -1,9 +1,9 @@
-import { useLocation, useMatch } from 'react-router';
+import { useLocation } from 'react-router';
 
 import { usePaymentList } from '@/modules/paymentLists/hooks/queries/usePaymentLists.ts';
 import { describeList } from '@/modules/paymentLists/types/listLabels';
 import { MODULES } from '@/modules/registry';
-import { paths } from '@/routes/paths';
+import { usePaymentListRoute } from './usePaymentListRoute.ts';
 
 
 export interface PageTitle {
@@ -17,9 +17,9 @@ export interface PageTitle {
  */
 export function usePageTitle(): PageTitle {
 	const location = useLocation();
-	const paymentListDetail = useMatch(paths.paymentListDetail);
+	const listRoute = usePaymentListRoute();
 
-	const paymentList = usePaymentList(paymentListDetail?.params.listId ?? '');
+	const paymentList = usePaymentList(listRoute?.listId ?? '');
 
 	if (paymentList.data !== undefined) {
 		return { text: describeList(paymentList.data), closed: paymentList.data.closed };

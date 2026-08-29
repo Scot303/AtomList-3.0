@@ -120,11 +120,11 @@ export function Sidebar() {
 			prefetchPersons();
 		}
 
-		if (moduleId === 'deposits') {
+		if (moduleId === 'deposits' && hasPermission('READ_PAYMENTS')) {
 			prefetchDeposits(todayInTimeZone().getFullYear());
 		}
 
-		if (moduleId === 'sms') {
+		if (moduleId === 'sms' && hasPermission('READ_SMS')) {
 			prefetchSmsHistory();
 		}
 

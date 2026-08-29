@@ -157,6 +157,20 @@ export const MODAL_REGISTRY = {
 		dismissible: false
 	}),
 
+	'transactions.form': defineModal({
+		load: () => import('@/modules/transactions/modals/TransactionFormModal.tsx'),
+		title: 'Nowa pozycja',
+		size: 'lg',
+		dismissible: false
+	}),
+
+	'transactions.details': defineModal({
+		load: () => import('@/modules/transactions/modals/TransactionDetailsModal.tsx'),
+		title: 'Szczegóły pozycji',
+		size: 'lg',
+		dismissible: false
+	}),
+
 	'lists.customForm': defineModal({
 		load: () => import('@/modules/paymentLists/modals/CustomListFormModal.tsx'),
 		title: ({ list }) => ( list === undefined ? 'Nowa lista' : 'Szczegóły listy' ),
