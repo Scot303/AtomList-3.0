@@ -37,7 +37,7 @@ export function buildTransactionColumns(editable: boolean): AppColumnDef<Transac
 			accessorKey: 'name',
 			header: 'Nazwa',
 			fieldType: 'text',
-			size: 500,
+			size: 380,
 			meta: { globalSearch: true },
 		},
 		{
@@ -93,7 +93,7 @@ export function buildTransactionColumns(editable: boolean): AppColumnDef<Transac
 			accessorKey: 'type',
 			header: 'Rodzaj',
 			fieldType: 'tag',
-			size: 150,
+			size: 130,
 			meta: { groupable: true, globalSearch: false, tagOptions: TRANSACTION_TYPE_OPTIONS },
 			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ TRANSACTION_TYPE_OPTIONS }/>,
 		},

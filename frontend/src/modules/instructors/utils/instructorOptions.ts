@@ -10,6 +10,6 @@ export function toInstructorOptions(instructors: InstructorView[]): ExtendedSele
 		.map((instructor) => ( {
 			id: instructor.id,
 			name: instructor.fullName,
-			hint: instructor.active ? `${ formatCurrency(instructor.costPerHour) }/h` : 'nieaktywny',
+			hint: instructor.active ? `${ formatCurrency(instructor.costPerHour) } za godzinę` : 'nieaktywny',
 		} ));
 }

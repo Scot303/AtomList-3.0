@@ -9,6 +9,7 @@ import { preloadModal } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore.ts';
 import { useDeleteTransaction } from '../mutations/useTransactionMutations.ts';
 import { INCOME_ID, type TransactionRow } from '../../types/transactionRows.ts';
+import { usePrefetchTransactions } from "@/modules/transactions/hooks/queries/useTransactions.ts";
 
 
 export type TransactionRowMenuBuilder = (row: TransactionRow) => ContextMenuItem[];
@@ -21,6 +22,7 @@ export function useTransactionRowMenu(list: PaymentListView): TransactionRowMenu
 	const confirm = useConfirm();
 
 	const { mutate: deleteTransaction } = useDeleteTransaction();
+	const prefetchTransactions = usePrefetchTransactions();
 
 	const canModifyIncome = hasPermission('MODIFY_INCOME_TRANSACTIONS');
 	const canModifyExpense = hasPermission('MODIFY_EXPENSE_TRANSACTIONS');
@@ -48,6 +50,7 @@ export function useTransactionRowMenu(list: PaymentListView): TransactionRowMenu
 
 	return (row: TransactionRow) => {
 		preloadModal('transactions.details');
+		prefetchTransactions(list.id);
 
 		const editable = ( row.type === INCOME_ID ? canModifyIncome : canModifyExpense ) && !list.closed;
 

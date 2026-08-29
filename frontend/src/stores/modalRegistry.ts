@@ -160,14 +160,14 @@ export const MODAL_REGISTRY = {
 	'transactions.form': defineModal({
 		load: () => import('@/modules/transactions/modals/TransactionFormModal.tsx'),
 		title: 'Nowa pozycja',
-		size: 'md',
+		size: 'lg',
 		dismissible: false
 	}),
 
 	'transactions.details': defineModal({
 		load: () => import('@/modules/transactions/modals/TransactionDetailsModal.tsx'),
 		title: 'Szczegóły pozycji',
-		size: 'md',
+		size: 'lg',
 		dismissible: false
 	}),
 
