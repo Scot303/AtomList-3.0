@@ -3,7 +3,7 @@ import { type ColumnOrderState, type ColumnSizingState, type ColumnVisibilitySta
 import type { FilterActiveTag, SortTag } from '../types/filterTypes';
 import type { AppColumnDef } from '@/components/dataTable';
 import { reconcileColumnOrder, resolveColumnId } from '../utils/columnIds';
-import { NO_COLUMN_ORDER, NO_COLUMN_SIZING, NO_FILTER_TAGS, NO_GROUPING, NO_SORT_TAGS } from './prefsFallbacks';
+import { NO_COLUMN_ORDER, NO_COLUMN_SIZING, NO_COLUMN_VISIBILITY, NO_FILTER_TAGS, NO_GROUPING, NO_SORT_TAGS } from './prefsFallbacks';
 import { useTablePrefs } from './useTablePrefs';
 
 
@@ -48,13 +48,23 @@ export function useTableLayout<T extends object>(moduleKey: string, columns: App
 		[initialColumnVisibility],
 	);
 
-	const columnVisibility = read('columnVisibility', defaultVisibility);
+	const storedColumnVisibility = read('columnVisibility', NO_COLUMN_VISIBILITY);
 	const storedColumnSizing = read('columnSizing', NO_COLUMN_SIZING);
 	const filterTags = read('filterTags', NO_FILTER_TAGS);
 	const sortTags = read('sortTags', NO_SORT_TAGS);
 	const showFilters = read('showFilters', false);
 	const grouping = read('grouping', NO_GROUPING);
 	const storedColumnOrder = read('columnOrder', NO_COLUMN_ORDER);
+
+	/**
+	 * Laid over the table's defaults rather than restored as-is, so a column added after the layout was saved
+	 * starts hidden or shown as the table declared it, instead of simply appearing.
+	 * Anything the user has actually toggled is in the stored map and still wins.
+	 */
+	const columnVisibility = useMemo(
+		() => ( { ...defaultVisibility, ...storedColumnVisibility } ),
+		[defaultVisibility, storedColumnVisibility],
+	);
 
 	/**
 	 * Reconciled against the live definitions rather than restored as-is, so a column added after the layout was saved still shows up.

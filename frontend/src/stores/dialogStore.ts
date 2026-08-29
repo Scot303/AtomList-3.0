@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
+
 export type DialogVariant = 'danger' | 'warning' | 'info';
+
 
 export interface DialogOptions {
 	title: string;
@@ -12,6 +14,7 @@ export interface DialogOptions {
 	showCancel?: boolean;
 	onConfirm?: () => void | Promise<void>;
 }
+
 
 interface DialogState {
 	isOpen: boolean;
@@ -34,6 +37,7 @@ interface DialogState {
 	resetDialog: () => void;
 }
 
+
 const BLANK = {
 	title: '',
 	message: '',
@@ -45,7 +49,7 @@ const BLANK = {
 	resolve: undefined,
 };
 
-export const useDialogStore = create<DialogState>((set, get) => ({
+export const useDialogStore = create<DialogState>((set, get) => ( {
 	isOpen: false,
 	isConfirming: false,
 	...BLANK,
@@ -110,13 +114,9 @@ export const useDialogStore = create<DialogState>((set, get) => ({
 
 		set(BLANK);
 	},
-}));
+} ));
 
-/**
- * `const confirm = useConfirm()` then `if (await confirm({ ... })) { ... }`.
- * Pass `onConfirm` when the work should run inside the dialog with a loading state.
- * await the result instead when the dialog should close first and the caller carries on.
- */
+
 export function useConfirm() {
 	return useDialogStore((state) => state.openDialog);
 }

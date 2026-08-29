@@ -7,6 +7,7 @@ import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.service.GroupService;
+import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class AttendancePdfService {
     private final GroupService groupService;
     private final AttendancePdfGenerator attendancePdfGenerator;
     private final AuditLogger auditLogger;
+    private final SecurityService securityService;
 
 
     @Transactional(readOnly = true)
@@ -35,11 +37,11 @@ public class AttendancePdfService {
         } catch (IOException e) {
             var errorMsg = "Failed to create group %s attendance list PDF".formatted(group.getId());
             log.error(errorMsg);
-            auditLogger.record(null, group.getId(), AuditEventType.ATTENDANCE_PDF_CREATION, AuditOutcome.FAILURE, errorMsg);
+            auditLogger.record(securityService.getCurrentUserId(), group.getId(), AuditEventType.ATTENDANCE_PDF_CREATION, AuditOutcome.FAILURE, errorMsg);
             throw e;
         }
 
-        auditLogger.record(null, group.getId(), AuditEventType.ATTENDANCE_PDF_CREATION, AuditOutcome.SUCCESS, "Created group attendance PDF.");
+        auditLogger.record(securityService.getCurrentUserId(), group.getId(), AuditEventType.ATTENDANCE_PDF_CREATION, AuditOutcome.SUCCESS, "Created group attendance PDF.");
         return genResult;
     }
 }

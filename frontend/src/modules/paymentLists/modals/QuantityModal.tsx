@@ -8,7 +8,7 @@ import { formatCurrency } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
 import { PaymentIdentity } from '../components/PaymentIdentity';
-import { useUpdateQuantity } from '../hooks/usePaymentMutations';
+import { useUpdateQuantity } from '../hooks/mutations/usePaymentMutations.ts';
 import { parseAmount, quantityFormSchema, type QuantityFormValues } from '../schemas/paymentSchemas';
 import type { PaymentView } from '../types/types.ts';
 

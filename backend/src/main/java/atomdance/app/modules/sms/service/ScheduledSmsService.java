@@ -6,11 +6,11 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.finance.model.ListType;
-import atomdance.app.modules.finance.model.Payment;
-import atomdance.app.modules.finance.model.PaymentList;
-import atomdance.app.modules.finance.repository.PaymentListRepository;
-import atomdance.app.modules.finance.repository.PaymentRepository;
+import atomdance.app.modules.finance.payment.model.Payment;
+import atomdance.app.modules.finance.payment.repository.PaymentRepository;
+import atomdance.app.modules.finance.paymentList.model.ListType;
+import atomdance.app.modules.finance.paymentList.model.PaymentList;
+import atomdance.app.modules.finance.paymentList.repository.PaymentListRepository;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.sms.model.Sms;
 import atomdance.json.justsend.BulkSendRequest;
@@ -31,6 +31,7 @@ import java.util.*;
 import static atomdance.app.common.utils.StaticValuesUtil.ATOM_DANCE_SENDER;
 import static atomdance.app.common.utils.StaticValuesUtil.PHONE_COUNTRY_CODE;
 
+
 @Component
 @ConditionalOnProperty(value = "app.sms.schedule.reminder.enabled", havingValue = "true")
 @RequiredArgsConstructor
@@ -49,54 +50,56 @@ public class ScheduledSmsService {
 	private static final String STANDARD_TEMPLATE = "Przypominamy o uregulowaniu płatności za zajęcia: %s zł.";
 	private static final String STANDARD_TEMPLATE_SIMPLE = "Przypominamy o uregulowaniu płatności za zajęcia. Dziękujemy!";
 
-    @Scheduled(cron = "${app.sms.schedule.reminder.cron}", zone = "${app.time-zone}")
-    public void scheduleSms() {
-        log.info("Running scheduled sms service for owed payments");
-        var currentYearMonth = appClock.currentYearMonth();
+
+	@Scheduled(cron = "${app.sms.schedule.reminder.cron}", zone = "${app.time-zone}")
+	public void scheduleSms() {
+		log.info("Running scheduled sms service for owed payments");
+		var currentYearMonth = appClock.currentYearMonth();
 
 		var owedPayments = getOwedPayments(currentYearMonth);
 
 		Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments = pairPhoneNumbersWithOwedPayments(owedPayments);
-        log.debug("Before whitelist: {}", combinedOwedPayments.keySet());
+		log.debug("Before whitelist: {}", combinedOwedPayments.keySet());
 		leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
 
-        if (combinedOwedPayments.isEmpty()) {
-            log.debug("Owed payment list empty after filtering - cancelling current scheduled action");
-            return;
-        }
+		if (combinedOwedPayments.isEmpty()) {
+			log.debug("Owed payment list empty after filtering - cancelling current scheduled action");
+			return;
+		}
 
-        log.debug("After whitelist: {}", combinedOwedPayments.keySet());
+		log.debug("After whitelist: {}", combinedOwedPayments.keySet());
 
-        List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
+		List<Sms> messagesToSend = createMessagesToDebtors(combinedOwedPayments);
 
-        List<RestRecipient> recipients = messagesToSend.stream()
-                .map(sms -> new RestRecipient().withMsisdn(PHONE_COUNTRY_CODE + sms.getSentToPhone()))
-                .toList();
+		List<RestRecipient> recipients = messagesToSend.stream()
+				.map(sms -> new RestRecipient().withMsisdn(PHONE_COUNTRY_CODE + sms.getSentToPhone()))
+				.toList();
 
 
-        var bulkSendRequest = getBulkSendRequest().withRecipients(recipients);
+		var bulkSendRequest = getBulkSendRequest().withRecipients(recipients);
 
-        log.debug(bulkSendRequest.toString());
-        recipients.forEach(r -> log.debug("Recipient {}", r.getMsisdn()));
+		log.debug(bulkSendRequest.toString());
+		recipients.forEach(r -> log.debug("Recipient {}", r.getMsisdn()));
 
-        try {
-            smsApiClient.bulkSendMessage(bulkSendRequest);
-        } catch (HttpStatusCodeException e) {
-            String errorMsg = "JustSend API returned %s: %s".formatted(e.getStatusCode(), e.getMessage());
-            log.error(errorMsg);
-            auditLogger.record(null, AuditEventType.SMS_SEND, AuditOutcome.FAILURE, errorMsg);
-            return;
-        }
+		try {
+			smsApiClient.bulkSendMessage(bulkSendRequest);
+		} catch (HttpStatusCodeException e) {
+			String errorMsg = "JustSend API returned %s: %s".formatted(e.getStatusCode(), e.getMessage());
+			log.error(errorMsg);
+			auditLogger.record(null, AuditEventType.SMS_SEND, AuditOutcome.FAILURE, errorMsg);
+			return;
+		}
 
-        smsService.saveSentScheduledBulkSms(messagesToSend);
-    }
+		smsService.saveSentScheduledBulkSms(messagesToSend);
+	}
 
-    private List<Payment> getOwedPayments(YearMonth currentYearMonth) {
-        return ListType.standardTypes().stream()
-                .flatMap(type -> getPaymentList(currentYearMonth, type).stream())
-                .flatMap(list -> paymentRepository.findUnpaidByListId(list.getId()).stream())
-                .toList();
-    }
+
+	private List<Payment> getOwedPayments(YearMonth currentYearMonth) {
+		return ListType.standardTypes().stream()
+				.flatMap(type -> getPaymentList(currentYearMonth, type).stream())
+				.flatMap(list -> paymentRepository.findUnpaidByListId(list.getId()).stream())
+				.toList();
+	}
 
 
 	/**
@@ -119,64 +122,62 @@ public class ScheduledSmsService {
 								currentList.add(person);
 							}
 
-                            BigDecimal currentOwnedSum = currentSumInFamily.owedPayment;
-                            BigDecimal increasedSum = currentOwnedSum.add(newMember.owedPayment);
-                            return new SumOfOwedPaymentsInFamily(currentList, increasedSum);
-                        }));
-        return map;
-    }
+							BigDecimal currentOwnedSum = currentSumInFamily.owedPayment;
+							BigDecimal increasedSum = currentOwnedSum.add(newMember.owedPayment);
+							return new SumOfOwedPaymentsInFamily(currentList, increasedSum);
+						}));
+		return map;
+	}
 
-    /**
-     * Adjust recipients of alerts.
-     * Messages will be sent only to phone numbers present in the whitelist in application property {@code app.sms.phoneWhitelist}
-     */
 
-    private void leaveOnlyWhitelistedPhoneNumber(Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments) {
-        if (phoneWhitelist.isEmpty()) {
-            return;
-        }
-        combinedOwedPayments.keySet().retainAll(phoneWhitelist);
-    }
+	/**
+	 * Adjust recipients of alerts.
+	 * Messages will be sent only to phone numbers present in the whitelist in application property {@code app.sms.phoneWhitelist}
+	 */
+	private void leaveOnlyWhitelistedPhoneNumber(Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments) {
+		if (phoneWhitelist.isEmpty()) {
+			return;
+		}
+		combinedOwedPayments.keySet().retainAll(phoneWhitelist);
+	}
 
-    private List<Sms> createMessagesToDebtors(Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments) {
-        return new ArrayList<>(combinedOwedPayments.values().stream()
-                .map(sumOfOwedPaymentsInFamily -> {
-                    List<Person> persons = sumOfOwedPaymentsInFamily.persons;
-                    if (persons.size() == 1) {
-	                    return new Sms(persons.getFirst(), STANDARD_TEMPLATE_SIMPLE);
-                        //return new Sms(persons.getFirst(), formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment));
-                    } else {
-	                    return new Sms(persons.getFirst().getFamily(), STANDARD_TEMPLATE_SIMPLE);
-                        //return new Sms(persons.getFirst().getFamily(), formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment));
-                    }
-                })
-                .toList());
-    }
 
-    private Optional<PaymentList> getPaymentList(YearMonth yearMonth, ListType type) {
-        return paymentListRepository.findByYearAndMonthAndType(yearMonth.getYear(), yearMonth.getMonthValue(), type);
-    }
+	private List<Sms> createMessagesToDebtors(Map<String, SumOfOwedPaymentsInFamily> combinedOwedPayments) {
+		return new ArrayList<>(combinedOwedPayments.values().stream()
+				// One text per number, addressed to the household when the number covers more than one of them.
+				.map(sumOfOwedPaymentsInFamily -> Sms.forRecipients(sumOfOwedPaymentsInFamily.persons, STANDARD_TEMPLATE_SIMPLE))
+				//.map(sumOfOwedPaymentsInFamily -> Sms.forRecipients(sumOfOwedPaymentsInFamily.persons, formatSmsMessage(sumOfOwedPaymentsInFamily.owedPayment)))
+				.toList());
+	}
 
-    /**
-     * List of {@link Person} objects and their collective debt from unpaid Payments.
-     */
-    protected record SumOfOwedPaymentsInFamily(List<Person> persons, BigDecimal owedPayment) {}
 
-    private BulkSendRequest getBulkSendRequest() {
-        return new BulkSendRequest()
-                .withName("AtomDance:" + appClock.today().format(DateTimeFormatter.BASIC_ISO_DATE))
-                .withBulkType(BulkSendRequest.BulkType.STANDARD)
+	private Optional<PaymentList> getPaymentList(YearMonth yearMonth, ListType type) {
+		return paymentListRepository.findByYearAndMonthAndType(yearMonth.getYear(), yearMonth.getMonthValue(), type);
+	}
 
-                // Currently switched to BulkType.STANDARD when using simple message without specific quotes
+
+	/**
+	 * List of {@link Person} objects and their collective debt from unpaid Payments.
+	 */
+	protected record SumOfOwedPaymentsInFamily(List<Person> persons, BigDecimal owedPayment) {}
+
+
+	private BulkSendRequest getBulkSendRequest() {
+		return new BulkSendRequest()
+				.withName("AtomDance:" + appClock.today().format(DateTimeFormatter.BASIC_ISO_DATE))
+				.withBulkType(BulkSendRequest.BulkType.STANDARD)
+
+				// Currently switched to BulkType.STANDARD when using simple message without specific quotes
 //                .withBulkType(BulkSendRequest.BulkType.PERSONALIZED)
-                .withMessage(STANDARD_TEMPLATE_SIMPLE)
-                .withBulkVariant(BulkSendRequest.BulkVariant.PRO)
-                .withSender(ATOM_DANCE_SENDER)
-                .withSendDate(appClock.nowOffset().plusMinutes(1L).truncatedTo(ChronoUnit.MINUTES));
-    }
+				.withMessage(STANDARD_TEMPLATE_SIMPLE)
+				.withBulkVariant(BulkSendRequest.BulkVariant.PRO)
+				.withSender(ATOM_DANCE_SENDER)
+				.withSendDate(appClock.nowOffset().plusMinutes(1L).truncatedTo(ChronoUnit.MINUTES));
+	}
 
-    private String formatSmsMessage(BigDecimal owedAmount) {
-        return STANDARD_TEMPLATE.formatted(Money.format(owedAmount));
-    }
+
+	private String formatSmsMessage(BigDecimal owedAmount) {
+		return STANDARD_TEMPLATE.formatted(Money.format(owedAmount));
+	}
 
 }

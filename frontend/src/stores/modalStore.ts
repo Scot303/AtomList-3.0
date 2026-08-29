@@ -1,10 +1,12 @@
 import { create } from 'zustand';
-import { loadModal, type ModalKey, type ModalProps, type ModalSize } from '@/stores/modalRegistry.ts';
+import { loadModal, type ModalKey, type ModalProps, type ModalSize, type ModalViewportHeight } from '@/stores/modalRegistry.ts';
 
 
 export interface ModalOptions {
 	title?: string;
 	size?: ModalSize;
+	height?: ModalViewportHeight;
+	maxHeight?: ModalViewportHeight;
 	/** Merged onto the panel, so `max-w-3xl` here beats whatever the size preset set. */
 	className?: string;
 	/** False stops escape and the backdrop from closing it - for a modal holding unsaved input. */

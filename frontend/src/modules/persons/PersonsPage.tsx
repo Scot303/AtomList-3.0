@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+import { Home, Plus } from 'lucide-react';
 import { DataTable, TagChipFilters, useTableFilterTags } from '@/components/dataTable';
 import { Button } from '@/components/ui/buttons/Button';
 import { BirthdayIndicator } from '@/components/shared/BirthdayIndicator';
@@ -10,26 +10,25 @@ import { ACTIVE_ID } from '@/types/rowTags.ts';
 import { useContextMenu } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
-import { useFamilies } from './hooks/useFamilies';
+import { usePrefetchFamilies } from './hooks/queries/useFamilies.ts';
 import { usePersonRowMenu } from './hooks/contextMenu/usePersonRowMenu.ts';
-import { usePersons } from './hooks/usePersons';
-import { useUpdatePerson } from './hooks/usePersonMutations';
+import { usePersons } from './hooks/queries/usePersons.ts';
+import { useUpdatePerson } from './hooks/mutations/usePersonMutations.ts';
 import { buildPersonColumns } from './types/personColumns.tsx';
 import { type PersonRow, toPersonRow, } from './types/personRows.ts';
 import type { UpdatePersonPayload } from './types/types.ts';
 import type { ColumnVisibilityState } from "@tanstack/react-table";
 
 
-/**
- * Identifies this table's saved layout.
- */
 const TABLE_KEY = 'persons';
 
 const HIDDEN_COLS: ColumnVisibilityState = {
-	groupKinds: false
+	groupTypes: false,
+	joinedClubDate: false,
+	leftClubDate: false,
 };
 
-/** The id the kind chips keep their filter under, and the column they filter. */
+
 const KIND_FILTER_ID = 'persons-quick-group-kind';
 const KIND_FIELD = 'groupTypes';
 
@@ -46,8 +45,7 @@ export function PersonsPage() {
 	const persons = usePersons();
 	const groups = useGroups();
 
-	/* Subscribed to but not read. Keeping data fresh for details modal. */
-	useFamilies();
+	const prefetchFamilies = usePrefetchFamilies();
 
 	const updatePerson = useUpdatePerson();
 
@@ -68,7 +66,6 @@ export function PersonsPage() {
 
 	const isLoading = persons.isPending || groups.isLoading;
 
-
 	const handleCellEdit = (rowId: string, columnId: string, value: unknown) => {
 		const payload = toUpdatePayload(columnId, value);
 
@@ -85,6 +82,16 @@ export function PersonsPage() {
 		);
 	};
 
+	const prefetchFamiliesModal = () => {
+		preloadModal('persons.families');
+		prefetchFamilies();
+	};
+
+	const prefetchPersonForm = () => {
+		preloadModal('persons.form');
+		prefetchFamilies();
+	};
+
 	const toolbar = (
 		<div className="flex items-center">
 			<div className="ml-5 mr-10 flex items-center gap-2">
@@ -97,13 +104,27 @@ export function PersonsPage() {
 				/>
 			</div>
 
+			{ hasPermission('READ_FAMILIES') && (
+				<Button
+					size="md"
+					variant="secondary"
+					className="mr-2 shrink-0 py-1.5"
+					leftIcon={ <Home size={ 14 }/> }
+					onMouseEnter={ prefetchFamiliesModal }
+					onFocus={ prefetchFamiliesModal }
+					onClick={ () => void openModal('persons.families') }
+				>
+					Rodziny
+				</Button>
+			) }
+
 			{ canModify && (
 				<Button
 					size="md"
 					className="shrink-0 py-1.5"
 					leftIcon={ <Plus size={ 14 }/> }
-					onMouseEnter={ () => preloadModal('persons.form') }
-					onFocus={ () => preloadModal('persons.form') }
+					onMouseEnter={ prefetchPersonForm }
+					onFocus={ prefetchPersonForm }
 					onClick={ () => void openModal('persons.form') }
 				>
 					Dodaj
@@ -153,6 +174,9 @@ function toUpdatePayload(columnId: string, value: unknown): UpdatePersonPayload 
 
 		case 'contractSigned':
 			return { contractSigned: Boolean(value) };
+
+		case 'studentDiscount':
+			return { studentDiscount: Boolean(value) };
 
 		case 'activeTag':
 			return { active: value === ACTIVE_ID };

@@ -5,7 +5,7 @@ server:
   #
   # The filter this installs also hides the X-Forwarded-* headers from everything downstream and
   # rewrites getRemoteAddr() to the *leftmost* X-Forwarded-For entry, which the caller controls.
-  # RateLimitFilter#unwrap exists solely to get behind that; see the note there before touching either.
+  # RateLimitFilter#unwrap exists solely to get behind that.
   forward-headers-strategy: framework
 
 spring:
@@ -53,6 +53,7 @@ app:
     auto-create: ${LISTS_AUTO_CREATE:true}
   discounts:
     seed-defaults: ${DISCOUNTS_SEED_DEFAULTS:true}
+
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-issuer: ${JWT_ISSUER:atomlist-app}
@@ -70,6 +71,7 @@ app:
       # Setting .atomlist.pl would broadcast it to every subdomain, the frontend included,
       # which has no use for a cookie it cannot read and must not send anywhere but /api/auth.
       domain: ${REFRESH_COOKIE_DOMAIN:}
+
     # Passwordless sign-in. Every value has a working default; see LoginPolicyProperties.
     login:
       code:
@@ -83,6 +85,7 @@ app:
       email-verification:
         ttl: ${EMAIL_VERIFICATION_TTL:1d}
         resend-cooldown: ${EMAIL_VERIFICATION_RESEND_COOLDOWN:5m}
+
     rate-limit:
       enabled: ${RATE_LIMIT_ENABLED:true}
       capacity: ${RATE_LIMIT_CAPACITY:10}
@@ -93,6 +96,7 @@ app:
       # Proxying api.atomlist.pl through Cloudflare (orange cloud) would add a hop and make it 2.
       # Setting this higher than the real hop count lets callers forge their own source address and evade the limiter.
       trusted-proxy-count: ${TRUSTED_PROXY_COUNT:0}
+
   mail:
     from: ${MAIL_FROM:no-reply@localhost}
     from-name: ${MAIL_FROM_NAME:AtomList}
@@ -100,22 +104,18 @@ app:
       # Unset means mail is written to the log instead of being sent, which the 'prod' profile refuses to start with.
       api-key: ${RESEND_API_KEY:}
     # A frontend address, not an API one - the page it opens is what posts the token to /api/auth/email/verify.
-    # {token} is substituted.
-    #
-    # One absolute URL, so it has to name a single deployment - and it must be a frontend that talks
-    # to *this* backend, or the token gets posted to the wrong instance and reads as invalid:
-    #   prod backend -> https://atomlist.pl/verify-email?token={token}
-    #   dev backend -> https://dev.atomlist.pl/verify-email?token={token}
     verification-url: ${MAIL_VERIFICATION_URL:http://localhost:5173/verify-email?token={token}}
+
   cors:
     # Comma-separated list of browser origins allowed to call this API with credentials.
     #   prod backend -> https://atomlist.pl,https://www.atomlist.pl
     #   dev backend -> https://dev.atomlist.pl,https://www.dev.atomlist.pl,http://localhost:5173,http://127.0.0.1:5173
     allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:5173,http://127.0.0.1:5173}
+
   sms:
     schedule.reminder:
       enabled: ${SMS_SCHEDULE_REMINDER_ENABLED:false}
-      cron: ${SMS_SCHEDULE_REMINDER_CRON:"0 0 13 15 * *"}
+      cron: ${SMS_SCHEDULE_REMINDER_CRON:0 0 13 15 * *}
     rest:
       justSend:
         url: ${JUSTSEND_API_URL:https://justsend.io/api/}
@@ -126,4 +126,4 @@ app:
 
 logging:
   level:
-    atomdance.app: DEBUG
+    atomdance.app: ${APP_LOG_LEVEL:DEBUG}

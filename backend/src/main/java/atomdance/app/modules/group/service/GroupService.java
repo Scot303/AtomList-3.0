@@ -6,7 +6,7 @@ import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.finance.repository.PaymentRepository;
+import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.group.dto.CreateGroupRequest;
 import atomdance.app.modules.group.dto.GroupView;
 import atomdance.app.modules.group.dto.UpdateGroupRequest;

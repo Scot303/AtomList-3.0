@@ -46,6 +46,7 @@ app:
       justSend:
         url: "https://justsend.io/api/"
         apiKey: "NICE_TRY"
+    phoneWhitelist: 123456789
 
 logging:
   level:

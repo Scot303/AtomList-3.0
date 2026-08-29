@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { autoUpdate, type DetectOverflowOptions, flip, hide, offset, shift, type SideObject, size, useClick, useDismiss, useFloating, useInteractions, useTransitionStyles, } from '@floating-ui/react';
+import { useScrollLock } from '@/hooks/useScrollLock';
 import { resolvePopoverAnchor } from '@/lib/popoverAnchor';
 import { usePopoverClip } from './usePopoverClip';
 
@@ -29,11 +30,12 @@ interface UsePopoverOptions {
 	expandedWidth?: string;
 	/** Raises the cap for a panel that is more than a list. */
 	maxHeight?: number;
-	/**
-	 * Which edge of the anchor the panel lines up with.
-	 * Only worth setting for a panel narrower than the field it belongs to.
-	 */
+	/** Which edge of the anchor the panel lines up with. */
 	align?: 'start' | 'end';
+	/** Whether a press outside the panel dismisses it. */
+	outsidePress?: (event: MouseEvent) => boolean;
+	/** Holds the page still while the panel is open. */
+	lockScroll?: boolean;
 }
 
 
@@ -41,12 +43,13 @@ interface UsePopoverOptions {
  * Open state, dismissal, and positioning for a panel that hangs off a trigger.
  */
 export function usePopover(options: UsePopoverOptions = {}) {
-	const { onBlur, onOpenChange, width = 'trigger', expandedWidth, maxHeight = MAX_PANEL_HEIGHT, align = 'start' } = options;
+	const { onBlur, onOpenChange, width = 'trigger', expandedWidth, maxHeight = MAX_PANEL_HEIGHT, align = 'start', outsidePress, lockScroll = false } = options;
 
 	const [open, setOpen] = useState(false);
 	const [isExpanded, setExpanded] = useState(false);
 
 	const targetWidth = isExpanded && expandedWidth !== undefined ? expandedWidth : width;
+	const targetWidthRef = useRef(targetWidth);
 
 
 	/** Supplied by whichever scrolling container the trigger sits in, and a no-op outside one. */
@@ -59,7 +62,7 @@ export function usePopover(options: UsePopoverOptions = {}) {
 	};
 
 
-	const { refs, floatingStyles, context, placement, middlewareData } = useFloating({
+	const { refs, floatingStyles, context, placement, middlewareData, update } = useFloating({
 		open,
 		onOpenChange: setOpen,
 		placement: `bottom-${ align }`,
@@ -76,7 +79,7 @@ export function usePopover(options: UsePopoverOptions = {}) {
 				...placementClip(),
 				apply({ rects, elements, availableWidth, availableHeight }) {
 					Object.assign(elements.floating.style, {
-						width: targetWidth === 'trigger' ? `${ rects.reference.width }px` : targetWidth,
+						width: targetWidthRef.current === 'trigger' ? `${ rects.reference.width }px` : targetWidthRef.current,
 						maxWidth: `${ Math.max(availableWidth, MIN_PANEL_WIDTH) }px`,
 						maxHeight: `${ Math.min(maxHeight, Math.max(availableHeight, MIN_PANEL_HEIGHT)) }px`,
 					});
@@ -88,6 +91,18 @@ export function usePopover(options: UsePopoverOptions = {}) {
 	});
 
 
+	const { floating: floatingRef } = refs;
+
+	/* The panel keeps its own scrolling; the page under it stays put, so the trigger cannot drift away. */
+	useScrollLock(lockScroll && open, floatingRef);
+
+
+	useEffect(() => {
+		targetWidthRef.current = targetWidth;
+		update();
+	}, [targetWidth, update]);
+
+
 	const opensAbove = placement.startsWith('top');
 
 	/** The trigger has scrolled out of the container it lives in, or under whatever floats over that container's leading edge. */
@@ -95,7 +110,7 @@ export function usePopover(options: UsePopoverOptions = {}) {
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([
 		useClick(context),
-		useDismiss(context, { outsidePressEvent: 'mousedown' }),
+		useDismiss(context, { outsidePressEvent: 'mousedown', outsidePress: outsidePress ?? true }),
 	]);
 
 	const { isMounted, styles: transitionStyles } = useTransitionStyles(context, {

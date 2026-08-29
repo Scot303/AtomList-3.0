@@ -9,7 +9,7 @@ import { LinePanel, MoneyLine } from '@/components/shared/MoneyLines.tsx';
 import { PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useModalStore } from '@/stores/modalStore';
-import { usePersonCredit } from '../hooks/usePersonCredit';
+import { usePersonCredit } from '../hooks/queries/usePersonCredit.ts';
 import { SCOPE_OPTIONS } from '../types/depositRows.ts';
 import type { DepositView } from '../types/types.ts';
 

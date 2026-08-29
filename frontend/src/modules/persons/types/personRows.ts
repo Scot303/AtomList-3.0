@@ -15,6 +15,9 @@ export interface PersonRow {
 	/** `YYYY-MM-DD`, or `''`. Shown as an age, edited as a date. */
 	dateOfBirth: string;
 	contractSigned: boolean;
+	studentDiscount: boolean;
+	joinedClubDate: string;
+	leftClubDate: string;
 	activeTag: ActiveTag;
 	/** Ids of the groups currently attended, matched against the Grupy column's options. */
 	groupIds: string[];
@@ -38,6 +41,9 @@ export function toPersonRow(person: PersonView, groupsById: Map<string, GroupVie
 		lastName: person.lastName,
 		dateOfBirth: person.dateOfBirth ?? '',
 		contractSigned: person.contractSigned,
+		studentDiscount: person.studentDiscount,
+		joinedClubDate: person.joinedClubDate ?? '',
+		leftClubDate: person.leftClubDate ?? '',
 		activeTag: toActiveTag(person.active),
 		groupIds: person.groupIds,
 		groupTypes: types,

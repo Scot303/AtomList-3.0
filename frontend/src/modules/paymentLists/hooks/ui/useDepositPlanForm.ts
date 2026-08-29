@@ -5,7 +5,7 @@ import { dateToISO, todayInTimeZone } from '@/utils/dateUtils.ts';
 import { formatCurrency, pluralise } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
-import { useCreateDeposit, usePlanDeposit } from '@/modules/deposits/hooks/useDepositMutations';
+import { useCreateDeposit, usePlanDeposit } from '@/modules/deposits/hooks/mutations/useDepositMutations.ts';
 import { depositFormSchema, type DepositFormValues, optionalText, parseAmount, toInstant, } from '../../schemas/paymentSchemas';
 import { scopeOfList } from '../../types/depositScope';
 import type { DepositPlanView, PlanDepositPayload } from '@/modules/deposits/types/types.ts';

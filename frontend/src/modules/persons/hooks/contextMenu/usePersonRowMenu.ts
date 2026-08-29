@@ -2,9 +2,10 @@ import { Info, Percent, Users } from 'lucide-react';
 import type { ContextMenuItem } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore.ts';
-import { usePrefetchMemberships } from '../useMemberships.ts';
-import { usePrefetchPersonDiscounts } from '../usePersonDiscounts.ts';
+import { usePrefetchMemberships } from '../queries/useMemberships.ts';
+import { usePrefetchPersonDiscounts } from '../mutations/usePersonDiscounts.ts';
 import type { PersonRow } from '../../types/personRows.ts';
+import { usePrefetchFamilies } from "@/modules/persons/hooks/queries/useFamilies.ts";
 
 
 export type PersonRowMenuBuilder = (row: PersonRow) => ContextMenuItem[];
@@ -15,6 +16,7 @@ export function usePersonRowMenu(): PersonRowMenuBuilder {
 
 	const prefetchMemberships = usePrefetchMemberships();
 	const prefetchDiscounts = usePrefetchPersonDiscounts();
+	const prefetchFamilies = usePrefetchFamilies();
 
 	return (row: PersonRow) => {
 		preloadModal('persons.form');
@@ -23,6 +25,7 @@ export function usePersonRowMenu(): PersonRowMenuBuilder {
 
 		prefetchMemberships(row.id);
 		prefetchDiscounts(row.id);
+		prefetchFamilies();
 
 		return [
 			{

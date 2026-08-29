@@ -18,8 +18,12 @@ export interface PersonView {
 	email: string | null;
 	dateOfBirth: string | null;
 	joinedStudioAt: string;
+	joinedClubDate: string | null;
+	leftClubDate: string | null;
 	active: boolean;
 	contractSigned: boolean;
+	/** A student status, worth a permanent reduction on every membership fee. */
+	studentDiscount: boolean;
 	familyId: string | null;
 	/** Ids of the currently attended groups, in group-name order. */
 	groupIds: string[];
@@ -37,7 +41,10 @@ export interface CreatePersonPayload {
 	email?: string;
 	dateOfBirth?: string;
 	joinedStudioAt?: string;
+	joinedClubDate?: string;
+	leftClubDate?: string;
 	contractSigned?: boolean;
+	studentDiscount?: boolean;
 	familyId?: string;
 	note?: string;
 }
@@ -51,8 +58,13 @@ export interface UpdatePersonPayload {
 	email?: string;
 	dateOfBirth?: string;
 	joinedStudioAt?: string;
+	joinedClubDate?: string;
+	clearJoinedClubDate?: boolean;
+	leftClubDate?: string;
+	clearLeftClubDate?: boolean;
 	active?: boolean;
 	contractSigned?: boolean;
+	studentDiscount?: boolean;
 	familyId?: string;
 	/** Detaches the person from their family. */
 	clearFamily?: boolean;
@@ -124,6 +136,16 @@ export interface FamilyMemberView {
 	active: boolean;
 	/** Ids of the currently attended groups, in group-name order, to be resolved against the loaded groups. */
 	groupIds: string[];
+}
+
+
+/**
+ * Mirror of the backend's `CreateUpdateFamilyRequest`.
+ */
+export interface CreateUpdateFamilyPayload {
+	name: string;
+	phone?: string;
+	note?: string;
 }
 
 
@@ -216,7 +238,10 @@ export interface PersonDiscountView {
 	memberships: CountedMembership[];
 	familyDiscount: DiscountComponent;
 	groupCountDiscount: DiscountComponent;
-	/** The two parts added and capped, which is what a sheet built now would apply. */
+	/** Whether this person holds a student status. True even in a month nothing is charged. */
+	studentDiscount: boolean;
+	studentPercent: number;
+	/** The three parts added and capped, which is what a sheet built now would apply. */
 	totalPercent: number;
 	/** Whether the cap actually bit, meaning the parts summed past 100%. */
 	capped: boolean;

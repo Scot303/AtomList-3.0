@@ -4,7 +4,7 @@ import { ExtendedSelect } from '@/components/ui/extendedSelect';
 import { DatePicker, Input, Textarea } from '@/components/ui/fields';
 import { FormSection } from '@/components/ui/fields/FormSection';
 import { TagSelect } from '@/components/ui/tags';
-import { usePersons } from '@/modules/persons/hooks/usePersons';
+import { usePersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { toPersonOptions } from '@/modules/persons/utils/personOptions';
 import { PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
 import type { DepositFormValues } from '../../schemas/paymentSchemas';

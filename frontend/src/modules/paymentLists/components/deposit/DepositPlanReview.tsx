@@ -3,7 +3,7 @@ import { Alert } from '@/components/feedback/Alert';
 import { Button } from '@/components/ui/buttons/Button';
 import { formatCurrency, pluralise } from '@/lib/locale';
 import { DepositPlanTable } from '@/modules/deposits/components/DepositPlanTable';
-import { usePersons } from '@/modules/persons/hooks/usePersons';
+import { usePersons } from '@/modules/persons/hooks/queries/usePersons.ts';
 import { LinePanel, MoneyLine } from '@/components/shared/MoneyLines.tsx';
 import type { DepositPlanView } from '@/modules/deposits/types/types.ts';
 

@@ -7,7 +7,7 @@ import { Textarea, Toggle } from '@/components/ui/fields';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
 import { PaymentIdentity } from '../components/PaymentIdentity';
-import { useUpdatePayment } from '../hooks/usePaymentMutations';
+import { useUpdatePayment } from '../hooks/mutations/usePaymentMutations.ts';
 import { paymentEditFormSchema, type PaymentEditFormValues } from '../schemas/paymentSchemas';
 import type { PaymentView, UpdatePaymentPayload } from '../types/types.ts';
 

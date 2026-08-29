@@ -3,7 +3,7 @@ import { usePopover } from '@/hooks/usePopover';
 import { ActionMenu, type ActionMenuItem } from '@/components/ui/buttons/ActionMenu.tsx';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn';
-import { usePrefetchMemberships } from '@/modules/persons/hooks/useMemberships';
+import { usePrefetchMemberships } from '@/modules/persons/hooks/queries/useMemberships.ts';
 import { calculateAge, formatPhone, formatYears } from '@/modules/persons/utils/personFormat';
 import type { PersonView } from '@/modules/persons/types/types.ts';
 import { preloadModal } from '@/stores/modalRegistry';
@@ -18,6 +18,7 @@ export const MEMBER_GRID = 'grid grid-cols-[minmax(0,1fr)_9rem_7rem_6rem] items-
 interface GroupMemberRowProps {
 	member: PersonView;
 }
+
 
 export function GroupMemberRow({ member }: GroupMemberRowProps) {
 	const openModal = useModalStore((state) => state.openModal);

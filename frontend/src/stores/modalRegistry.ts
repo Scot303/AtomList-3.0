@@ -1,7 +1,13 @@
 import type { ComponentType } from 'react';
 
 
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'custom';
+export type ModalSizePreset = 'sm' | 'md' | 'lg' | 'xl';
+
+/** A preset, or any Tailwind max-width utility - `'max-w-5xl'`, `'max-w-[52rem]'`, `'max-w-[90dvw]'`. */
+export type ModalSize = ModalSizePreset | `max-w-${ string }`;
+
+/** Any percentage of the viewport height, e.g. `'90%'`. Values above `100%` are clamped. */
+export type ModalViewportHeight = `${ number }%`;
 
 /**
  * A fixed heading, or one built from the props the modal was opened with - for a modal titled after the record it is showing.
@@ -15,6 +21,8 @@ export interface ModalDefinition<P> {
 	load: () => Promise<{ default: ComponentType<P> }>;
 	title: ModalTitle<P>;
 	size?: ModalSize;
+	height?: ModalViewportHeight;
+	maxHeight?: ModalViewportHeight;
 	/** False stops escape and the backdrop from closing it, and hides the close button. */
 	dismissible?: boolean;
 }
@@ -63,6 +71,13 @@ export const MODAL_REGISTRY = {
 		size: 'xl',
 	}),
 
+	'persons.families': defineModal({
+		load: () => import('@/modules/persons/modals/FamiliesModal.tsx'),
+		title: 'Rodziny',
+		size: 'max-w-5xl',
+		height: '75%',
+	}),
+
 	'persons.discounts': defineModal({
 		load: () => import('@/modules/persons/modals/PersonDiscountsModal.tsx'),
 		title: ({ personName }) => `Zniżki osoby - ${ personName }`,
@@ -84,6 +99,20 @@ export const MODAL_REGISTRY = {
 	'groups.members': defineModal({
 		load: () => import('@/modules/groups/modals/GroupMembersModal.tsx'),
 		title: ({ groupName }) => `Członkowie grupy - ${ groupName }`,
+		size: 'lg',
+	}),
+
+	'sms.send': defineModal({
+		load: () => import('@/modules/sms/modals/SendSmsModal.tsx'),
+		title: 'Nowa wiadomość SMS',
+		size: 'lg',
+		maxHeight: '80%',
+		dismissible: false
+	}),
+
+	'sms.details': defineModal({
+		load: () => import('@/modules/sms/modals/SmsDetailsModal.tsx'),
+		title: 'Szczegóły wiadomości',
 		size: 'lg',
 	}),
 
@@ -125,6 +154,20 @@ export const MODAL_REGISTRY = {
 		load: () => import('@/modules/paymentLists/modals/PaymentEditModal.tsx'),
 		title: 'Informacje dodatkowe',
 		size: 'md',
+		dismissible: false
+	}),
+
+	'transactions.form': defineModal({
+		load: () => import('@/modules/transactions/modals/TransactionFormModal.tsx'),
+		title: 'Nowa pozycja',
+		size: 'lg',
+		dismissible: false
+	}),
+
+	'transactions.details': defineModal({
+		load: () => import('@/modules/transactions/modals/TransactionDetailsModal.tsx'),
+		title: 'Szczegóły pozycji',
+		size: 'lg',
 		dismissible: false
 	}),
 

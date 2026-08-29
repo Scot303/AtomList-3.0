@@ -3,8 +3,8 @@ import { DataTable } from '@/components/dataTable';
 import { todayInTimeZone } from '@/utils/dateUtils.ts';
 import { useContextMenu } from '@/stores/menuStore';
 import { DepositsToolbar } from './components/DepositsToolbar.tsx';
-import { useDeposits } from './hooks/useDeposits';
-import { useDepositRowMenu } from './hooks/useDepositRowMenu';
+import { useDeposits } from './hooks/queries/useDeposits.ts';
+import { useDepositRowMenu } from './hooks/ui/useDepositRowMenu.ts';
 import { buildDepositColumns } from './types/depositColumns.tsx';
 import { type DepositRow, toDepositRow } from './types/depositRows.ts';
 

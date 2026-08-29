@@ -8,7 +8,7 @@ import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
 import { ListFacts } from '../components/customList/ListFacts';
 import { PopulationFields } from '../components/customList/PopulationFields';
-import { useCreateCustomList, useUpdateCustomList } from '../hooks/usePaymentListMutations';
+import { useCreateCustomList, useUpdateCustomList } from '../hooks/mutations/usePaymentListMutations.ts';
 import { customListFormSchema, type CustomListFormValues } from '../schemas/listSchemas';
 import { buildCreatePayload, buildUpdatePayload, customListToForm } from '../utils/customListForm.ts';
 import type { PaymentListView } from '../types/types.ts';

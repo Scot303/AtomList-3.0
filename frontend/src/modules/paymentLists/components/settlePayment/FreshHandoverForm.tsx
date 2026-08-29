@@ -9,7 +9,7 @@ import { TagSelect } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
-import { useSettlePayment } from '../../hooks/usePaymentMutations';
+import { useSettlePayment } from '../../hooks/mutations/usePaymentMutations.ts';
 import { optionalText, parseAmount, settleFormSchema, type SettleFormValues, toInstant } from '../../schemas/paymentSchemas';
 import { PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
 import type { PaymentView } from '../../types/types.ts';

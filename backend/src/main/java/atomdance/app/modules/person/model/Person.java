@@ -43,6 +43,10 @@ public class Person {
 	@Column(nullable = false)
 	private LocalDate joinedStudioAt;
 
+	private LocalDate joinedClubDate;
+
+	private LocalDate leftClubDate;
+
 	@Column(name = "is_active", nullable = false)
 	@Builder.Default
 	private boolean isActive = true;
@@ -50,6 +54,10 @@ public class Person {
 	@Column(name = "is_contract_signed", nullable = false)
 	@Builder.Default
 	private boolean isContractSigned = false;
+
+	@Column(name = "student_discount", nullable = false, columnDefinition = "boolean default false")
+	@Builder.Default
+	private boolean studentDiscount = false;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "family_id")
