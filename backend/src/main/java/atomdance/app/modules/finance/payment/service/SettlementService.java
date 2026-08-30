@@ -4,7 +4,6 @@ import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.deposit.model.Deposit;
 import atomdance.app.modules.finance.payment.model.Payment;
@@ -14,7 +13,6 @@ import atomdance.app.modules.finance.paymentList.model.PaymentList;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +34,6 @@ import java.time.YearMonth;
  * Writing a settlement is deliberately the one thing allowed to reach a {@code CLOSED} list.
  * It arrives as a clearance, contributing nothing to that list's money, so what the accountants were sent cannot move.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SettlementService {
@@ -89,14 +86,8 @@ public class SettlementService {
 
 		settlementRepository.save(settlement);
 
-		log.info("Settled {} of payment {} [{}] out of deposit {}{}",
-				amount, payment.getCode(), payment.getId(), deposit.getCode(),
-				settlement.isClearance() ? " as a clearance - the cash is reported in " + cashMonth : "");
-
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("%s of deposit %s settled %s for %s on list %s%s.",
-						amount, deposit.getCode(), payment.getLabel(), payment.getPerson().getFullName(), PaymentListService.describeList(payment.getList()),
-						settlement.isClearance() ? String.format(", as a clearance - the money is reported in %s", cashMonth) : ""));
+		auditLogger.success(AuditEventType.PAYMENT_MANAGEMENT, payment.getId(), "%s of deposit %s settled %s for %s on list %s%s.", amount, deposit.getCode(), payment.getLabel(), payment.getPerson()
+				.getFullName(), PaymentListService.describeList(payment.getList()), settlement.isClearance() ? String.format(", as a clearance - the money is reported in %s", cashMonth) : "");
 	}
 
 
@@ -118,10 +109,8 @@ public class SettlementService {
 		payment.removeSettlement(settlement);
 		deposit.removeSettlement(settlement);
 
-		log.info("Removed a settlement of {} from payment {} [{}]; the money is credit on deposit {} again", amount, payment.getCode(), payment.getId(), deposit.getCode());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("%s taken back off %s for %s on list %s; it is credit on deposit %s again.",
-						amount, payment.getLabel(), payment.getPerson().getFullName(), PaymentListService.describeList(payment.getList()), deposit.getCode()));
+		auditLogger.success(AuditEventType.PAYMENT_MANAGEMENT, payment.getId(), "%s taken back off %s for %s on list %s; it is credit on deposit %s again.",
+				amount, payment.getLabel(), payment.getPerson().getFullName(), PaymentListService.describeList(payment.getList()), deposit.getCode());
 	}
 
 
