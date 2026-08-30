@@ -6,10 +6,7 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.finance.payment.dto.PaymentView;
-import atomdance.app.modules.finance.payment.dto.SaveOneOffPaymentRequest;
-import atomdance.app.modules.finance.payment.dto.UpdatePaymentRequest;
-import atomdance.app.modules.finance.payment.dto.UpdateQuantityRequest;
+import atomdance.app.modules.finance.payment.dto.*;
 import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.model.PaymentChargeKind;
 import atomdance.app.modules.finance.payment.model.PaymentCode;
@@ -77,6 +74,15 @@ public class PaymentService {
 
 		return PaymentView.from(paymentRepository.findByNumberWithSettlements(number)
 				.orElseThrow(() -> new NotFoundException("entity.payment")));
+	}
+
+
+	@Transactional(readOnly = true)
+	public PersonArrearsView getArrearsFor(UUID personId) {
+		Person person = personRepository.findById(personId)
+				.orElseThrow(() -> new NotFoundException("entity.person"));
+
+		return PersonArrearsView.of(person, paymentRepository.findOutstandingForPerson(personId));
 	}
 
 
