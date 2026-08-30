@@ -4,7 +4,6 @@ import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NameTakenException;
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.group.dto.CreateGroupRequest;
@@ -15,9 +14,7 @@ import atomdance.app.modules.group.model.GroupBillingType;
 import atomdance.app.modules.group.model.GroupType;
 import atomdance.app.modules.group.repository.GroupRepository;
 import atomdance.app.modules.group.repository.MembershipRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +23,6 @@ import java.util.List;
 import java.util.UUID;
 
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GroupService {
@@ -36,7 +32,6 @@ public class GroupService {
 	private final GroupRepository groupRepository;
 	private final MembershipRepository membershipRepository;
 	private final PaymentRepository paymentRepository;
-	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
 
@@ -76,9 +71,7 @@ public class GroupService {
 				.note(request.note())
 				.build());
 
-		log.info("Created group {} ({}) billed {}", group.getId(), group.getName(), group.getBillingType());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), group.getId(), AuditEventType.GROUP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Group %s has been created with cost %s (%s).",
-				group.getName(), group.getCostForAttending(), group.getBillingType()));
+		auditLogger.success(AuditEventType.GROUP_MANAGEMENT, group.getId(), "Group %s has been created with cost %s (%s).", group.getName(), group.getCostForAttending(), group.getBillingType());
 
 		return GroupView.from(group);
 	}
@@ -99,33 +92,25 @@ public class GroupService {
 		}
 
 		if (request.costForAttending() != null && group.getCostForAttending().compareTo(request.costForAttending()) != 0) {
-			log.info("Changed cost on group {} from {} to {}", group.getId(), group.getCostForAttending(), request.costForAttending());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), group.getId(), AuditEventType.GROUP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Group %s cost changed from %s to %s.",
-					group.getName(), group.getCostForAttending(), request.costForAttending()));
+			auditLogger.success(AuditEventType.GROUP_MANAGEMENT, group.getId(), "Group %s cost changed from %s to %s.", group.getName(), group.getCostForAttending(), request.costForAttending());
 
 			group.setCostForAttending(request.costForAttending());
 		}
 
 		if (request.billingType() != null && request.billingType() != group.getBillingType()) {
-			log.info("Changed billing type on group {} from {} to {}", group.getId(), group.getBillingType(), request.billingType());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), group.getId(), AuditEventType.GROUP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Group %s billing type changed from %s to %s.",
-					group.getName(), group.getBillingType(), request.billingType()));
+			auditLogger.success(AuditEventType.GROUP_MANAGEMENT, group.getId(), "Group %s billing type changed from %s to %s.", group.getName(), group.getBillingType(), request.billingType());
 
 			group.setBillingType(request.billingType());
 		}
 
 		if (request.type() != null && request.type() != group.getType()) {
-			log.info("Changed type on group {} from {} to {}", group.getId(), group.getType(), request.type());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), group.getId(), AuditEventType.GROUP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Group %s type changed from %s to %s.",
-					group.getName(), group.getType(), request.type()));
+			auditLogger.success(AuditEventType.GROUP_MANAGEMENT, group.getId(), "Group %s type changed from %s to %s.", group.getName(), group.getType(), request.type());
 
 			group.setType(request.type());
 		}
 
 		if (request.active() != null) {
-			log.info("Changed group {} from {} to {}", group.getId(), group.isActive(), request.active());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), group.getId(), AuditEventType.GROUP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Group %s changed status from %s to %s.",
-					group.getName(), group.isActive(), request.active()));
+			auditLogger.success(AuditEventType.GROUP_MANAGEMENT, group.getId(), "Group %s changed status from %s to %s.", group.getName(), group.isActive(), request.active());
 
 			group.setActive(request.active());
 		}
@@ -152,7 +137,6 @@ public class GroupService {
 
 		groupRepository.delete(group);
 
-		log.info("Deleted group {} ({})", group.getId(), group.getName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), group.getId(), AuditEventType.GROUP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Group %s has been deleted.", group.getName()));
+		auditLogger.success(AuditEventType.GROUP_MANAGEMENT, group.getId(), "Group %s has been deleted.", group.getName());
 	}
 }

@@ -4,7 +4,6 @@ import atomdance.app.common.sms.SmsApiClient;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
@@ -63,7 +62,7 @@ public class ScheduledSmsService {
 		leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
 
 		if (combinedOwedPayments.isEmpty()) {
-			log.debug("Owed payment list empty after filtering - cancelling current scheduled action");
+			log.debug("Owed payment list empty after filtering - cancelling current scheduled action.");
 			return;
 		}
 
@@ -85,8 +84,7 @@ public class ScheduledSmsService {
 			smsApiClient.bulkSendMessage(bulkSendRequest);
 		} catch (HttpStatusCodeException e) {
 			String errorMsg = "JustSend API returned %s: %s".formatted(e.getStatusCode(), e.getMessage());
-			log.error(errorMsg);
-			auditLogger.record(null, AuditEventType.SMS_SEND, AuditOutcome.FAILURE, errorMsg);
+			auditLogger.systemFailure(AuditEventType.SMS_SEND, null, errorMsg);
 			return;
 		}
 

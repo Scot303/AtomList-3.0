@@ -4,7 +4,6 @@ import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
@@ -20,7 +19,6 @@ import atomdance.app.modules.instructor.service.InstructorService;
 import atomdance.app.modules.user.model.Permission;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +30,6 @@ import java.util.Set;
 import java.util.UUID;
 
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
@@ -55,7 +52,7 @@ public class TransactionService {
 			throw new AccessDeniedException("Missing authority to read transactions of any type");
 		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), listId, AuditEventType.TRANSACTION_PREVIEW, AuditOutcome.SUCCESS, "Previewed transactions for list");
+		auditLogger.read(AuditEventType.TRANSACTION_PREVIEW, listId, "Previewed transactions for list");
 		return transactionRepository.findByListIdAndTypeIn(listId, readable).stream().map(TransactionView::from).toList();
 	}
 
@@ -85,8 +82,7 @@ public class TransactionService {
 				.note(request.note())
 				.build());
 
-		log.info("Created {} transaction {} of {} on list {}", transaction.getType(), transaction.getId(), transaction.getTotal(), listId);
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), transaction.getId(), AuditEventType.TRANSACTION_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%s transaction of %s added to list %s.", transaction.getType(), transaction.getTotal(), PaymentListService.describeList(list)));
+		auditLogger.success(AuditEventType.TRANSACTION_MANAGEMENT, transaction.getId(), "%s transaction of %s added to list %s.", transaction.getType(), transaction.getTotal(), PaymentListService.describeList(list));
 
 		return TransactionView.from(transaction);
 	}
@@ -123,7 +119,7 @@ public class TransactionService {
 			transaction.setNote(request.note());
 		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), transaction.getId(), AuditEventType.TRANSACTION_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%s transaction on list %s updated.", transaction.getType(), PaymentListService.describeList(transaction.getList())));
+		auditLogger.success(AuditEventType.TRANSACTION_MANAGEMENT, transaction.getId(), "%s transaction on list %s updated.", transaction.getType(), PaymentListService.describeList(transaction.getList()));
 
 		return TransactionView.from(transaction);
 	}
@@ -138,7 +134,7 @@ public class TransactionService {
 
 		transactionRepository.delete(transaction);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), id, AuditEventType.TRANSACTION_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%s transaction of %s removed from list %s.", transaction.getType(), transaction.getTotal(), PaymentListService.describeList(transaction.getList())));
+		auditLogger.success(AuditEventType.TRANSACTION_MANAGEMENT, id, "%s transaction of %s removed from list %s.", transaction.getType(), transaction.getTotal(), PaymentListService.describeList(transaction.getList()));
 	}
 
 
@@ -162,7 +158,7 @@ public class TransactionService {
 
 		int created = instructorExpenseService.seed(list, instructors);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.TRANSACTION_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%d instructor expense row(s) added to list %s.", created, PaymentListService.describeList(list)));
+		auditLogger.success(AuditEventType.TRANSACTION_MANAGEMENT, list.getId(), "%d instructor expense row(s) added to list %s.", created, PaymentListService.describeList(list));
 
 		return getAllForList(listId);
 	}

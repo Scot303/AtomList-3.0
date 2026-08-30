@@ -5,7 +5,6 @@ import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
@@ -17,9 +16,7 @@ import atomdance.app.modules.group.model.Membership;
 import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.service.PersonService;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +26,6 @@ import java.util.List;
 import java.util.UUID;
 
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MembershipService {
@@ -39,7 +35,6 @@ public class MembershipService {
 	private final PaymentListService paymentListService;
 	private final PersonService personService;
 	private final GroupService groupService;
-	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 	private final AppClock clock;
 
@@ -82,9 +77,7 @@ public class MembershipService {
 
 		paymentListService.recalculateOpenStandardLists();
 
-		log.info("Person {} was added to group {} on {}", personId, group.getId(), membership.getJoinedAt());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), personId, AuditEventType.MEMBERSHIP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%s was added to group %s on %s.%s",
-				person.getFullName(), group.getName(), membership.getJoinedAt(), describeFirstMonth(membership, false)));
+		auditLogger.success(AuditEventType.MEMBERSHIP_MANAGEMENT, personId, "%s was added to group %s on %s.%s", person.getFullName(), group.getName(), membership.getJoinedAt(), describeFirstMonth(membership, false));
 
 		return MembershipView.from(membership);
 	}
@@ -133,9 +126,8 @@ public class MembershipService {
 			paymentListService.recalculateOpenStandardLists();
 		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), membership.getPerson()
-				.getId(), AuditEventType.MEMBERSHIP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Membership of %s in group %s has been updated (cost %s).%s",
-				membership.getPerson().getFullName(), membership.getGroup().getName(), membership.resolveUnitCost(), describeFirstMonth(membership, firstMonthOutgrown)));
+		auditLogger.success(AuditEventType.MEMBERSHIP_MANAGEMENT, membership.getPerson().getId(), "Membership of %s in group %s has been updated (cost %s).%s", membership.getPerson()
+				.getFullName(), membership.getGroup().getName(), membership.resolveUnitCost(), describeFirstMonth(membership, firstMonthOutgrown));
 
 		return MembershipView.from(membership);
 	}
@@ -162,11 +154,8 @@ public class MembershipService {
 
 		paymentListService.recalculateOpenStandardLists();
 
-		log.info("Person {} left group {} on {}", membership.getPerson().getId(), membership.getGroup().getId(), effective);
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), membership.getPerson().getId(),
-				AuditEventType.MEMBERSHIP_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("%s left group %s on %s.", membership.getPerson().getFullName(), membership.getGroup().getName(), effective)
-		);
+		auditLogger.success(AuditEventType.MEMBERSHIP_MANAGEMENT, membership.getPerson().getId(), "%s left group %s on %s.", membership.getPerson().getFullName(),
+				membership.getGroup().getName(), effective);
 
 		return MembershipView.from(membership);
 	}
@@ -256,11 +245,8 @@ public class MembershipService {
 		// Drops what this membership was putting on any open sheet, unless somebody has already paid towards it.
 		paymentListService.recalculateOpenStandardLists();
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), membership.getPerson().getId(),
-				AuditEventType.MEMBERSHIP_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Membership of %s in group %s has been deleted, releasing %d charge(s) already raised from it.",
-						membership.getPerson().getFullName(), membership.getGroup().getName(), released
-				)
-		);
+		auditLogger.success(AuditEventType.MEMBERSHIP_MANAGEMENT, membership.getPerson().getId(), "Membership of %s in group %s has been deleted, releasing %d charge(s) already raised from it.",
+				membership.getPerson().getFullName(), membership.getGroup().getName(), released);
 	}
 
 }

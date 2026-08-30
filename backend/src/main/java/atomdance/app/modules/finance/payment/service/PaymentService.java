@@ -4,7 +4,6 @@ import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.payment.dto.*;
 import atomdance.app.modules.finance.payment.model.Payment;
@@ -17,9 +16,7 @@ import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.service.GroupService;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.PersonRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +28,6 @@ import java.util.UUID;
 /**
  * The charge side of a payment: what somebody owes for one group, and why.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -40,7 +36,6 @@ public class PaymentService {
 	private final PaymentListService paymentListService;
 	private final GroupService groupService;
 	private final PersonRepository personRepository;
-	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
 
@@ -52,7 +47,9 @@ public class PaymentService {
 
 	@Transactional(readOnly = true)
 	public List<PaymentView> getForList(UUID listId) {
-		paymentListService.getOrThrow(listId);
+		PaymentList list = paymentListService.getOrThrow(listId);
+
+		auditLogger.read(AuditEventType.PAYMENT_PREVIEW, listId, "Previewed payments for list %s.", PaymentListService.describeList(list));
 
 		return paymentRepository.findByListIdWithSettlements(listId).stream()
 				.sorted(PaymentView.DISPLAY_ORDER)
@@ -63,7 +60,10 @@ public class PaymentService {
 
 	@Transactional(readOnly = true)
 	public PaymentView get(UUID id) {
-		return PaymentView.from(getOrThrow(id));
+		Payment payment = getOrThrow(id);
+
+		auditLogger.read(AuditEventType.PAYMENT_PREVIEW, id, "Previewed payment %s for %s.", payment.getCode(), payment.getPerson().getFullName());
+		return PaymentView.from(payment);
 	}
 
 
@@ -72,8 +72,11 @@ public class PaymentService {
 		Long number = PaymentCode.parse(code)
 				.orElseThrow(() -> new NotFoundException("entity.payment"));
 
-		return PaymentView.from(paymentRepository.findByNumberWithSettlements(number)
-				.orElseThrow(() -> new NotFoundException("entity.payment")));
+		Payment payment = paymentRepository.findByNumberWithSettlements(number)
+				.orElseThrow(() -> new NotFoundException("entity.payment"));
+
+		auditLogger.read(AuditEventType.PAYMENT_PREVIEW, payment.getId(), "Previewed payment %s for %s.", payment.getCode(), payment.getPerson().getFullName());
+		return PaymentView.from(payment);
 	}
 
 
@@ -82,6 +85,7 @@ public class PaymentService {
 		Person person = personRepository.findById(personId)
 				.orElseThrow(() -> new NotFoundException("entity.person"));
 
+		auditLogger.read(AuditEventType.PAYMENT_PREVIEW, personId, "Previewed outstanding payments for %s.", person.getFullName());
 		return PersonArrearsView.of(person, paymentRepository.findOutstandingForPerson(personId));
 	}
 
@@ -103,6 +107,7 @@ public class PaymentService {
 			payment.setNote(request.note());
 		}
 
+		auditLogger.success(AuditEventType.PAYMENT_MANAGEMENT, payment.getId(), "Payment %s for %s has been updated.", payment.getCode(), payment.getPerson().getFullName());
 		return PaymentView.from(payment);
 	}
 
@@ -131,8 +136,7 @@ public class PaymentService {
 		payment.applyDiscount(Money.ZERO);
 		paymentRepository.save(payment);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge '%s' of %s added for %s on list %s.",
-				payment.getLabel(), payment.getAmountToPay(), person.getFullName(), PaymentListService.describeList(list)));
+		auditLogger.success(AuditEventType.PAYMENT_MANAGEMENT, payment.getId(), "One-off charge '%s' of %s added for %s on list %s.", payment.getLabel(), payment.getAmountToPay(), person.getFullName(), PaymentListService.describeList(list));
 
 		return PaymentView.from(payment);
 	}
@@ -155,8 +159,8 @@ public class PaymentService {
 
 		guardAgainstUnderfundedCharge(payment);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Quantity on '%s' for %s set to %s, giving %s on payment %s.",
-				payment.getLabel(), payment.getPerson().getFullName(), payment.getQuantity(), payment.getAmountToPay(), payment.getCode()));
+		auditLogger.success(AuditEventType.PAYMENT_MANAGEMENT, payment.getId(), "Quantity on '%s' for %s set to %s, giving %s on payment %s.", payment.getLabel(),
+				payment.getPerson().getFullName(), payment.getQuantity(), payment.getAmountToPay(), payment.getCode());
 
 		return PaymentView.from(payment);
 	}
@@ -181,8 +185,8 @@ public class PaymentService {
 
 		guardAgainstUnderfundedCharge(payment);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), payment.getId(), AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge %s for %s changed to '%s' of %s.",
-				payment.getCode(), payment.getPerson().getFullName(), payment.getLabel(), payment.getAmountToPay()));
+		auditLogger.success(AuditEventType.PAYMENT_MANAGEMENT, payment.getId(), "One-off charge %s for %s changed to '%s' of %s.", payment.getCode(),
+				payment.getPerson().getFullName(), payment.getLabel(), payment.getAmountToPay());
 
 		return PaymentView.from(payment);
 	}
@@ -231,8 +235,8 @@ public class PaymentService {
 
 		paymentRepository.delete(payment);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), id, AuditEventType.PAYMENT_MANAGEMENT, AuditOutcome.SUCCESS, String.format("One-off charge '%s' removed for %s on list %s.",
-				payment.getLabel(), payment.getPerson().getFullName(), PaymentListService.describeList(payment.getList())));
+		auditLogger.success(AuditEventType.PAYMENT_MANAGEMENT, id, "One-off charge '%s' removed for %s on list %s.", payment.getLabel(),
+				payment.getPerson().getFullName(), PaymentListService.describeList(payment.getList()));
 	}
 
 

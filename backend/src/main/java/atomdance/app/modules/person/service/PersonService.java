@@ -3,7 +3,6 @@ package atomdance.app.modules.person.service;
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
 import atomdance.app.modules.group.repository.MembershipRepository;
@@ -14,9 +13,7 @@ import atomdance.app.modules.person.model.Family;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.FamilyRepository;
 import atomdance.app.modules.person.repository.PersonRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +21,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PersonService {
@@ -33,7 +29,6 @@ public class PersonService {
 	private final FamilyRepository familyRepository;
 	private final MembershipRepository membershipRepository;
 	private final PaymentListService paymentListService;
-	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 	private final AppClock clock;
 
@@ -48,8 +43,6 @@ public class PersonService {
 	public List<PersonView> getAll() {
 		List<Person> persons = personRepository.findAllWithFamily();
 
-		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all persons.");
-
 		Map<UUID, Set<UUID>> groupIds = activeGroupIdsOf(persons.stream().map(Person::getId).toList());
 
 		return persons.stream()
@@ -60,8 +53,10 @@ public class PersonService {
 
 	@Transactional(readOnly = true)
 	public PersonView get(UUID id) {
-		auditLogger.record(securityService.getCurrentUserId(), id, AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all data of a person.");
-		return toView(getOrThrow(id));
+		Person person = getOrThrow(id);
+
+		auditLogger.read(AuditEventType.PERSON_PREVIEW, id, "Previewed all data of %s.", person.getFullName());
+		return toView(person);
 	}
 
 
@@ -85,10 +80,7 @@ public class PersonService {
 
 		person = personRepository.saveAndFlush(person);
 
-		log.info("Created person {} ({})", person.getId(), person.getFullName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("Person %s has been created.", person.getFullName())
-		);
+		auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Person %s has been created.", person.getFullName());
 
 		return PersonView.from(person);
 	}
@@ -108,6 +100,8 @@ public class PersonService {
 		}
 
 		if (request.phone() != null) {
+			auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Changed phone number on %s from %s to %s.", person.getFullName(), person.getPhone(), request.phone());
+
 			person.setPhone(Person.normalizePhone(request.phone()));
 		}
 
@@ -132,20 +126,14 @@ public class PersonService {
 
 		// Changes what this person is charged, so any open sheet holding them is now out of date.
 		if (request.studentDiscount() != null && request.studentDiscount() != person.isStudentDiscount()) {
-			String message = String.format("Changed studentDiscount on person %s from %s to %s", person.getId(), person.isStudentDiscount(), request.studentDiscount());
-
-			log.info(message);
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, message);
+			auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Changed studentDiscount on %s from %s to %s", person.getFullName(), person.isStudentDiscount(), request.studentDiscount());
 
 			person.setStudentDiscount(request.studentDiscount());
 			repricesOthers = true;
 		}
 
 		if (request.active() != null && request.active() != person.isActive()) {
-			String message = String.format("Changed isActive status on person %s from %s to %s.", person.getId(), person.isActive(), request.active());
-
-			log.info(message);
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, message);
+			auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Changed isActive status on %s from %s to %s.", person.getFullName(), person.isActive(), request.active());
 
 			person.setActive(request.active());
 			repricesOthers = true;
@@ -153,7 +141,7 @@ public class PersonService {
 
 		repricesOthers |= applyFamilyChange(person, request);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Person %s has been updated.", person.getFullName()));
+		auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Person %s has been updated.", person.getFullName());
 
 		if (request.note() != null) {
 			person.setNote(request.note());
@@ -220,6 +208,8 @@ public class PersonService {
 		if (request.familyId() == null || isAlreadyInFamily(person, request.familyId())) {
 			return false;
 		}
+
+		auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Changed family on %s from %s to %s.", person.getFullName(), person.getFamily(), request.familyId());
 
 		person.setFamily(getFamilyOrThrow(request.familyId()));
 

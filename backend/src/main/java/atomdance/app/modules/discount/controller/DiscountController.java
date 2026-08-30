@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+
 /**
  * The two discount ladders. Editing one affects future calculations only - lists already built keep the percentages their payment lines snapshotted.
  */
@@ -20,11 +21,13 @@ public class DiscountController {
 
 	private final DiscountService discountService;
 
+
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_DISCOUNTS')")
 	public DiscountView get() {
 		return discountService.get();
 	}
+
 
 	/**
 	 * Upsert by position - sending an existing position replaces its percentage.
@@ -35,17 +38,20 @@ public class DiscountController {
 		return discountService.saveFamilySizeDiscount(request);
 	}
 
+
 	@PutMapping("/group-count")
 	@PreAuthorize("hasAuthority('MODIFY_DISCOUNTS')")
 	public DiscountView saveGroupCount(@RequestBody @Valid SaveDiscountRequest request) {
 		return discountService.saveGroupCountDiscount(request);
 	}
 
+
 	@DeleteMapping("/family-size/{id}")
 	@PreAuthorize("hasAuthority('MODIFY_DISCOUNTS')")
 	public DiscountView deleteFamilySize(@PathVariable UUID id) {
 		return discountService.deleteFamilySizeDiscount(id);
 	}
+
 
 	@DeleteMapping("/group-count/{id}")
 	@PreAuthorize("hasAuthority('MODIFY_DISCOUNTS')")

@@ -4,7 +4,6 @@ import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.discount.service.DiscountService;
 import atomdance.app.modules.finance.deposit.model.DepositScope;
@@ -34,6 +33,7 @@ import atomdance.app.modules.person.repository.PersonRepository;
 import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.event.Level;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -93,8 +93,10 @@ public class PaymentListService {
 
 	@Transactional(readOnly = true)
 	public PaymentListView get(UUID id) {
-		auditLogger.record(currentUserOrSystem(), id, AuditEventType.LIST_PREVIEW, AuditOutcome.SUCCESS, "List previewed.");
-		return PaymentListView.from(getOrThrow(id));
+		PaymentList list = getOrThrow(id);
+
+		auditLogger.read(AuditEventType.LIST_PREVIEW, id, "List %s previewed.", list.getName());
+		return PaymentListView.from(list);
 	}
 
 
@@ -127,8 +129,7 @@ public class PaymentListService {
 
 		syncStandardPayments(list);
 
-		log.info("Created {} list {} for {}", list.getType(), list.getId(), ym);
-		auditLogger.recordOnCommit(currentUserOrSystem(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Monthly list for %s has been created.", describeList(list)));
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, list.getId(), "Monthly %s list for %s has been created.", list.getType(), describeList(list));
 
 		return list;
 	}
@@ -173,8 +174,7 @@ public class PaymentListService {
 
 		int added = populateCustom(list, request);
 
-		log.info("Created {} list {} ({}) with {} person(s) via {}", list.getType(), list.getId(), list.getName(), added, request.populationMode());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%s list '%s' has been created with %d person(s) via %s.", list.getType(), list.getName(), added, request.populationMode()));
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, list.getId(), "%s list '%s' has been created with %d person(s) via %s.", list.getType(), list.getName(), added, request.populationMode());
 
 		return PaymentListView.from(list);
 	}
@@ -202,7 +202,7 @@ public class PaymentListService {
 			list.setNote(request.note());
 		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s has been edited.", describeList(list)));
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, list.getId(), "List %s has been edited.", describeList(list));
 
 		return PaymentListView.from(list);
 	}
@@ -230,14 +230,13 @@ public class PaymentListService {
 					throw new InvalidOperationException("error.list_population_requires_groups");
 				}
 
-				yield attachPersons(list, membershipRepository.findActivePersonIdsInGroups(list.getSourceGroupIds()), null);
+				yield attachPersons(list, membershipRepository.findActivePersonIdsInGroups(list.getSourceGroupIds()), null).size();
 			}
 
 			case BY_PERSONS -> throw new InvalidOperationException("error.list_not_repopulatable");
 		};
 
-		log.info("Repopulated list {} via {}, adding {} person(s)", list.getId(), list.getPopulationMode(), added);
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s repopulated, adding %d person(s).", describeList(list), added));
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, list.getId(), "List %s repopulated, adding %d person(s).", describeList(list), added);
 
 		return PaymentListView.from(list);
 	}
@@ -253,10 +252,10 @@ public class PaymentListService {
 
 		Group group = request.groupId() == null ? null : groupService.getOrThrow(request.groupId());
 
-		int added = attachPersons(list, request.personIds(), group);
+		List<Person> added = attachPersons(list, request.personIds(), group);
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%d person(s) added to list %s%s.", added, describeList(list),
-				group == null ? "" : " for group " + group.getName()));
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, list.getId(), "People %s added to list %s%s.",
+				String.join(", ", added.stream().map(Person::getFullName).toList()), describeList(list), group == null ? "" : " for group " + group.getName());
 
 		return PaymentListView.from(list);
 	}
@@ -276,7 +275,7 @@ public class PaymentListService {
 			syncStandardPayments(list);
 		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s has been recalculated.", describeList(list)));
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, list.getId(), "List %s has been recalculated.", describeList(list));
 
 		return PaymentListView.from(list);
 	}
@@ -326,8 +325,7 @@ public class PaymentListService {
 		list.setClosedAt(Instant.now());
 		list.setClosedByUserId(securityService.getCurrentUserId());
 
-		log.info("Closed list {} ({})", list.getId(), describeList(list));
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s has been closed and is now final.", describeList(list)));
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, list.getId(), "List %s has been closed and is now final.", describeList(list));
 
 		return PaymentListView.from(list);
 	}
@@ -348,8 +346,7 @@ public class PaymentListService {
 		list.setClosedAt(null);
 		list.setClosedByUserId(null);
 
-		log.warn("Reopened list {} ({}) at the request of {} - it had already been sent to the accountants", list.getId(), describeList(list), securityService.getCurrentUsername());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s has been reopened after being closed.", describeList(list)));
+		auditLogger.success(Level.WARN, AuditEventType.LIST_MANAGEMENT, list.getId(), "List %s has been reopened after being closed.", describeList(list));
 
 		return PaymentListView.from(list);
 	}
@@ -371,8 +368,7 @@ public class PaymentListService {
 		paymentRepository.deleteAll(paymentRepository.findByListId(id));
 		paymentListRepository.delete(list);
 
-		log.info("Deleted list {} ({})", id, describeList(list));
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), id, AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, String.format("List %s has been deleted.", describeList(list)));
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, id, "List %s has been deleted.", describeList(list));
 	}
 
 	// ---------------------------------------------------------------- population internals
@@ -418,8 +414,7 @@ public class PaymentListService {
 				expensesAdded
 		);
 
-		log.info(message);
-		auditLogger.recordOnCommit(currentUserOrSystem(), list.getId(), AuditEventType.LIST_MANAGEMENT, AuditOutcome.SUCCESS, message);
+		auditLogger.success(AuditEventType.LIST_MANAGEMENT, list.getId(), message);
 	}
 
 
@@ -451,14 +446,14 @@ public class PaymentListService {
 
 				list.getSourceGroupIds().addAll(request.groupIds());
 
-				yield attachPersons(list, membershipRepository.findActivePersonIdsInGroups(request.groupIds()), null);
+				yield attachPersons(list, membershipRepository.findActivePersonIdsInGroups(request.groupIds()), null).size();
 			}
 			case BY_PERSONS -> {
 				if (request.personIds() == null || request.personIds().isEmpty()) {
 					throw new InvalidOperationException("error.list_population_requires_persons");
 				}
 
-				yield attachPersons(list, request.personIds(), null);
+				yield attachPersons(list, request.personIds(), null).size();
 			}
 		};
 	}
@@ -467,9 +462,9 @@ public class PaymentListService {
 	/**
 	 * Puts people on a list, each with one charge to fill in afterwards.
 	 *
-	 * @return how many people were added, skipping anybody the charge would duplicate
+	 * @return the people added, skipping anybody the charge would duplicate
 	 */
-	private int attachPersons(PaymentList list, Collection<UUID> personIds, Group group) {
+	private List<Person> attachPersons(PaymentList list, Collection<UUID> personIds, Group group) {
 		if (list.requiresGroup() == (group == null)) {
 			throw new InvalidOperationException(group == null ? "error.charge_requires_group" : "error.charge_takes_no_group");
 		}
@@ -489,7 +484,7 @@ public class PaymentListService {
 				? paymentRepository.findPersonIdsByListId(list.getId())
 				: paymentRepository.findPersonIdsByListIdAndGroupId(list.getId(), group.getId()));
 
-		int added = 0;
+		List<Person> added = new ArrayList<>();
 
 		for (Person person : persons) {
 			if (alreadyBilled.contains(person.getId())) {
@@ -497,7 +492,7 @@ public class PaymentListService {
 			}
 
 			paymentRepository.save(handAddedCharge(list, person, group));
-			added++;
+			added.add(person);
 		}
 
 		return added;
@@ -544,13 +539,5 @@ public class PaymentListService {
 		return list.getName() != null ? "'" + list.getName() + "'" : String.valueOf(list.getId());
 	}
 
-
-	private UUID currentUserOrSystem() {
-		try {
-			return securityService.getCurrentUserId();
-		} catch (RuntimeException e) {
-			return null;
-		}
-	}
 
 }
