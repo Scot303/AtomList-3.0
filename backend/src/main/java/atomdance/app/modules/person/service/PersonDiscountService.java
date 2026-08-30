@@ -4,7 +4,6 @@ import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.discount.service.ChargedMemberships;
 import atomdance.app.modules.discount.service.DiscountRules;
@@ -17,7 +16,6 @@ import atomdance.app.modules.person.model.Family;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.FamilyRepository;
 import atomdance.app.modules.person.repository.PersonRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +43,6 @@ public class PersonDiscountService {
 	private final FamilyRepository familyRepository;
 	private final MembershipRepository membershipRepository;
 	private final DiscountService discountService;
-	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 	private final AppClock clock;
 
@@ -87,8 +84,7 @@ public class PersonDiscountService {
 		BigDecimal studentPercent = billed ? rules.studentPercent(student) : Money.ZERO;
 		BigDecimal total = billed ? rules.combinedPercent(position, groupCount, student) : Money.ZERO;
 
-		auditLogger.record(securityService.getCurrentUserId(), personId, AuditEventType.DISCOUNT_PREVIEW, AuditOutcome.SUCCESS,
-				String.format("Previewed the discount calculation of %s.", person.getFullName()));
+		auditLogger.read(AuditEventType.DISCOUNT_PREVIEW, personId, "Previewed the discount calculation of %s.", person.getFullName());
 
 		return new PersonDiscountView(
 				person.getId(),

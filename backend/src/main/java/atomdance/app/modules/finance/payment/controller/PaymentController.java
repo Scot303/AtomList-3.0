@@ -2,10 +2,7 @@ package atomdance.app.modules.finance.payment.controller;
 
 import atomdance.app.modules.finance.deposit.dto.SettleDirectRequest;
 import atomdance.app.modules.finance.deposit.service.DepositService;
-import atomdance.app.modules.finance.payment.dto.PaymentView;
-import atomdance.app.modules.finance.payment.dto.SaveOneOffPaymentRequest;
-import atomdance.app.modules.finance.payment.dto.UpdatePaymentRequest;
-import atomdance.app.modules.finance.payment.dto.UpdateQuantityRequest;
+import atomdance.app.modules.finance.payment.dto.*;
 import atomdance.app.modules.finance.payment.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +33,20 @@ public class PaymentController {
 	@PreAuthorize("hasAuthority('READ_PAYMENTS')")
 	public List<PaymentView> getAllForList(@PathVariable UUID listId) {
 		return paymentService.getForList(listId);
+	}
+
+
+	/**
+	 * What one person still owes, across every list they appear on.
+	 * <p>
+	 * Gated on {@code READ_PERSONS} rather than {@code READ_PAYMENTS} on purpose: whoever is allowed to look
+	 * somebody up should be able to tell them what is outstanding, without also being handed the lists, the
+	 * handovers, and everybody else's money. The answer is narrowed to one person and holds no settlement detail.
+	 */
+	@GetMapping("/persons/{personId}/arrears")
+	@PreAuthorize("hasAuthority('READ_PERSONS')")
+	public PersonArrearsView getArrears(@PathVariable UUID personId) {
+		return paymentService.getArrearsFor(personId);
 	}
 
 

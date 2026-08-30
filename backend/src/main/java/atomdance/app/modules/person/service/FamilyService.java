@@ -3,7 +3,6 @@ package atomdance.app.modules.person.service;
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
 import atomdance.app.modules.person.dto.CreateUpdateFamilyRequest;
@@ -13,9 +12,7 @@ import atomdance.app.modules.person.model.Family;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.FamilyRepository;
 import atomdance.app.modules.person.repository.PersonRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +20,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FamilyService {
@@ -32,7 +28,6 @@ public class FamilyService {
 	private final PersonRepository personRepository;
 	private final PaymentListService paymentListService;
 	private final PersonService personService;
-	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
 
@@ -44,14 +39,13 @@ public class FamilyService {
 
 	@Transactional(readOnly = true)
 	public List<FamilyView> getAll() {
-		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.FAMILY_PREVIEW, AuditOutcome.SUCCESS, "Previewed all families.");
 		return toViews(familyRepository.findAllWithPersons());
 	}
 
 
 	@Transactional(readOnly = true)
 	public FamilyView get(UUID id) {
-		auditLogger.record(securityService.getCurrentUserId(), id, AuditEventType.FAMILY_PREVIEW, AuditOutcome.SUCCESS, "Previewed family data.");
+		auditLogger.read(AuditEventType.FAMILY_PREVIEW, id, "Previewed family data.");
 		return toView(getOrThrow(id));
 	}
 
@@ -64,8 +58,7 @@ public class FamilyService {
 				.note(request.note())
 				.build());
 
-		log.info("Created family {} ({})", family.getId(), family.getName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Family %s has been created.", family.getName()));
+		auditLogger.success(AuditEventType.FAMILY_MANAGEMENT, family.getId(), "Family %s has been created.", family.getName());
 
 		return toView(family);
 	}
@@ -79,7 +72,7 @@ public class FamilyService {
 		family.setPhone(Person.normalizePhone(request.phone()));
 		family.setNote(request.note());
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Family %s has been updated.", family.getName()));
+		auditLogger.success(AuditEventType.FAMILY_MANAGEMENT, family.getId(), "Family %s has been updated.", family.getName());
 
 		return toView(family);
 	}
@@ -121,7 +114,10 @@ public class FamilyService {
 
 		paymentListService.recalculateOpenStandardLists();
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Family %s roster updated: %d member(s) added, %d removed.", family.getName(), added.size(), removed.size()));
+		auditLogger.success(AuditEventType.FAMILY_MANAGEMENT, family.getId(), "Family %s roster updated: %s member(s) added, %s removed.",
+				family.getName(),
+				added.stream().map(Person::getFullName).toList(),
+				removed.stream().map(Person::getFullName).toList());
 
 		return toView(family);
 	}
@@ -137,8 +133,7 @@ public class FamilyService {
 
 		familyRepository.delete(family);
 
-		log.info("Deleted family {} ({})", family.getId(), family.getName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Family %s has been deleted.", family.getName()));
+		auditLogger.success(AuditEventType.FAMILY_MANAGEMENT, family.getId(), "Family %s has been deleted.", family.getName());
 	}
 
 

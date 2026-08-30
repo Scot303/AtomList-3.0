@@ -71,6 +71,12 @@ export const MODAL_REGISTRY = {
 		size: 'xl',
 	}),
 
+	'persons.arrears': defineModal({
+		load: () => import('@/modules/persons/modals/PersonArrearsModal.tsx'),
+		title: ({ personName }) => `Zalegające opłaty - ${ personName }`,
+		size: 'xl',
+	}),
+
 	'persons.families': defineModal({
 		load: () => import('@/modules/persons/modals/FamiliesModal.tsx'),
 		title: 'Rodziny',
@@ -100,6 +106,18 @@ export const MODAL_REGISTRY = {
 		load: () => import('@/modules/groups/modals/GroupMembersModal.tsx'),
 		title: ({ groupName }) => `Członkowie grupy - ${ groupName }`,
 		size: 'lg',
+	}),
+
+	'instructors.form': defineModal({
+		load: () => import('@/modules/instructors/modals/InstructorFormModal.tsx'),
+		title: ({ instructorId, instructorName }) => {
+			if (instructorId === undefined) {
+				return 'Nowy instruktor';
+			}
+			return instructorName === undefined ? 'Szczegóły instruktora' : `Szczegóły instruktora - ${ instructorName }`;
+		},
+		size: 'xl',
+		dismissible: false
 	}),
 
 	'sms.send': defineModal({

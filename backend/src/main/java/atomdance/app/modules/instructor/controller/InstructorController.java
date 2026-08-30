@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+
 @RestController
 @RequestMapping("/api/instructors")
 @RequiredArgsConstructor
@@ -20,17 +21,20 @@ public class InstructorController {
 
 	private final InstructorService instructorService;
 
+
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_INSTRUCTORS')")
 	public List<InstructorView> getAll() {
 		return instructorService.getAll();
 	}
 
+
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAuthority('READ_INSTRUCTORS')")
 	public InstructorView get(@PathVariable UUID id) {
 		return instructorService.get(id);
 	}
+
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
@@ -39,15 +43,14 @@ public class InstructorController {
 		return instructorService.create(request);
 	}
 
+
 	@PatchMapping("/{id}")
 	@PreAuthorize("hasAuthority('MODIFY_INSTRUCTORS')")
 	public InstructorView update(@PathVariable UUID id, @RequestBody @Valid UpdateInstructorRequest request) {
 		return instructorService.update(id, request);
 	}
 
-	/**
-	 * Only possible while the instructor appears on no list. Deactivate instead.
-	 */
+
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@PreAuthorize("hasAuthority('MODIFY_INSTRUCTORS')")

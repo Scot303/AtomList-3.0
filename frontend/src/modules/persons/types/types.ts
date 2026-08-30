@@ -160,6 +160,42 @@ export interface FamilyView {
 }
 
 
+/* ── Arrears ─────────────────────────────────────────────────────────────── */
+
+/**
+ * Mirror of the backend's `OutstandingPaymentView`.
+ */
+export interface OutstandingPaymentView {
+	paymentId: string;
+	paymentCode: string;
+	listId: string;
+	year: number | null;
+	month: number | null;
+	tournamentList: boolean;
+	listName: string | null;
+	listClosed: boolean;
+	groupId: string | null;
+	description: string | null;
+	amountToPay: number;
+	amountSettled: number;
+	/** What is still owed on it, which is what makes this an arrear. */
+	outstanding: number;
+}
+
+
+/**
+ * Mirror of the backend's `PersonArrearsView` - everything one person still owes, oldest month first.
+ */
+export interface PersonArrearsView {
+	personId: string;
+	personName: string;
+	totalBilled: number;
+	totalSettled: number;
+	totalOutstanding: number;
+	payments: OutstandingPaymentView[];
+}
+
+
 /* ── Discount preview ────────────────────────────────────────────────────── */
 
 /** One configured step of a ladder. Mirror of `PersonDiscountView.Rung`. */

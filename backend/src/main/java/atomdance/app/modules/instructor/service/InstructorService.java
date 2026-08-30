@@ -2,17 +2,15 @@ package atomdance.app.modules.instructor.service;
 
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.finance.transaction.repository.TransactionRepository;
 import atomdance.app.modules.instructor.dto.CreateInstructorRequest;
 import atomdance.app.modules.instructor.dto.InstructorView;
 import atomdance.app.modules.instructor.dto.UpdateInstructorRequest;
 import atomdance.app.modules.instructor.model.ContractType;
 import atomdance.app.modules.instructor.model.Instructor;
 import atomdance.app.modules.instructor.repository.InstructorRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InstructorService {
@@ -29,7 +26,7 @@ public class InstructorService {
 	private static final Sort BY_NAME = Sort.by("lastName", "name");
 
 	private final InstructorRepository instructorRepository;
-	private final SecurityService securityService;
+	private final TransactionRepository transactionRepository;
 	private final AuditLogger auditLogger;
 
 
@@ -41,14 +38,13 @@ public class InstructorService {
 
 	@Transactional(readOnly = true)
 	public List<InstructorView> getAll() {
-		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.INSTRUCTOR_PREVIEW, AuditOutcome.SUCCESS, "Previewed all instructors.");
 		return instructorRepository.findAll(BY_NAME).stream().map(InstructorView::from).toList();
 	}
 
 
 	@Transactional(readOnly = true)
 	public InstructorView get(UUID id) {
-		auditLogger.record(securityService.getCurrentUserId(), id, AuditEventType.INSTRUCTOR_PREVIEW, AuditOutcome.SUCCESS, "Previewed instructor data.");
+		auditLogger.read(AuditEventType.INSTRUCTOR_PREVIEW, id, "Previewed instructor data.");
 		return InstructorView.from(getOrThrow(id));
 	}
 
@@ -85,9 +81,7 @@ public class InstructorService {
 				.note(request.note())
 				.build());
 
-		log.info("Created instructor {} ({}) at {} per hour", instructor.getId(), instructor.getFullName(), instructor.getCostPerHour());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), instructor.getId(), AuditEventType.INSTRUCTOR_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Instructor %s has been created at %s per hour.",
-				instructor.getFullName(), instructor.getCostPerHour()));
+		auditLogger.success(AuditEventType.INSTRUCTOR_MANAGEMENT, instructor.getId(), "Instructor %s has been created at %s per hour.", instructor.getFullName(), instructor.getCostPerHour());
 
 		return InstructorView.from(instructor);
 	}
@@ -109,9 +103,7 @@ public class InstructorService {
 		}
 
 		if (request.costPerHour() != null && instructor.getCostPerHour().compareTo(request.costPerHour()) != 0) {
-			log.info("Changed hourly rate on instructor {} from {} to {}", instructor.getId(), instructor.getCostPerHour(), request.costPerHour());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), instructor.getId(), AuditEventType.INSTRUCTOR_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Instructor %s hourly rate changed from %s to %s.",
-					instructor.getFullName(), instructor.getCostPerHour(), request.costPerHour()));
+			auditLogger.success(AuditEventType.INSTRUCTOR_MANAGEMENT, instructor.getId(), "Instructor %s hourly rate changed from %s to %s.", instructor.getFullName(), instructor.getCostPerHour(), request.costPerHour());
 
 			instructor.setCostPerHour(request.costPerHour());
 		}
@@ -136,7 +128,7 @@ public class InstructorService {
 			instructor.setNote(request.note());
 		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), instructor.getId(), AuditEventType.INSTRUCTOR_MANAGEMENT, AuditOutcome.SUCCESS, "Instructor has been changed.");
+		auditLogger.success(AuditEventType.INSTRUCTOR_MANAGEMENT, instructor.getId(), "Instructor %s has been changed.", instructor.getFullName());
 
 		return InstructorView.from(instructor);
 	}
@@ -146,9 +138,10 @@ public class InstructorService {
 	public void delete(UUID id) {
 		Instructor instructor = getOrThrow(id);
 
+		int released = transactionRepository.releaseInstructor(id);
+
 		instructorRepository.delete(instructor);
 
-		log.info("Deleted instructor {} ({})", instructor.getId(), instructor.getFullName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), instructor.getId(), AuditEventType.INSTRUCTOR_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Instructor %s has been deleted.", instructor.getFullName()));
+		auditLogger.success(AuditEventType.INSTRUCTOR_MANAGEMENT, instructor.getId(), "Instructor %s has been deleted, releasing %d transaction row(s) raised for them.", instructor.getFullName(), released);
 	}
 }

@@ -3,7 +3,6 @@ package atomdance.app.modules.finance.deposit.service;
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.deposit.dto.*;
 import atomdance.app.modules.finance.deposit.model.Deposit;
@@ -13,9 +12,7 @@ import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.payment.service.SettlementService;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +24,6 @@ import java.util.*;
 /**
  * Spends everybody's leftover credit on one list, in one confirmed step.
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CreditSweepService {
@@ -42,7 +38,6 @@ public class CreditSweepService {
 	private final PaymentRepository paymentRepository;
 	private final DepositRepository depositRepository;
 	private final SettlementService settlementService;
-	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
 
@@ -51,7 +46,11 @@ public class CreditSweepService {
 
 	@Transactional(readOnly = true)
 	public CreditSweepView preview(UUID listId) {
-		return toView(plan(listId));
+		Sweep sweep = plan(listId);
+
+		auditLogger.read(AuditEventType.DEPOSIT_PREVIEW, listId, "Leftover credit previewed for list %s.", PaymentListService.describeList(sweep.list()));
+
+		return toView(sweep);
 	}
 
 
@@ -85,12 +84,8 @@ public class CreditSweepService {
 		int paymentCount = sweep.paymentCount();
 		BigDecimal allocated = sweep.allocatedTotal();
 
-		log.info("Swept {} of credit from {} deposit(s) onto list {} ({}), settling {} charge(s); {} still credit",
-				allocated, depositCount, sweep.list().getId(), PaymentListService.describeList(sweep.list()), paymentCount, remainingCredit);
-
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), sweep.list().getId(), AuditEventType.DEPOSIT_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("%s of leftover credit from %d deposit(s) settled %d charge(s) on list %s; %s left as credit.",
-						allocated, depositCount, paymentCount, PaymentListService.describeList(sweep.list()), remainingCredit));
+		auditLogger.success(AuditEventType.DEPOSIT_MANAGEMENT, sweep.list().getId(),
+				"%s of leftover credit from %d deposit(s) settled %d charge(s) on list %s; %s left as credit.", allocated, depositCount, paymentCount, PaymentListService.describeList(sweep.list()), remainingCredit);
 
 		return new CreditSweepResultView(depositCount, paymentCount, allocated, remainingCredit);
 	}

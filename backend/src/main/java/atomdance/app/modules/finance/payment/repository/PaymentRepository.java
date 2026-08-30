@@ -98,6 +98,21 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 			""")
 	List<Payment> findOutstandingStandardForPersons(@Param("personIds") Collection<UUID> personIds, @Param("type") ListType type);
 
+	/**
+	 * Everything one person still owes, on every kind of sheet, oldest month first.
+	 */
+	@Query("""
+			SELECT p FROM Payment p
+			JOIN FETCH p.person person
+			LEFT JOIN FETCH person.family
+			LEFT JOIN FETCH p.group
+			JOIN FETCH p.list list
+			WHERE person.id = :personId
+			  AND p.amountToPay > p.amountSettled
+			ORDER BY list.year ASC, list.month ASC, p.number ASC
+			""")
+	List<Payment> findOutstandingForPerson(@Param("personId") UUID personId);
+
 	@Query("SELECT p.person.id FROM Payment p WHERE p.list.id = :listId")
 	List<UUID> findPersonIdsByListId(@Param("listId") UUID listId);
 

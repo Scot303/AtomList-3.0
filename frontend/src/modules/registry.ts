@@ -1,11 +1,12 @@
 import type { ComponentType } from 'react';
-import { ListChecks, type LucideIcon, MessageSquare, UserRound, UserShield, UsersRound, Wallet } from 'lucide-react';
+import { GraduationCap, ListChecks, type LucideIcon, MessageSquare, UserRound, UserShield, UsersRound, Wallet } from 'lucide-react';
 
 import { paths } from '@/routes/paths';
 import type { Permission } from '@/types/auth';
 
 import { DepositsPage } from './deposits/DepositsPage.tsx';
 import { GroupsPage } from './groups/GroupsPage.tsx';
+import { InstructorsPage } from './instructors/InstructorsPage.tsx';
 import { PaymentListsPage } from './paymentLists/PaymentListsPage.tsx';
 import { PersonsPage } from './persons/PersonsPage.tsx';
 import { SmsPage } from './sms/SmsPage.tsx';
@@ -80,6 +81,15 @@ export const MODULES: readonly AppModule[] = [
 		group: 'records',
 		permissions: ['READ_GROUPS'],
 		Component: GroupsPage,
+	},
+	{
+		id: 'instructors',
+		label: 'Instruktorzy',
+		path: paths.instructors,
+		icon: GraduationCap,
+		group: 'records',
+		permissions: ['READ_INSTRUCTORS'],
+		Component: InstructorsPage,
 	},
 	{
 		id: 'sms',

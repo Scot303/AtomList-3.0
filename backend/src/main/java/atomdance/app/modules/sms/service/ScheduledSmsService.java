@@ -4,7 +4,6 @@ import atomdance.app.common.sms.SmsApiClient;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
@@ -48,7 +47,7 @@ public class ScheduledSmsService {
 
 	// TODO templates in English?
 	private static final String STANDARD_TEMPLATE = "Przypominamy o uregulowaniu płatności za zajęcia: %s zł.";
-	private static final String STANDARD_TEMPLATE_SIMPLE = "Przypominamy o uregulowaniu płatności za zajęcia. Dziękujemy!";
+	private static final String STANDARD_TEMPLATE_SIMPLE = "Przypominamy o uregulowaniu platnosci za zajecia. Dziekujemy! Kontakt pod 791 896 015.";
 
 
 	@Scheduled(cron = "${app.sms.schedule.reminder.cron}", zone = "${app.time-zone}")
@@ -63,7 +62,7 @@ public class ScheduledSmsService {
 		leaveOnlyWhitelistedPhoneNumber(combinedOwedPayments);
 
 		if (combinedOwedPayments.isEmpty()) {
-			log.debug("Owed payment list empty after filtering - cancelling current scheduled action");
+			log.debug("Owed payment list empty after filtering - cancelling current scheduled action.");
 			return;
 		}
 
@@ -85,8 +84,7 @@ public class ScheduledSmsService {
 			smsApiClient.bulkSendMessage(bulkSendRequest);
 		} catch (HttpStatusCodeException e) {
 			String errorMsg = "JustSend API returned %s: %s".formatted(e.getStatusCode(), e.getMessage());
-			log.error(errorMsg);
-			auditLogger.record(null, AuditEventType.SMS_SEND, AuditOutcome.FAILURE, errorMsg);
+			auditLogger.systemFailure(AuditEventType.SMS_SEND, null, errorMsg);
 			return;
 		}
 

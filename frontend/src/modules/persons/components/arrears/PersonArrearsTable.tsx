@@ -2,18 +2,21 @@ import { ChargeLabel, ListCell } from '@/components/shared/ChargeCells';
 import { formatCurrency } from '@/lib/locale';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
 import { indexGroups } from '@/modules/groups/types/groupRows';
-import type { PlannedSettlementView } from '../types/types.ts';
+import { paymentListDetailPath } from '@/routes/paths.ts';
+import type { OutstandingPaymentView } from '../../types/types.ts';
 
 
-interface DepositPlanTableProps {
-	settlements: PlannedSettlementView[];
+interface PersonArrearsTableProps {
+	payments: OutstandingPaymentView[];
+	linkLists?: boolean;
+	onNavigate?: () => void;
 }
 
 
 /**
- * Where the money would go, line by line, before any of it is written.
+ * What one person still owes, line by line, oldest month first.
  */
-export function DepositPlanTable({ settlements }: DepositPlanTableProps) {
+export function PersonArrearsTable({ payments, linkLists = false, onNavigate }: PersonArrearsTableProps) {
 	const groups = useGroups();
 	const groupsById = indexGroups(groups.data ?? []);
 
@@ -23,37 +26,44 @@ export function DepositPlanTable({ settlements }: DepositPlanTableProps) {
 				<thead className="border-b border-os-border bg-os-surface/60 text-xs tracking-wide text-os-text-muted uppercase">
 				<tr>
 					<th scope="col" className="px-3.5 py-2 text-left font-normal">
-						Osoba
-					</th>
-					<th scope="col" className="px-3.5 py-2 text-left font-normal">
 						Płatność za
 					</th>
 					<th scope="col" className="px-3.5 py-2 text-left font-normal">
 						Lista
 					</th>
 					<th scope="col" className="px-3.5 py-2 text-left font-normal">
-						Kwota
+						Do zapłaty
 					</th>
 				</tr>
 				</thead>
 
 				<tbody className="divide-y divide-os-border/40">
-				{ settlements.map((line) => (
+				{ payments.map((line) => (
 					<tr key={ line.paymentId } className="text-sm">
-						<td className="min-w-0 px-3.5 py-2 align-baseline text-os-text">{ line.personName }</td>
-
 						<td className="min-w-0 px-3.5 py-2 align-baseline text-os-text-muted">
 							<ChargeLabel groupId={ line.groupId } description={ line.description } groupsById={ groupsById }/>
 						</td>
 
 						<td className="min-w-0 px-3.5 py-2 items-center flex gap-1 text-os-text-muted">
-							<ListCell year={ line.year } month={ line.month } tournamentList={ line.tournamentList } closed={ line.listClosed }/>
+							<ListCell
+								year={ line.year }
+								month={ line.month }
+								tournamentList={ line.tournamentList }
+								listName={ line.listName }
+								closed={ line.listClosed }
+								href={ linkLists ? paymentListDetailPath(line.listId) : undefined }
+								onNavigate={ onNavigate }
+							/>
 						</td>
 
 						<td className="px-3.5 py-2 align-baseline">
-							<span className="font-semibold tabular-nums text-os-text">{ formatCurrency(line.amount) }</span>
+							<span className="font-semibold tabular-nums text-os-error">{ formatCurrency(line.outstanding) }</span>
 
-							{ line.partial && <span className="block text-xs text-os-warning">pozostanie { formatCurrency(line.remainingAfter) }</span> }
+							{ line.amountSettled > 0 && (
+								<span className="block text-xs text-os-text-muted">
+									opłacono juź { formatCurrency(line.amountSettled) } z { formatCurrency(line.amountToPay) }
+								</span>
+							) }
 						</td>
 					</tr>
 				)) }
