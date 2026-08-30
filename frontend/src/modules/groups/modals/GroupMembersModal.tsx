@@ -118,6 +118,7 @@ function MemberList({ groupId }: { groupId: string }) {
 
 			<div className="overflow-hidden rounded-xl border border-os-border">
 				<div className={ `${ MEMBER_GRID } border-b border-os-border bg-os-surface/60 py-2 text-xs tracking-wide text-os-text-muted uppercase` }>
+					<span>Nr</span>
 					<span>Osoba</span>
 					<span>Telefon</span>
 					<span>Wiek</span>
@@ -125,8 +126,8 @@ function MemberList({ groupId }: { groupId: string }) {
 				</div>
 
 				<ul>
-					{ members.map((member) => (
-						<GroupMemberRow key={ member.id } member={ member }/>
+					{ members.map((member, index) => (
+						<GroupMemberRow key={ member.id } number={ index + 1 } member={ member }/>
 					)) }
 				</ul>
 			</div>
