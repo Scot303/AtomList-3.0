@@ -1,4 +1,5 @@
-import type { TagOption } from '@/components/ui/tags';
+import type { TagOption, TagRecord } from '@/components/ui/tags';
+import { tagOptions } from '@/components/ui/tags';
 import { coveredPersonsNames, type CoveredPersonView, type PaymentMethod } from '@/types/finance.ts';
 import type { DepositOrigin, DepositScope, DepositView } from './types.ts';
 
@@ -15,11 +16,13 @@ export const SPENT_NONE_ID = 'none';
 
 export type AllocationState = typeof SPENT_ALL_ID | typeof SPENT_PART_ID | typeof SPENT_NONE_ID;
 
-export const ALLOCATION_STATE_OPTIONS: TagOption[] = [
-	{ id: SPENT_ALL_ID, name: 'Rozliczona', color: 'emerald' },
-	{ id: SPENT_PART_ID, name: 'Częściowo', color: 'orange' },
-	{ id: SPENT_NONE_ID, name: 'Nierozliczona', color: 'red' },
-];
+export const ALLOCATION_STATE_TAGS: TagRecord<AllocationState> = {
+	[SPENT_ALL_ID]: { id: SPENT_ALL_ID, name: 'Rozliczona', color: 'emerald' },
+	[SPENT_PART_ID]: { id: SPENT_PART_ID, name: 'Częściowo', color: 'orange' },
+	[SPENT_NONE_ID]: { id: SPENT_NONE_ID, name: 'Nierozliczona', color: 'red' },
+};
+
+export const ALLOCATION_STATE_OPTIONS: TagOption[] = tagOptions(ALLOCATION_STATE_TAGS);
 
 
 export function toAllocationState(deposit: Pick<DepositView, 'allocatedAmount' | 'unallocatedAmount'>): AllocationState {
@@ -36,18 +39,22 @@ export function toAllocationState(deposit: Pick<DepositView, 'allocatedAmount' |
 /**
  * The ids are the backend's own `DepositScope` values, so a row holds what the API returned.
  */
-export const SCOPE_OPTIONS: TagOption[] = [
-	{ id: 'TOURNAMENT', name: 'KLUBOWE', color: 'violet' },
-	{ id: 'OPEN', name: 'OPEN', color: 'blue' },
-];
+export const SCOPE_TAGS: TagRecord<DepositScope> = {
+	TOURNAMENT: { id: 'TOURNAMENT', name: 'KLUBOWE', color: 'violet' },
+	OPEN: { id: 'OPEN', name: 'OPEN', color: 'blue' },
+};
+
+export const SCOPE_OPTIONS: TagOption[] = tagOptions(SCOPE_TAGS);
 
 
 /* ── How it was recorded ─────────────────────────────────────────────────── */
 
-export const ORIGIN_OPTIONS: TagOption[] = [
-	{ id: 'COUNTER', name: 'Wpłata ogólna', color: 'cyan' },
-	{ id: 'DIRECT', name: 'Do płatności', color: 'slate' },
-];
+export const ORIGIN_TAGS: TagRecord<DepositOrigin> = {
+	COUNTER: { id: 'COUNTER', name: 'Wpłata ogólna', color: 'cyan' },
+	DIRECT: { id: 'DIRECT', name: 'Do płatności', color: 'slate' },
+};
+
+export const ORIGIN_OPTIONS: TagOption[] = tagOptions(ORIGIN_TAGS);
 
 
 /* ── Row ─────────────────────────────────────────────────────────────────── */

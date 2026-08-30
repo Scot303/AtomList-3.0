@@ -1,13 +1,13 @@
 import { Send } from 'lucide-react';
 import { LinePanel, TextLine } from '@/components/shared/MoneyLines.tsx';
 import { Button } from '@/components/ui/buttons/Button';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { pluralise } from '@/lib/locale';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { formatPhone } from '@/modules/persons/utils/personFormat';
 import { useModalStore } from '@/stores/modalStore';
 import { formatInstantDateTime } from '@/utils/dateUtils.ts';
-import { RECIPIENT_KIND_OPTIONS, toRecipientKind } from '../types/smsRows.ts';
+import { RECIPIENT_KIND_TAGS, toRecipientKind } from '../types/smsRows.ts';
 import type { SmsView } from '../types/types.ts';
 
 
@@ -37,7 +37,7 @@ export default function SmsDetailsModal({ sms }: SmsDetailsModalProps) {
 			<LinePanel title="Odbiorca">
 				<TextLine label="Do kogo:">{ sms.recipientName ?? 'Nieznany' }</TextLine>
 				<TextLine label="Rodzaj:">
-					<TagBadgeSingle id={ kind } options={ RECIPIENT_KIND_OPTIONS }/>
+					<TagBadgeOf tag={ RECIPIENT_KIND_TAGS[kind] }/>
 				</TextLine>
 				<TextLine label="Numer telefonu:">
 					<span className="tabular-nums">{ formatPhone(sms.sentToPhone) }</span>

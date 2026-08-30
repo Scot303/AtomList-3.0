@@ -4,7 +4,7 @@ import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { formatCurrency, pluralise } from '@/lib/locale';
 import { LinePanel, MoneyLine, TextLine } from '@/components/shared/MoneyLines.tsx';
 import { useListReport } from '../hooks/queries/useListReport.ts';
-import { coveredPersonsNames, PAYMENT_METHOD_NAMES } from '@/types/finance.ts';
+import { coveredPersonsNames, PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
 import type { ListReportView, ReportDepositView } from '../types/types.ts';
 import { TagBadge } from "@/components/ui/tags";
 
@@ -135,7 +135,7 @@ function DepositRow({ deposit, foreignLabel }: DepositRowProps) {
 			<div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-os-text-muted">
 				<span>{ deposit.depositCode }</span>
 				<span aria-hidden>·</span>
-				<span>{ PAYMENT_METHOD_NAMES[deposit.paymentMethod] }</span>
+				<span>{ PAYMENT_METHOD_TAGS[deposit.paymentMethod].name }</span>
 				<span aria-hidden>·</span>
 				<span>{ formatInstantDate(deposit.receivedAt) }</span>
 

@@ -1,15 +1,19 @@
 import { CellPlaceholder } from '@/components/dataTable/cells/CellPlaceholder.tsx';
 import { TagBadge } from './TagBadge';
 import type { TagOption } from './tagTypes';
+import { unknownTag } from './tagTypes';
+
 
 /** Badges drawn side by side before the rest are rolled into a `+N`. */
 const MAX_VISIBLE = 3;
 
+
 interface TagBadgeListProps {
-	/** Option ids, as the row stores them. Ids with no matching option are skipped. */
+	/** Option ids, as the row stores them. Ids with no matching option are drawn as unknown. */
 	ids: string[];
 	options: TagOption[];
 }
+
 
 /**
  * A read-only tag cell: the row's badges, with anything past the N counted rather than drawn.
@@ -19,9 +23,7 @@ export function TagBadgeList({ ids, options }: TagBadgeListProps) {
 		return <CellPlaceholder/>;
 	}
 
-	const matched = ids
-		.map((id) => options.find((option) => option.id === id))
-		.filter((option): option is TagOption => option !== undefined);
+	const matched = ids.map((id) => options.find((option) => option.id === id) ?? unknownTag(id));
 
 	const shown = matched.slice(0, MAX_VISIBLE);
 	const hidden = matched.slice(MAX_VISIBLE);

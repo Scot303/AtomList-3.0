@@ -32,6 +32,20 @@ export interface TagOption {
 }
 
 
+/**
+ * Every member of a closed union, with the badge it shows as.
+ */
+export type TagRecord<Id extends string> = { [K in Id]: TagOption & { id: K } };
+
+
+/**
+ * The record's badges as a list, for the places that take one - tag columns, selects and filters.
+ */
+export function tagOptions<Id extends string>(tags: TagRecord<Id>): TagOption[] {
+	return Object.values(tags);
+}
+
+
 export const TAG_COLOR_CLASSES: Record<TagColor, string> = {
 	red: 'bg-red-500/15 text-red-400',
 	orange: 'bg-orange-500/15 text-orange-400',
@@ -82,4 +96,12 @@ export const TAG_COLOR_HEX: Record<TagColor, string> = {
 
 export function resolveTagHex(color: TagColor | string): string {
 	return color in TAG_COLOR_HEX ? TAG_COLOR_HEX[color as TagColor] : color.replace('#', '');
+}
+
+
+/**
+ * A stand-in for an id no option covers.
+ */
+export function unknownTag(id: string): TagOption {
+	return { id, name: '?', color: 'gray' };
 }

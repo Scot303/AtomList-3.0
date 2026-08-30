@@ -3,11 +3,11 @@ import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { Button } from '@/components/ui/buttons/Button';
 import { formatInstantDate } from '@/utils/dateUtils.ts';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { formatCurrency, pluralise } from '@/lib/locale';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { LinePanel, MoneyLine, TextLine } from '@/components/shared/MoneyLines.tsx';
-import { coveredPersonsNames, PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
+import { coveredPersonsNames, PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useConfirm } from '@/stores/dialogStore';
 import { useModalStore } from '@/stores/modalStore';
@@ -15,7 +15,7 @@ import { CoveredPersons } from '../components/depositDetails/CoveredPersons';
 import { DepositSettlements } from '../components/depositDetails/DepositSettlements';
 import { useDeposit } from '../hooks/queries/useDeposits.ts';
 import { useDeleteDeposit } from '../hooks/mutations/useDepositMutations.ts';
-import { ORIGIN_OPTIONS, SCOPE_OPTIONS } from '../types/depositRows';
+import { ORIGIN_TAGS, SCOPE_TAGS } from '../types/depositRows';
 import type { DepositView } from '../types/types.ts';
 
 
@@ -110,13 +110,13 @@ function Details({ deposit }: { deposit: DepositView }) {
 			<LinePanel title="Informacje o wpłacie">
 				<TextLine label="Data wpłaty:">{ formatInstantDate(deposit.receivedAt) }</TextLine>
 				<TextLine label="Forma płatności:">
-					<TagBadgeSingle id={ deposit.paymentMethod } options={ PAYMENT_METHOD_OPTIONS }/>
+					<TagBadgeOf tag={ PAYMENT_METHOD_TAGS[deposit.paymentMethod] }/>
 				</TextLine>
 				<TextLine label="Zakres wpłaty:">
-					<TagBadgeSingle id={ deposit.scope } options={ SCOPE_OPTIONS }/>
+					<TagBadgeOf tag={ SCOPE_TAGS[deposit.scope] }/>
 				</TextLine>
 				<TextLine label="Sposób dodania do systemu:">
-					<TagBadgeSingle id={ deposit.origin } options={ ORIGIN_OPTIONS }/>
+					<TagBadgeOf tag={ ORIGIN_TAGS[deposit.origin] }/>
 				</TextLine>
 			</LinePanel>
 
