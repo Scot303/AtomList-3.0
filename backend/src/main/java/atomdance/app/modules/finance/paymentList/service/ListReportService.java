@@ -3,7 +3,6 @@ package atomdance.app.modules.finance.paymentList.service;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.deposit.dto.CoveredPersonView;
 import atomdance.app.modules.finance.deposit.model.Deposit;
@@ -15,7 +14,6 @@ import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.payment.repository.PaymentSettlementRepository;
 import atomdance.app.modules.finance.paymentList.dto.ListReportView;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -41,7 +39,6 @@ public class ListReportService {
 	private final PaymentRepository paymentRepository;
 	private final PaymentSettlementRepository settlementRepository;
 	private final DepositRepository depositRepository;
-	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 	private final MessageSource messageSource;
 	private final AppClock clock;
@@ -61,7 +58,7 @@ public class ListReportService {
 		List<ListReportView.Row> rows = payments.stream().map(payment -> row(payment, refs)).toList();
 		List<ListReportView.Deposit> cashIn = cash.deposits().stream().map(deposit -> deposit(deposit, list, refs, cash.belongsHere(deposit))).toList();
 
-		auditLogger.record(securityService.getCurrentUserId(), listId, AuditEventType.LIST_PREVIEW, AuditOutcome.SUCCESS, "List report generated.");
+		auditLogger.read(AuditEventType.LIST_PREVIEW, listId, "List report generated for %s.", list.getName());
 
 		return new ListReportView(
 				list.getId(),
