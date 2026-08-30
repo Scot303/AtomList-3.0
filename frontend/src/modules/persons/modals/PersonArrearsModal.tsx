@@ -57,7 +57,7 @@ export default function PersonArrearsModal({ personId, personName }: PersonArrea
 				onNavigate={ closeModal }
 			/>
 
-			<LinePanel>
+			<LinePanel className="mt-8">
 				<MoneyLine label="Kwota zaległych opłat:" amount={ totalBilled } tone="strong"/>
 				<MoneyLine label="Już zapłacono:" amount={ totalSettled } tone="good"/>
 				<MoneyLine label="Pozostało do zapłaty:" amount={ totalOutstanding } tone="bad" separated/>
