@@ -6,7 +6,6 @@ import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.sms.SmsApiClient;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.person.model.Person;
@@ -20,7 +19,6 @@ import atomdance.app.modules.sms.exception.SmsSendException;
 import atomdance.app.modules.sms.model.Sms;
 import atomdance.app.modules.sms.model.SmsSegments;
 import atomdance.app.modules.sms.repository.SmsRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import atomdance.json.justsend.BulkSendRequest;
 import atomdance.json.justsend.RestRecipient;
 import atomdance.json.justsend.SingleSendRequest;
@@ -58,7 +56,6 @@ public class SmsService {
 	private final SmsApiClient smsApiClient;
 	private final PersonRepository personRepository;
 	private final MembershipRepository membershipRepository;
-	private final SecurityService securityService;
 	private final AppClock appClock;
 	private final List<String> phoneWhitelist;
 
@@ -67,8 +64,8 @@ public class SmsService {
 	public void saveSentScheduledBulkSms(List<Sms> sentSms) {
 		smsRepository.saveAllAndFlush(sentSms);
 
-		String logMsg = "Created %d Sms records".formatted(sentSms.size());
-		auditLogger.recordOnCommit(null, AuditEventType.SMS_CREATION, AuditOutcome.SUCCESS, logMsg);
+		String logMsg = "Created %d automated SMS records.".formatted(sentSms.size());
+		auditLogger.systemSuccess(AuditEventType.SMS_CREATION, null, logMsg);
 		log.info(logMsg);
 	}
 
@@ -77,7 +74,7 @@ public class SmsService {
 	public List<SmsView> getAll() {
 		List<Sms> smsList = smsRepository.findAllWithRecipients();
 
-		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.SMS_PREVIEW, AuditOutcome.SUCCESS, "Previewed all sms messages.");
+		auditLogger.read(AuditEventType.SMS_PREVIEW, null, "Previewed all sms messages.");
 
 		return smsList.stream().map(SmsView::from).toList();
 	}
@@ -111,11 +108,15 @@ public class SmsService {
 
 		int segments = SmsSegments.count(request.message()) * messages.size();
 
-		String logMsg = "Sent sms to %d recipient(s), content length - %d, generated %d actual sms messages, %d recipient(s) skipped"
-				.formatted(messages.size(), request.message().length(), segments, skipped.size());
+		String skippedRecipients = skipped.stream()
+				.map(recipient -> "%s - %s".formatted(recipient.fullName(), recipient.reason()))
+				.toList()
+				.toString();
 
-		log.info(logMsg);
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), AuditEventType.SMS_CREATION, AuditOutcome.SUCCESS, logMsg);
+		String logMsg = "Sent sms to %d recipient(s), content length - %d, generated %d actual sms messages, skipped recipients: %s"
+				.formatted(messages.size(), request.message().length(), segments, skippedRecipients);
+
+		auditLogger.success(AuditEventType.SMS_CREATION, null, logMsg);
 
 		return new SmsSendResultView(messages.stream().map(SmsView::from).toList(), skipped);
 	}
@@ -203,8 +204,7 @@ public class SmsService {
 			}
 		} catch (HttpStatusCodeException e) {
 			String errorMsg = "JustSend API returned %s: %s".formatted(e.getStatusCode(), e.getMessage());
-			log.error(errorMsg);
-			auditLogger.record(securityService.getCurrentUserId(), AuditEventType.SMS_SEND, AuditOutcome.FAILURE, errorMsg);
+			auditLogger.failure(AuditEventType.SMS_SEND, null, errorMsg);
 
 			throw new SmsSendException("entity.sms");
 		}
