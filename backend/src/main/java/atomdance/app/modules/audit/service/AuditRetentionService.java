@@ -1,7 +1,6 @@
 package atomdance.app.modules.audit.service;
 
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.repository.AuditEventRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -93,16 +92,14 @@ public class AuditRetentionService {
 			int deleted = repository.deleteByTypeOccurredBefore(type, now.minus(retention));
 
 			if (deleted > 0) {
-				log.debug("Purged {} {} event(s) older than {} days", deleted, type, retention.toDays());
-				auditLogger.recordOnCommit(null, AuditEventType.SYSTEM_CLEANUP, AuditOutcome.SUCCESS, String.format("Purged %d %s event(s) older than %d days.", deleted, type, retention.toDays()));
+				auditLogger.systemSuccess(AuditEventType.SYSTEM_CLEANUP, null, "Purged %d %s event(s) older than %d days.", deleted, type, retention.toDays());
 
 				total += deleted;
 			}
 		}
 
 		if (total > 0) {
-			log.info("Purged {} expired audit event(s) in total", total);
-			auditLogger.recordOnCommit(null, AuditEventType.SYSTEM_CLEANUP, AuditOutcome.SUCCESS, String.format("Purged %d expired audit event(s) in total.", total));
+			auditLogger.systemSuccess(AuditEventType.SYSTEM_CLEANUP, null, "Purged %d expired audit event(s) in total.", total);
 		}
 	}
 }
