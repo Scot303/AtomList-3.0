@@ -5,7 +5,6 @@ import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.AppClock;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.deposit.dto.*;
 import atomdance.app.modules.finance.deposit.model.Deposit;
@@ -13,7 +12,6 @@ import atomdance.app.modules.finance.deposit.model.DepositCode;
 import atomdance.app.modules.finance.deposit.model.DepositOrigin;
 import atomdance.app.modules.finance.deposit.repository.DepositRepository;
 import atomdance.app.modules.finance.payment.dto.PaymentView;
-import atomdance.app.modules.finance.deposit.dto.SettleDirectRequest;
 import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.model.PaymentSettlement;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
@@ -116,7 +114,7 @@ public class DepositService {
 	@Transactional(readOnly = true)
 	public DepositPlanView plan(PlanDepositRequest request) {
 		List<UUID> personIds = distinct(request.personIds());
-		requirePersonsExist(personIds);
+		Map<UUID, Person> persons = requirePersonsExist(personIds);
 
 		YearMonth reference = referenceMonth(request.receivedAt());
 		int monthsAhead = monthsAhead(request.monthsAhead());
@@ -126,8 +124,8 @@ public class DepositService {
 		List<Payment> outstanding = paymentRepository.findOutstandingStandardForPersons(personIds, type);
 		DepositAllocationPlanner.Plan plan = planner.plan(outstanding, personIds, reference, request.amount(), monthsAhead);
 
-		auditLogger.record(securityService.getCurrentUserId(), null, AuditEventType.DEPOSIT_PREVIEW, AuditOutcome.SUCCESS,
-				String.format("Allocation of %s previewed for %d person(s) on the %s sheet.", Money.normalize(request.amount()), personIds.size(), type));
+		auditLogger.read(AuditEventType.DEPOSIT_PREVIEW, null, "Allocation of %s previewed for %s on the %s sheet.",
+				Money.normalize(request.amount()), describePersons(persons.values()), type);
 
 		return DepositPlanView.from(plan, request.amount(), coversEverything(outstanding, plan), !isMonthBilled(reference.plusMonths(monthsAhead), type));
 	}
@@ -169,12 +167,8 @@ public class DepositService {
 			settlementService.settle(deposit, planned.payment(), planned.amount(), receivedAt);
 		}
 
-		log.info("Recorded deposit {} of {} for {} via {}, settling {} payment(s) and leaving {} as credit",
+		auditLogger.success(AuditEventType.DEPOSIT_MANAGEMENT, deposit.getId(), "Deposit %s of %s taken for %s via %s, settling %d payment(s); %s left as credit.",
 				deposit.getCode(), deposit.getTotalAmount(), describeCoveredPersons(deposit), deposit.getPaymentMethod(), plan.settlements().size(), deposit.getUnallocatedAmount());
-
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), deposit.getId(), AuditEventType.DEPOSIT_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("Deposit %s of %s taken for %s via %s, settling %d payment(s); %s left as credit.",
-						deposit.getCode(), deposit.getTotalAmount(), describeCoveredPersons(deposit), deposit.getPaymentMethod(), plan.settlements().size(), deposit.getUnallocatedAmount()));
 
 		return withSettlementDetail(deposit);
 	}
@@ -264,8 +258,7 @@ public class DepositService {
 			}
 		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), deposit.getId(), AuditEventType.DEPOSIT_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("Credit on deposit %s allocated; %s left.", deposit.getCode(), deposit.getUnallocatedAmount()));
+		auditLogger.success(AuditEventType.DEPOSIT_MANAGEMENT, deposit.getId(), "Credit on deposit %s allocated; %s left.", deposit.getCode(), deposit.getUnallocatedAmount());
 
 		return withSettlementDetail(deposit);
 	}
@@ -304,9 +297,7 @@ public class DepositService {
 
 		depositRepository.delete(deposit);
 
-		log.info("Deleted deposit {} [{}] of {}", deposit.getCode(), id, deposit.getTotalAmount());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), id, AuditEventType.DEPOSIT_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("Deposit %s of %s for %s has been deleted.", deposit.getCode(), deposit.getTotalAmount(), describeCoveredPersons(deposit)));
+		auditLogger.success(AuditEventType.DEPOSIT_MANAGEMENT, id, "Deposit %s of %s for %s has been deleted.", deposit.getCode(), deposit.getTotalAmount(), describeCoveredPersons(deposit));
 	}
 
 
@@ -374,7 +365,7 @@ public class DepositService {
 
 
 	/**
-	 * How a handover names its people in a log line: the one name, or the first and how many more.
+	 * How a handover names its people in a log line.
 	 */
 	private static String describeCoveredPersons(Deposit deposit) {
 		List<Person> covered = deposit.getCoveredPersonsInDisplayOrder();
@@ -383,9 +374,12 @@ public class DepositService {
 			return "nobody";
 		}
 
-		String first = covered.getFirst().getFullName();
+		return describePersons(covered);
+	}
 
-		return covered.size() == 1 ? first : String.format("%s and %d other(s)", first, covered.size() - 1);
+
+	private static String describePersons(Collection<Person> persons) {
+		return persons.stream().map(Person::getFullName).toList().toString();
 	}
 
 
