@@ -45,10 +45,7 @@ public class ListReportService {
 
 	@Transactional(readOnly = true)
 	public ListReportView build(UUID listId) {
-		var listReportView = buildListReportView(listId);
-		auditLogger.record(securityService.getCurrentUserId(), listId, AuditEventType.LIST_PREVIEW, AuditOutcome.SUCCESS, "List report generated.");
-
-		return listReportView;
+		return buildListReportView(listId);
 	}
 
 	protected ListReportView buildListReportView(UUID listId) {
