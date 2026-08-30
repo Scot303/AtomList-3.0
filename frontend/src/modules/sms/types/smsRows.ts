@@ -1,4 +1,5 @@
-import type { TagOption } from '@/components/ui/tags';
+import type { TagOption, TagRecord } from '@/components/ui/tags';
+import { tagOptions } from '@/components/ui/tags';
 import type { SkipReason, SmsView } from './types.ts';
 
 
@@ -9,10 +10,12 @@ export const RECIPIENT_FAMILY_ID = 'FAMILY';
 
 export type RecipientKind = typeof RECIPIENT_PERSON_ID | typeof RECIPIENT_FAMILY_ID;
 
-export const RECIPIENT_KIND_OPTIONS: TagOption[] = [
-	{ id: RECIPIENT_PERSON_ID, name: 'Osoba', color: 'blue' },
-	{ id: RECIPIENT_FAMILY_ID, name: 'Rodzina', color: 'violet' },
-];
+export const RECIPIENT_KIND_TAGS: TagRecord<RecipientKind> = {
+	[RECIPIENT_PERSON_ID]: { id: RECIPIENT_PERSON_ID, name: 'Osoba', color: 'blue' },
+	[RECIPIENT_FAMILY_ID]: { id: RECIPIENT_FAMILY_ID, name: 'Rodzina', color: 'violet' },
+};
+
+export const RECIPIENT_KIND_OPTIONS: TagOption[] = tagOptions(RECIPIENT_KIND_TAGS);
 
 
 export function toRecipientKind(sms: SmsView): RecipientKind {

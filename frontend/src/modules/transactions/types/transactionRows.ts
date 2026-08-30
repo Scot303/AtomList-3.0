@@ -1,14 +1,18 @@
-import type { TagOption } from '@/components/ui/tags';
+import type { TagOption, TagRecord } from '@/components/ui/tags';
+import { tagOptions } from '@/components/ui/tags';
 import type { TransactionType, TransactionView } from './types.ts';
 
 
-export const INCOME_ID: TransactionType = 'INCOME';
-export const EXPENSE_ID: TransactionType = 'EXPENSE';
+/** Left unannotated so each is its own literal type, which is what keys a {@link TagRecord}. */
+export const INCOME_ID = 'INCOME';
+export const EXPENSE_ID = 'EXPENSE';
 
-export const TRANSACTION_TYPE_OPTIONS: TagOption[] = [
-	{ id: INCOME_ID, name: 'Przychód', color: 'emerald' },
-	{ id: EXPENSE_ID, name: 'Wydatek', color: 'red' },
-];
+export const TRANSACTION_TYPE_TAGS: TagRecord<TransactionType> = {
+	[INCOME_ID]: { id: INCOME_ID, name: 'Przychód', color: 'emerald' },
+	[EXPENSE_ID]: { id: EXPENSE_ID, name: 'Wydatek', color: 'red' },
+};
+
+export const TRANSACTION_TYPE_OPTIONS: TagOption[] = tagOptions(TRANSACTION_TYPE_TAGS);
 
 export const TRANSACTION_TYPE_TITLES: Record<string, string> = {
 	[INCOME_ID]: 'Pokaż tylko przychody',

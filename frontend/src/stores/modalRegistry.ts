@@ -238,7 +238,7 @@ export const MODAL_REGISTRY = {
 	'lists.overpayments': defineModal({
 		load: () => import('@/modules/paymentLists/modals/CreditSweepModal.tsx'),
 		title: 'Rozlicz nadpłaty',
-		size: 'lg',
+		size: 'xl',
 		dismissible: false
 	}),
 };

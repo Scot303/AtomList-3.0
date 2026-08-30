@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { Button } from '@/components/ui/buttons/Button';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { notifySuccess } from '@/lib/toast';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
@@ -13,7 +13,7 @@ import { TransactionFormFields } from '../components/TransactionFormFields.tsx';
 import { useUpdateTransaction } from '../hooks/mutations/useTransactionMutations.ts';
 import { useTransactions } from '../hooks/queries/useTransactions.ts';
 import { parseAmount, transactionFormSchema, type TransactionFormValues } from '../schemas/transactionSchemas.ts';
-import { TRANSACTION_TYPE_OPTIONS, transactionName } from '../types/transactionRows.ts';
+import { TRANSACTION_TYPE_TAGS, transactionName } from '../types/transactionRows.ts';
 import type { TransactionType, TransactionView, UpdateTransactionPayload } from '../types/types.ts';
 
 
@@ -100,7 +100,7 @@ function Details({ transaction, listClosed }: { transaction: TransactionView; li
 		<form onSubmit={ onSubmit } noValidate className="mt-2 space-y-5">
 			<header className="styled-card mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3">
 				<div className="flex flex-wrap items-center gap-3">
-					<TagBadgeSingle id={ transaction.type } options={ TRANSACTION_TYPE_OPTIONS }/>
+					<TagBadgeOf tag={ TRANSACTION_TYPE_TAGS[transaction.type] }/>
 
 					{ transaction.instructorName !== null && (
 						<span className="flex items-center gap-1.5 text-sm text-os-text-muted">

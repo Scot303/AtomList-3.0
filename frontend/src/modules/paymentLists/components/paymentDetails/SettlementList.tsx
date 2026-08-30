@@ -3,13 +3,13 @@ import { Alert } from '@/components/feedback/Alert';
 import { Button } from '@/components/ui/buttons/Button';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { formatInstantDate, formatInstantMonth } from '@/utils/dateUtils.ts';
-import { TagBadge, TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadge, TagBadgeOf } from '@/components/ui/tags';
 import { cn } from '@/lib/cn';
 import { formatCurrency } from '@/lib/locale';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { useConfirm } from '@/stores/dialogStore';
 import { useRemoveDepositSettlement } from '@/modules/deposits/hooks/mutations/useDepositMutations.ts';
-import { PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
+import { PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
 import type { SettlementView } from '../../types/types.ts';
 
 
@@ -74,7 +74,7 @@ function SettlementRow({ settlement, personName, canModify }: { settlement: Sett
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center gap-2">
 					<span className="text-sm font-bold tabular-nums text-os-text">{ formatCurrency(settlement.amount) }</span>
-					{ settlement.paymentMethod !== null && <TagBadgeSingle id={ settlement.paymentMethod } options={ PAYMENT_METHOD_OPTIONS } size="sm"/> }
+					{ settlement.paymentMethod !== null && <TagBadgeOf tag={ PAYMENT_METHOD_TAGS[settlement.paymentMethod] } size="sm"/> }
 					<span className="truncate text-xs text-os-text-muted">
 
 						{ ' · ' }

@@ -1,25 +1,25 @@
-import type { TagOption } from '@/components/ui/tags';
-import { ACTIVE_TAG_OPTIONS, type ActiveTag, toActiveTag } from '@/types/rowTags.ts';
+import type { TagOption, TagRecord } from '@/components/ui/tags';
+import { tagOptions } from '@/components/ui/tags';
+import { ACTIVE_ID, ACTIVE_TAGS, type ActiveTag, INACTIVE_ID, toActiveTag } from '@/types/rowTags.ts';
 import type { ContractType, InstructorView } from './types.ts';
 
 
 /* ── Kind of contract ────────────────────────────────────────────────────── */
 
-export const CONTRACT_TYPE_OPTIONS: TagOption[] = [
-	{ id: 'OPEN', name: 'OPEN', color: 'blue' },
-	{ id: 'TOURNAMENT', name: 'TURNIEJOWA', color: 'red' },
-];
+export const CONTRACT_TYPE_TAGS: TagRecord<ContractType> = {
+	OPEN: { id: 'OPEN', name: 'OPEN', color: 'blue' },
+	TOURNAMENT: { id: 'TOURNAMENT', name: 'TURNIEJOWA', color: 'red' },
+};
+
+export const CONTRACT_TYPE_OPTIONS: TagOption[] = tagOptions(CONTRACT_TYPE_TAGS);
 
 
-export const INSTRUCTOR_ACTIVE_TAG_OPTIONS: TagOption[] = ACTIVE_TAG_OPTIONS.map((option) => ( {
-	...option,
-	name: option.id === 'active' ? 'Aktywny' : 'Nieaktywny',
-} ));
+export const INSTRUCTOR_ACTIVE_TAGS: TagRecord<ActiveTag> = {
+	[ACTIVE_ID]: { ...ACTIVE_TAGS[ACTIVE_ID], name: 'Aktywny' },
+	[INACTIVE_ID]: { ...ACTIVE_TAGS[INACTIVE_ID], name: 'Nieaktywny' },
+};
 
-
-export function contractTypeName(contractType: ContractType): string {
-	return CONTRACT_TYPE_OPTIONS.find((option) => option.id === contractType)?.name ?? contractType;
-}
+export const INSTRUCTOR_ACTIVE_TAG_OPTIONS: TagOption[] = tagOptions(INSTRUCTOR_ACTIVE_TAGS);
 
 
 /* ── Row ─────────────────────────────────────────────────────────────────── */
