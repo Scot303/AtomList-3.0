@@ -3,7 +3,10 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+
+### test-generated files ###
 attendance-test-output.pdf
+test-sheet.xlsx
 
 ### STS ###
 .apt_generated

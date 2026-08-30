@@ -8,12 +8,14 @@ import atomdance.app.modules.finance.paymentList.dto.*;
 import atomdance.app.modules.finance.paymentList.service.ListReportService;
 import atomdance.app.modules.finance.paymentList.service.ListSummaryService;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
+import atomdance.app.modules.finance.paymentList.service.FinanceSheetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +29,7 @@ public class PaymentListController {
 	private final ListSummaryService listSummaryService;
 	private final ListReportService listReportService;
 	private final CreditSweepService creditSweepService;
-	private final PaymentSpreadsheetService paymentSpreadsheetService;
+	private final FinanceSheetService paymentSpreadsheetService;
 
 
 	@GetMapping
@@ -73,7 +75,7 @@ public class PaymentListController {
 
 	@GetMapping("{id}/spreadsheet")
 	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
-	public byte[] reportSpreadsheet(@PathVariable UUID id) {
+	public byte[] reportSpreadsheet(@PathVariable UUID id) throws IOException {
 		return paymentSpreadsheetService.getPaymentSpreadsheet(id);
 	}
 
