@@ -74,7 +74,7 @@ export const MODAL_REGISTRY = {
 	'persons.arrears': defineModal({
 		load: () => import('@/modules/persons/modals/PersonArrearsModal.tsx'),
 		title: ({ personName }) => `Zalegające opłaty - ${ personName }`,
-		size: 'lg',
+		size: 'xl',
 	}),
 
 	'persons.families': defineModal({
