@@ -4,6 +4,7 @@ export const personKeys = {
 	memberships: (personId: string) => [...personKeys.all, 'memberships', personId] as const,
 	discounts: () => [...personKeys.all, 'discounts'] as const,
 	discount: (personId: string) => [...personKeys.discounts(), personId] as const,
+	arrears: (personId: string) => [...personKeys.all, 'arrears', personId] as const,
 };
 
 export const familyKeys = {
