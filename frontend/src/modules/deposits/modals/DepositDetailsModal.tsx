@@ -7,7 +7,7 @@ import { TagBadgeSingle } from '@/components/ui/tags';
 import { formatCurrency, pluralise } from '@/lib/locale';
 import { notifyApiError, notifySuccess } from '@/lib/toast';
 import { LinePanel, MoneyLine, TextLine } from '@/components/shared/MoneyLines.tsx';
-import { coveredPersonsNames, PAYMENT_METHOD_NAMES } from '@/types/finance.ts';
+import { coveredPersonsNames, PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useConfirm } from '@/stores/dialogStore';
 import { useModalStore } from '@/stores/modalStore';
@@ -108,8 +108,10 @@ function Details({ deposit }: { deposit: DepositView }) {
 			</LinePanel>
 
 			<LinePanel title="Informacje o wpłacie">
-				<TextLine label="Forma płatności:">{ PAYMENT_METHOD_NAMES[deposit.paymentMethod] }</TextLine>
 				<TextLine label="Data wpłaty:">{ formatInstantDate(deposit.receivedAt) }</TextLine>
+				<TextLine label="Forma płatności:">
+					<TagBadgeSingle id={ deposit.paymentMethod } options={ PAYMENT_METHOD_OPTIONS }/>
+				</TextLine>
 				<TextLine label="Zakres wpłaty:">
 					<TagBadgeSingle id={ deposit.scope } options={ SCOPE_OPTIONS }/>
 				</TextLine>
