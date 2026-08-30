@@ -16,7 +16,7 @@ const CONTRACT_OPTIONS: ExtendedSelectOption[] = [
 ];
 
 const STUDENT_OPTIONS: ExtendedSelectOption[] = [
-	{ id: YES_ID, name: 'Tak', hint: `dodatkowe -${ STUDENT_DISCOUNT_PERCENT }% na wszystko` },
+	{ id: YES_ID, name: 'Tak', hint: `dodatkowe -${ STUDENT_DISCOUNT_PERCENT }%` },
 	{ id: NO_ID, name: 'Nie' },
 ];
 

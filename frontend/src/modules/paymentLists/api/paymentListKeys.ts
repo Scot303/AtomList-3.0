@@ -7,4 +7,5 @@ export const paymentListKeys = {
 	payments: (listId: string) => [...paymentListKeys.all, 'payments', listId] as const,
 	payment: (id: string) => [...paymentListKeys.all, 'payment', id] as const,
 	overpayments: (listId: string) => [...paymentListKeys.all, 'overpayments', listId] as const,
+	arrears: (personId: string) => [...paymentListKeys.all, 'arrears', personId] as const,
 };
