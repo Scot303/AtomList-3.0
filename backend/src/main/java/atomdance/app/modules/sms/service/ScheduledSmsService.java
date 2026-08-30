@@ -47,7 +47,7 @@ public class ScheduledSmsService {
 
 	// TODO templates in English?
 	private static final String STANDARD_TEMPLATE = "Przypominamy o uregulowaniu płatności za zajęcia: %s zł.";
-	private static final String STANDARD_TEMPLATE_SIMPLE = "Przypominamy o uregulowaniu płatności za zajęcia. Dziękujemy!";
+	private static final String STANDARD_TEMPLATE_SIMPLE = "Przypominamy o uregulowaniu platnosci za zajecia. Dziekujemy! Kontakt pod 791 896 015.";
 
 
 	@Scheduled(cron = "${app.sms.schedule.reminder.cron}", zone = "${app.time-zone}")
