@@ -1,8 +1,9 @@
-import { Info, Percent, Users } from 'lucide-react';
+import { Info, Percent, ReceiptText, Users } from 'lucide-react';
 import type { ContextMenuItem } from '@/stores/menuStore.ts';
 import { preloadModal } from '@/stores/modalRegistry.ts';
 import { useModalStore } from '@/stores/modalStore.ts';
 import { usePrefetchMemberships } from '../queries/useMemberships.ts';
+import { usePrefetchPersonArrears } from '../queries/usePersonArrears.ts';
 import { usePrefetchPersonDiscounts } from '../mutations/usePersonDiscounts.ts';
 import type { PersonRow } from '../../types/personRows.ts';
 import { usePrefetchFamilies } from "@/modules/persons/hooks/queries/useFamilies.ts";
@@ -17,15 +18,18 @@ export function usePersonRowMenu(): PersonRowMenuBuilder {
 	const prefetchMemberships = usePrefetchMemberships();
 	const prefetchDiscounts = usePrefetchPersonDiscounts();
 	const prefetchFamilies = usePrefetchFamilies();
+	const prefetchArrears = usePrefetchPersonArrears();
 
 	return (row: PersonRow) => {
 		preloadModal('persons.form');
 		preloadModal('persons.discounts');
 		preloadModal('persons.groups');
+		preloadModal('persons.arrears');
 
 		prefetchMemberships(row.id);
 		prefetchDiscounts(row.id);
 		prefetchFamilies();
+		prefetchArrears(row.id);
 
 		return [
 			{
@@ -49,6 +53,16 @@ export function usePersonRowMenu(): PersonRowMenuBuilder {
 				icon: Users,
 				separatorBefore: true,
 				onSelect: () => void openModal('persons.groups', {
+					personId: row.id,
+					personName: row.person.fullName,
+				}),
+			},
+			{
+				id: 'arrears',
+				label: 'Zalegające opłaty',
+				icon: ReceiptText,
+				separatorBefore: true,
+				onSelect: () => void openModal('persons.arrears', {
 					personId: row.id,
 					personName: row.person.fullName,
 				}),
