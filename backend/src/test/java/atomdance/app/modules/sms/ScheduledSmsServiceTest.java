@@ -69,7 +69,7 @@ class ScheduledSmsServiceTest {
 		assertEquals(1, smsServiceArgumentCaptor.getValue().size());
 
 		Sms combinedSms = (Sms) smsServiceArgumentCaptor.getValue().getFirst();
-		assertEquals("Przypominamy o uregulowaniu płatności za zajęcia. Dziękujemy!", combinedSms.getMessage());
+		assertEquals("Przypominamy o uregulowaniu platnosci za zajecia. Dziekujemy! Kontakt pod 791 896 015", combinedSms.getMessage());
 		assertEquals(familyPhoneNumber, combinedSms.getSentToPhone());
 	}
 

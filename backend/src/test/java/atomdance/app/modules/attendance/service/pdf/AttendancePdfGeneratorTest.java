@@ -57,7 +57,7 @@ class AttendancePdfGeneratorTest {
                 Person.builder().name("Amelia").lastName("Szymańska").phone(null).build(),
                 Person.builder().name("Pola").lastName("Król").phone("19514182").build(),
                 Person.builder().name("Noemi").lastName("Szulc").phone("882118593").build(),
-                Person.builder().name("Kazimierz").lastName("Szymczak").phone("213945268").build()
+                Person.builder().name("Kazimierz").lastName("Szymczakaaaaaaaa").phone("213945268").build()
         );
     }
 
