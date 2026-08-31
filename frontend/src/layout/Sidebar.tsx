@@ -134,7 +134,7 @@ export function Sidebar() {
 			prefetchSmsHistory();
 		}
 
-		if (( moduleId === 'groups' || moduleId === 'persons' ) && hasPermission('READ_GROUPS')) {
+		if (( moduleId === 'groups' || moduleId === 'persons' || moduleId === 'price-calculator' ) && hasPermission('READ_GROUPS')) {
 			prefetchGroups();
 		}
 	};

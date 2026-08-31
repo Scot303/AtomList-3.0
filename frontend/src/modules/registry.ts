@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { GraduationCap, ListChecks, type LucideIcon, MessageSquare, UserRound, UserShield, UsersRound, Wallet } from 'lucide-react';
+import { Calculator, GraduationCap, ListChecks, type LucideIcon, MessageSquare, UserRound, UserShield, UsersRound, Wallet } from 'lucide-react';
 
 import { paths } from '@/routes/paths';
 import type { Permission } from '@/types/auth';
@@ -9,6 +9,7 @@ import { GroupsPage } from './groups/GroupsPage.tsx';
 import { InstructorsPage } from './instructors/InstructorsPage.tsx';
 import { PaymentListsPage } from './paymentLists/PaymentListsPage.tsx';
 import { PersonsPage } from './persons/PersonsPage.tsx';
+import { PriceCalculatorPage } from './priceCalculator/PriceCalculatorPage.tsx';
 import { SmsPage } from './sms/SmsPage.tsx';
 import { UsersPage } from './users/UsersPage.tsx';
 
@@ -63,6 +64,15 @@ export const MODULES: readonly AppModule[] = [
 		group: 'finance',
 		permissions: ['READ_PAYMENTS'],
 		Component: DepositsPage,
+	},
+	{
+		id: 'price-calculator',
+		label: 'Kalkulator cen',
+		path: paths.priceCalculator,
+		icon: Calculator,
+		group: 'finance',
+		permissions: ['READ_GROUPS'],
+		Component: PriceCalculatorPage,
 	},
 	{
 		id: 'persons',
