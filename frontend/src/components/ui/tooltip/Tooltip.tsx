@@ -108,7 +108,7 @@ export function Tooltip(props: TooltipProps) {
 					>
 						<div
 							style={ transitionStyles }
-							className="popover-surface max-w-xs rounded-lg px-2.5 py-1.5 text-sm leading-snug text-os-text"
+							className="popover-surface max-w-xs whitespace-pre-line rounded-lg px-2.5 py-1.5 text-sm leading-snug text-os-text"
 						>
 							{ content }
 
