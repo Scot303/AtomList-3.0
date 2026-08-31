@@ -1,0 +1,8 @@
+# Cloudflare Pages rejects the usual SPA catch-all here - `/*  /index.html  200` trips its
+# infinite-loop detector ("Parsed 0 valid redirect rules" in the build log), so it never applied.
+#
+# Nothing is needed in its place. With no top-level 404.html in the build output, Pages treats the
+# project as a single-page app and maps unmatched paths to the root document, so /verify-email?token=...
+# and reloads on any client route already resolve.
+#
+# Adding a 404.html would silently turn that off and start 404ing every deep link.

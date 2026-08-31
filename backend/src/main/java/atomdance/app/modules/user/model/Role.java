@@ -6,31 +6,35 @@ import java.util.Set;
 
 import static atomdance.app.modules.user.model.Permission.*;
 
+
 /**
  * A named, curated bundle of permissions. Persisted by name (@Enumerated(EnumType.STRING) on User.roles)
  */
 public enum Role {
 
-	BASIC(EnumSet.of(READ_PAYMENTS, READ_LISTS)),
+	BASIC(EnumSet.of(READ_PERSONS, READ_FAMILIES, READ_GROUPS, PRINT_ATTENDANCE)),
 
-	RECEPTIONIST(EnumSet.of(READ_PERSONS, READ_FAMILIES, READ_GROUPS, READ_PAYMENTS, READ_LISTS)),
+	RECEPTIONIST(combine(BASIC, EnumSet.of(READ_PAYMENTS, READ_LISTS))),
 
 	EMPLOYEE(combine(RECEPTIONIST, EnumSet.of(READ_INCOME_TRANSACTIONS, READ_EXPENSE_TRANSACTIONS, READ_INSTRUCTORS, READ_DISCOUNTS, VIEW_STATS))),
 
-	MANAGER(combine(EMPLOYEE, EnumSet.of(MODIFY_DISCOUNTS, MODIFY_LISTS, CLOSE_LISTS, MODIFY_PAYMENTS, MODIFY_GROUPS, MODIFY_INCOME_TRANSACTIONS, MODIFY_EXPENSE_TRANSACTIONS, MODIFY_INSTRUCTORS, MODIFY_PERSONS, MODIFY_FAMILIES))),
+	MANAGER(combine(EMPLOYEE, EnumSet.of(MODIFY_DISCOUNTS, MODIFY_LISTS, CLOSE_LISTS, MODIFY_PAYMENTS, MODIFY_GROUPS, MODIFY_INCOME_TRANSACTIONS, MODIFY_EXPENSE_TRANSACTIONS, MODIFY_INSTRUCTORS, MODIFY_PERSONS, MODIFY_FAMILIES, SEND_SMS, READ_SMS))),
 
 	ADMIN(EnumSet.allOf(Permission.class));
 
 
 	private final Set<Permission> permissions;
 
+
 	Role(Set<Permission> permissions) {
 		this.permissions = Collections.unmodifiableSet(permissions);
 	}
 
+
 	public Set<Permission> getPermissions() {
 		return permissions;
 	}
+
 
 	private static Set<Permission> combine(Role baseRole, Set<Permission> additional) {
 		Set<Permission> combined = EnumSet.noneOf(Permission.class);

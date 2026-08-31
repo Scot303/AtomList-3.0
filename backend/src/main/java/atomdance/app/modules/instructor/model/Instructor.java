@@ -31,6 +31,11 @@ public class Instructor {
 	@Column(length = 64)
 	private String contractNumber;
 
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 16, columnDefinition = "varchar(16) default 'OPEN'")
+	@Builder.Default
+	private ContractType contractType = ContractType.OPEN;
+
 	@Column(name = "is_active", nullable = false)
 	@Builder.Default
 	private boolean isActive = true;
@@ -41,12 +46,14 @@ public class Instructor {
 	@Column(nullable = false)
 	private Instant createdAt;
 
+
 	@PrePersist
 	void onCreate() {
 		if (createdAt == null) {
 			createdAt = Instant.now();
 		}
 	}
+
 
 	public String getFullName() {
 		return name + " " + lastName;

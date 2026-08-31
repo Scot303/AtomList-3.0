@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
+
 /**
  * Issues and redeems the one-time codes that stand in for passwords.
  */
@@ -47,10 +48,12 @@ public class LoginCodeService {
 	 */
 	private String decoyHash;
 
+
 	@PostConstruct
 	void prepareDecoyHash() {
 		decoyHash = passwordEncoder.encode(UUID.randomUUID().toString());
 	}
+
 
 	/**
 	 * Emails a code, or quietly does nothing.
@@ -98,6 +101,7 @@ public class LoginCodeService {
 
 		issueCode(user, now);
 	}
+
 
 	/**
 	 * Redeems a code and hands back the account it belongs to.
@@ -165,7 +169,8 @@ public class LoginCodeService {
 		return user;
 	}
 
-	@Scheduled(cron = "0 20 3 * * *", zone = "${app.time-zone}")
+
+	@Scheduled(cron = "0 20 2 * * *", zone = "UTC")
 	@Transactional
 	public void purgeExpiredCodes() {
 		int deleted = repository.deleteExpiredBefore(Instant.now());
@@ -174,6 +179,7 @@ public class LoginCodeService {
 			log.info("Purged {} expired login code(s)", deleted);
 		}
 	}
+
 
 	private void issueCode(User user, Instant now) {
 		repository.consumeAllForUser(user.getId(), now);
@@ -198,9 +204,11 @@ public class LoginCodeService {
 		log.info("Issued a login code for account {}", user.getId());
 	}
 
+
 	private void wasteTimeMatching(String code) {
 		passwordEncoder.matches(code, decoyHash);
 	}
+
 
 	public static String normalizeIdentifier(String identifier) {
 		return identifier == null ? "" : identifier.trim().toLowerCase(Locale.ROOT);

@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BulkSendRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bulkType",
+    "bulkVariant",
+    "name",
+    "sendDate"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable bulk name visible in the panel and reports"
+    },
+    "bulkType": {
+      "type": "string",
+      "description": "Sending mode:\n- STANDARD uses common 'message'\n- PERSONALIZED uses per-recipient 'content'\n- PARAMETRIZED is reserved for advanced templates.\n",
+      "enum": [
+        "STANDARD",
+        "PERSONALIZED",
+        "PARAMETRIZED"
+      ]
+    },
+    "bulkVariant": {
+      "type": "string",
+      "description": "Allowed variants for partners: ECO, FULL, PRO, INTER, VOICE.\nUI mapping: BASIC → ECO, DYNAMIC → FULL, UNIQUE → PRO, INTERNATIONAL → INTER, VOICE → VOICE.\n",
+      "enum": [
+        "ECO",
+        "FULL",
+        "PRO",
+        "ECO_RESP",
+        "PRO_RESP",
+        "TEST",
+        "INTER",
+        "VOICE",
+        "RCS"
+      ]
+    },
+    "bulkPriority": {
+      "type": "string",
+      "description": "Priority of processing. NORMAL by default; ALERT prioritizes sending (requires administrator permission).",
+      "enum": [
+        "NORMAL",
+        "ALERT"
+      ],
+      "default": "NORMAL"
+    },
+    "sender": {
+      "type": "string",
+      "description": "Sender name. For some variants alias may be normalized depending on route. Nullable for platforms that do not require sender (e.g. FR).",
+      "nullable": true
+    },
+    "message": {
+      "type": "string",
+      "description": "Message body used for STANDARD bulks. For PERSONALIZED/PARAMETRIZED, use recipients[].content.",
+      "nullable": true
+    },
+    "groupIds": {
+      "type": "array",
+      "description": "Optional identifiers of predefined recipients groups. When provided, recipients from these groups will be merged with 'recipients' list.",
+      "nullable": true,
+      "items": {
+        "type": "integer",
+        "description": "Optional identifiers of predefined recipients groups. When provided, recipients from these groups will be merged with 'recipients' list.",
+        "format": "int64",
+        "nullable": true
+      }
+    },
+    "sendDate": {
+      "type": "string",
+      "description": "Planned sending time in ISO 8601 with timezone,\ne.g. 2026-06-10T10:00:00+02:00\n",
+      "format": "date-time"
+    },
+    "sendEndDate": {
+      "type": "string",
+      "description": "Optional end of sending window in ISO 8601 with timezone. If provided earlier than sendDate + configured minimum interval, it will be normalized to that minimum.",
+      "format": "date-time",
+      "nullable": true
+    },
+    "recipients": {
+      "type": "array",
+      "description": "List of recipients.\nFor PERSONALIZED/PARAMETRIZED, provide content per recipient (recipients[].content).\n",
+      "items": {
+        "$ref": "restRecipient.json"
+      }
+    }
+  }
+}

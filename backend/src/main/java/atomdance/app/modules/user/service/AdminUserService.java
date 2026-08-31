@@ -3,7 +3,6 @@ package atomdance.app.modules.user.service;
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NameTakenException;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.user.dto.AdminUserView;
 import atomdance.app.modules.user.dto.CreateUserRequest;
@@ -15,16 +14,13 @@ import atomdance.app.modules.user.model.User;
 import atomdance.app.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
 
 /**
  * Account administration. Everything here is reachable only with {@code MANAGE_USERS}.
@@ -41,23 +37,28 @@ public class AdminUserService {
 	private final SecurityService securityService;
 	private final AuditLogger auditLogger;
 
+	private static final Sort BY_USERNAME = Sort.by("username");
+
 
 	private User getUserOrThrow(UUID id) {
 		return userRepository.findByIdWithPermissions(id)
 				.orElseThrow(() -> new UserNotFoundException(id.toString()));
 	}
 
+
 	@Transactional(readOnly = true)
-	public Page<AdminUserView> list(Pageable pageable) {
+	public List<AdminUserView> getAll() {
 		Instant now = Instant.now();
 
-		return userRepository.findAll(pageable).map(user -> AdminUserView.from(user, now));
+		return userRepository.findAll(BY_USERNAME).stream().map(user -> AdminUserView.from(user, now)).toList();
 	}
+
 
 	@Transactional(readOnly = true)
 	public AdminUserView get(UUID id) {
 		return AdminUserView.from(getUserOrThrow(id), Instant.now());
 	}
+
 
 	/**
 	 * Creates an account and mails the verification link that brings it to life.
@@ -85,11 +86,11 @@ public class AdminUserService {
 
 		emailVerificationService.issue(user);
 
-		log.info("Created account {} ({}) with role {}", user.getId(), user.getUsername(), user.getRole());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_CREATION, AuditOutcome.SUCCESS, String.format("Account %s has been created with a role %s.", user.getUsername(), user.getRole()));
+		auditLogger.success(AuditEventType.USER_CREATION, user.getId(), "Account %s has been created with a role %s.", user.getUsername(), user.getRole());
 
 		return AdminUserView.from(user, Instant.now());
 	}
+
 
 	/**
 	 * Partial update - a {@code null} field is left alone.
@@ -99,6 +100,10 @@ public class AdminUserService {
 		User user = getUserOrThrow(id);
 		boolean revokeSessions = false;
 
+		if (request.username() != null) {
+			revokeSessions |= changeUsername(user, request.username());
+		}
+
 		if (request.email() != null) {
 			revokeSessions |= changeEmail(user, request.email());
 		}
@@ -107,8 +112,7 @@ public class AdminUserService {
 			guardSelfEdit(user, "error.cannot_change_own_role");
 			guardLastAdmin(user, request.role(), user.isActive());
 
-			log.info("Changing the role on account {} from {} to {}", user.getId(), user.getRole(), request.role());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's role changed to %s.", request.role()));
+			auditLogger.success(AuditEventType.USER_MANAGEMENT, user.getId(), "Account's role changed from %s to %s.", user.getRole(), request.role());
 
 			user.setRole(request.role());
 			revokeSessions = true;
@@ -117,8 +121,7 @@ public class AdminUserService {
 		if (request.additionalPermissions() != null) {
 			guardSelfEdit(user, "error.cannot_change_own_permissions");
 
-			log.info("Changed the additional permissions on account {} from {} to {}", user.getId(), user.getAdditionalPermissions(), request.additionalPermissions());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's additional permissions changed to %s.", request.additionalPermissions()));
+			auditLogger.success(AuditEventType.USER_MANAGEMENT, user.getId(), "Account's additional permissions changed from %s to %s.", user.getAdditionalPermissions(), request.additionalPermissions());
 
 			user.setAdditionalPermissions(copyOf(request.additionalPermissions()));
 			revokeSessions = true;
@@ -130,8 +133,7 @@ public class AdminUserService {
 				guardLastAdmin(user, user.getRole(), false);
 			}
 
-			log.info("Changed isActive status on account {} from {} to {}", user.getId(), user.isActive(), request.active());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's isActive status changed to %s.", request.active()));
+			auditLogger.success(AuditEventType.USER_MANAGEMENT, user.getId(), "Account's isActive status changed from %s to %s.", user.isActive(), request.active());
 
 			user.setActive(request.active());
 			revokeSessions = true;
@@ -144,6 +146,7 @@ public class AdminUserService {
 		return AdminUserView.from(user, Instant.now());
 	}
 
+
 	/**
 	 * Ends a lockout early.
 	 */
@@ -153,11 +156,11 @@ public class AdminUserService {
 
 		accountLockService.reset(user);
 
-		log.info("Account manually {} unlocked by {}", user.getId(), securityService.getCurrentUsername());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, "Account manually unlocked before time limit.");
+		auditLogger.success(AuditEventType.USER_MANAGEMENT, user.getId(), "Account manually unlocked before the time limit.");
 
 		return AdminUserView.from(user, Instant.now());
 	}
+
 
 	/**
 	 * Sends a fresh verification link, ignoring the resend cooldown.
@@ -170,10 +173,11 @@ public class AdminUserService {
 			throw new InvalidOperationException("error.email_already_verified");
 		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.EMAIL_VERIFICATION, AuditOutcome.SUCCESS, "New verification link resent.");
+		auditLogger.success(AuditEventType.EMAIL_VERIFICATION, user.getId(), "New verification link resent.");
 
 		emailVerificationService.issue(user);
 	}
+
 
 	/**
 	 * Signs somebody out everywhere, without touching anything else about their account.
@@ -184,10 +188,30 @@ public class AdminUserService {
 
 		refreshTokenService.revokeAllForUser(user.getId());
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, "Ended every session for account.");
+		auditLogger.success(AuditEventType.USER_MANAGEMENT, user.getId(), "Ended every session for account.");
 
 		log.info("Ended every session for account {} at the request of {}", user.getId(), securityService.getCurrentUsername());
 	}
+
+
+	private boolean changeUsername(User user, String requested) {
+		String username = requested.trim();
+
+		if (username.equals(user.getUsername())) {
+			return false;
+		}
+
+		if (userRepository.existsByUsernameIgnoreCase(username)) {
+			throw new NameTakenException("entity.user");
+		}
+
+		auditLogger.success(AuditEventType.USER_MANAGEMENT, user.getId(), "Account's username changed from %s to %s.", user.getUsername(), username);
+
+		user.setUsername(username);
+
+		return true;
+	}
+
 
 	/**
 	 * @return whether the address actually changed
@@ -203,8 +227,7 @@ public class AdminUserService {
 			throw new NameTakenException("entity.user");
 		}
 
-		log.info("Changing the address on account {} - it must be verified again before sign-in works", user.getId());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), user.getId(), AuditEventType.USER_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Account's address email changed to %s.", email));
+		auditLogger.success(AuditEventType.USER_MANAGEMENT, user.getId(), "Account's email address changed from %s to %s; it must be verified again before sign-in works.", redact(user.getEmail()), redact(email));
 
 		user.setEmail(email);
 		user.setEmailVerified(false);
@@ -214,11 +237,13 @@ public class AdminUserService {
 		return true;
 	}
 
+
 	private void guardSelfEdit(User target, String messageKey) {
 		if (target.getId().equals(securityService.getCurrentUserId())) {
 			throw new InvalidOperationException(messageKey);
 		}
 	}
+
 
 	/**
 	 * Refuses any edit that would leave nobody able to administer the system.
@@ -236,11 +261,19 @@ public class AdminUserService {
 		}
 	}
 
+
 	private static Set<Permission> copyOf(Set<Permission> permissions) {
 		if (permissions == null || permissions.isEmpty()) {
 			return new HashSet<>();
 		}
 
 		return new HashSet<>(EnumSet.copyOf(permissions));
+	}
+
+
+	private static String redact(String email) {
+		int at = email.indexOf('@');
+
+		return at <= 1 ? "***" : email.charAt(0) + "***" + email.substring(at);
 	}
 }

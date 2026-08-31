@@ -2,6 +2,8 @@ package atomdance.app.common.utils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 public final class Money {
 
@@ -12,6 +14,14 @@ public final class Money {
 	public static final BigDecimal ZERO = normalize(BigDecimal.ZERO);
 
 	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
+
+	private static final DecimalFormat FORMATTER;
+
+	static {
+		DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+		symbols.setDecimalSeparator(',');
+		FORMATTER = new DecimalFormat("0.00", symbols);
+	}
 
 	private Money() {
 	}
@@ -42,6 +52,10 @@ public final class Money {
 		}
 
 		return normalize(orZero(amount).multiply(orZero(percent)).divide(HUNDRED, SCALE, ROUNDING));
+	}
+
+	public static String format(BigDecimal amount) {
+		return FORMATTER.format(amount);
 	}
 
 	public static boolean isZero(BigDecimal amount) {

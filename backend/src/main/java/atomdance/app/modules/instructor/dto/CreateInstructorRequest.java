@@ -1,9 +1,11 @@
 package atomdance.app.modules.instructor.dto;
 
+import atomdance.app.modules.instructor.model.ContractType;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 
 public record CreateInstructorRequest(
 
@@ -24,6 +26,8 @@ public record CreateInstructorRequest(
 
 		@Size(max = 64, message = "Contract number is too long")
 		String contractNumber,
+
+		ContractType contractType,
 
 		Boolean active,
 

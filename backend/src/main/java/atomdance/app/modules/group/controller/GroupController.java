@@ -6,14 +6,11 @@ import atomdance.app.modules.group.dto.UpdateGroupRequest;
 import atomdance.app.modules.group.service.GroupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,8 +22,8 @@ public class GroupController {
 
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_GROUPS')")
-	public PagedModel<GroupView> getAll(@RequestParam(required = false) String search, @RequestParam(defaultValue = "false") boolean activeOnly, @PageableDefault(size = 100, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-		return new PagedModel<>(groupService.getAll(search, activeOnly, pageable));
+	public List<GroupView> getAll() {
+		return groupService.getAll();
 	}
 
 	@GetMapping("/{id}")

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+
+<html lang="pl-PL">
+    <head>
+        <meta charset="UTF-8">
+        <title>Group attendance list</title>
+        <style>
+            body {
+                font-family: "Arial Unicode MS", serif;
+                font-size: 9pt;
+            }
+            @page {
+                size: A4;
+                margin: 4cm 0.5cm 2cm;
+
+                @top-center {
+                    content: element(headerStream);
+                    width: 100%;
+                }
+
+                @bottom-right {
+                    content: "Strona " counter(page) " z " counter(pages);
+                    font-family: "Arial Unicode MS", sans-serif;
+                    font-size: 9pt;
+                    color: #555555;
+                }
+            }
+            #document-header {
+                position: running(headerStream);
+                width: 100%;
+            }
+
+            h1 {
+                text-align: center;
+            }
+
+            th, td {
+                border: 1px solid #aaa;
+                padding: 8px;
+            }
+
+
+            .attendance {
+                width: 100%;
+                border-collapse: collapse;
+                -fs-table-paginate: paginate;
+            }
+
+            .attendance th.corner {
+                border: none;
+                background: transparent;
+                text-align: right;
+                font-weight: normal;
+            }
+
+            .attendance th.header {
+                width: 5%;
+                text-align: center;
+                background-color: transparent;
+                padding-top: 50px;
+                padding-bottom: 50px;
+            }
+
+            .attendance td.iterator-column {
+                text-align: left;
+                width: 2%;
+            }
+
+            .attendance td.name-column {
+                text-align: left;
+                width: 35%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="document-header">
+            <h1>Lista obecności</h1>
+            <p style="font-size: 16px;"><strong>Grupa: </strong><span th:text="${groupName}"></span></p>
+            <p style="margin-top: -15px; font-size: 16px;"><strong>Data wygenerowania: </strong><span th:text="${genDate}"></span></p>
+        </div>
+
+        <table class="attendance" style="border-collapse: collapse">
+            <thead>
+                <tr>
+                    <th class="corner"></th>
+                    <th class="corner">Data:</th>
+                    <th class="header" th:each="i : ${sessions}"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="name, iStat : ${names}">
+                    <td class="iterator-column" th:text="${iStat.count} + '.'"></td>
+                    <td class="name-column" th:text="${name}"></td>
+                    <td th:each="i : ${sessions}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.UUID;
 
+
 public record CreatePersonRequest(
 
 		@NotBlank(message = "First name is required")
@@ -30,9 +31,13 @@ public record CreatePersonRequest(
 
 		LocalDate joinedStudioAt,
 
-		Boolean active,
+		LocalDate joinedClubDate,
+
+		LocalDate leftClubDate,
 
 		Boolean contractSigned,
+
+		Boolean studentDiscount,
 
 		UUID familyId,
 

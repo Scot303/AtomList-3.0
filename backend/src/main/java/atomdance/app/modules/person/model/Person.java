@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.Locale;
 import java.util.UUID;
 
+
 @Entity
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "persons",
@@ -42,6 +43,10 @@ public class Person {
 	@Column(nullable = false)
 	private LocalDate joinedStudioAt;
 
+	private LocalDate joinedClubDate;
+
+	private LocalDate leftClubDate;
+
 	@Column(name = "is_active", nullable = false)
 	@Builder.Default
 	private boolean isActive = true;
@@ -49,6 +54,10 @@ public class Person {
 	@Column(name = "is_contract_signed", nullable = false)
 	@Builder.Default
 	private boolean isContractSigned = false;
+
+	@Column(name = "student_discount", nullable = false, columnDefinition = "boolean default false")
+	@Builder.Default
+	private boolean studentDiscount = false;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "family_id")
@@ -60,12 +69,14 @@ public class Person {
 	@Column(nullable = false)
 	private Instant createdAt;
 
+
 	@PrePersist
 	void onCreate() {
 		if (createdAt == null) {
 			createdAt = Instant.now();
 		}
 	}
+
 
 	public String getEffectivePhone() {
 		if (phone != null && !phone.isBlank()) {
@@ -75,9 +86,11 @@ public class Person {
 		return family == null ? null : family.getPhone();
 	}
 
+
 	public String getFullName() {
 		return name + " " + lastName;
 	}
+
 
 	public static String normalizePhone(String phone) {
 		if (phone == null) {
@@ -88,6 +101,7 @@ public class Person {
 
 		return stripped.isEmpty() ? null : stripped;
 	}
+
 
 	public static String normalizeEmail(String email) {
 		if (email == null) {

@@ -1,0 +1,5 @@
+@import '@fontsource-variable/inter';
+@import 'tailwindcss';
+
+@import './theme.css';
+@import './toast.css';

@@ -4,6 +4,7 @@ import atomdance.app.common.exception.ErrorResponseWriter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,16 +84,18 @@ public class RateLimitFilter extends OncePerRequestFilter {
 	}
 
 	String resolveClientIp(HttpServletRequest request) {
+		HttpServletRequest raw = unwrap(request);
+
 		int trustedHops = properties.getTrustedProxyCount();
 
 		if (trustedHops <= 0) {
-			return request.getRemoteAddr();
+			return raw.getRemoteAddr();
 		}
 
-		String forwarded = request.getHeader("X-Forwarded-For");
+		String forwarded = raw.getHeader("X-Forwarded-For");
 
 		if (forwarded == null || forwarded.isBlank()) {
-			return request.getRemoteAddr();
+			return raw.getRemoteAddr();
 		}
 
 		String[] entries = forwarded.split(",");
@@ -104,7 +107,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
 		String candidate = entries[index].trim();
 
-		return candidate.isEmpty() ? request.getRemoteAddr() : candidate;
+		return candidate.isEmpty() ? raw.getRemoteAddr() : candidate;
+	}
+
+	/**
+	 * The request as the container built it, before any filter wrapped it.
+	 */
+	private static HttpServletRequest unwrap(HttpServletRequest request) {
+		HttpServletRequest current = request;
+
+		while (current instanceof HttpServletRequestWrapper wrapper && wrapper.getRequest() instanceof HttpServletRequest inner && inner != current) {
+			current = inner;
+		}
+
+		return current;
 	}
 
 	private void writeTooManyRequests(HttpServletRequest request, HttpServletResponse response, long retryAfterSeconds) throws IOException {

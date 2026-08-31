@@ -1,7 +1,6 @@
 package atomdance.app.modules.audit.service;
 
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.repository.AuditEventRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +16,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+
 /**
  * Drops audit events once they pass the retention period for their type.
  */
@@ -25,9 +25,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AuditRetentionService {
 
-	private static final Duration FINANCIAL_RETENTION = Duration.ofDays(5 * 365);
-	private static final Duration BUSINESS_RECORD_RETENTION = Duration.ofDays(365);
-	private static final Duration DEFAULT_RETENTION = Duration.ofDays(90);
+	private static final Duration FINANCIAL_RETENTION = Duration.ofDays(365L * 5);
+	private static final Duration BUSINESS_RECORD_RETENTION = Duration.ofDays(365L);
+	private static final Duration DEFAULT_RETENTION = Duration.ofDays(90L);
 
 	/**
 	 * How long each kind of event is kept.
@@ -49,6 +49,10 @@ public class AuditRetentionService {
 			Map.entry(AuditEventType.LIST_PREVIEW, DEFAULT_RETENTION),
 			Map.entry(AuditEventType.PAYMENT_PREVIEW, DEFAULT_RETENTION),
 			Map.entry(AuditEventType.TRANSACTION_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.SMS_CREATION, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.SMS_SEND, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.SMS_PREVIEW, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.ATTENDANCE_PDF_CREATION, DEFAULT_RETENTION),
 
 			Map.entry(AuditEventType.PERSON_MANAGEMENT, BUSINESS_RECORD_RETENTION),
 			Map.entry(AuditEventType.FAMILY_MANAGEMENT, BUSINESS_RECORD_RETENTION),
@@ -65,6 +69,7 @@ public class AuditRetentionService {
 	private final AuditEventRepository repository;
 	private final AuditLogger auditLogger;
 
+
 	@PostConstruct
 	void warnAboutUnmappedTypes() {
 		Set<AuditEventType> unmapped = EnumSet.allOf(AuditEventType.class);
@@ -75,7 +80,8 @@ public class AuditRetentionService {
 		}
 	}
 
-	@Scheduled(cron = "0 30 3 * * *", zone = "${app.time-zone}")
+
+	@Scheduled(cron = "0 30 2 * * *", zone = "UTC")
 	@Transactional
 	public void purgeExpiredEvents() {
 		Instant now = Instant.now();
@@ -86,16 +92,14 @@ public class AuditRetentionService {
 			int deleted = repository.deleteByTypeOccurredBefore(type, now.minus(retention));
 
 			if (deleted > 0) {
-				log.debug("Purged {} {} event(s) older than {} days", deleted, type, retention.toDays());
-				auditLogger.recordOnCommit(null, AuditEventType.SYSTEM_CLEANUP, AuditOutcome.SUCCESS, String.format("Purged %d %s event(s) older than %d days.", deleted, type, retention.toDays()));
+				auditLogger.systemSuccess(AuditEventType.SYSTEM_CLEANUP, null, "Purged %d %s event(s) older than %d days.", deleted, type, retention.toDays());
 
 				total += deleted;
 			}
 		}
 
 		if (total > 0) {
-			log.info("Purged {} expired audit event(s) in total", total);
-			auditLogger.recordOnCommit(null, AuditEventType.SYSTEM_CLEANUP, AuditOutcome.SUCCESS, String.format("Purged %d expired audit event(s) in total.", total));
+			auditLogger.systemSuccess(AuditEventType.SYSTEM_CLEANUP, null, "Purged %d expired audit event(s) in total.", total);
 		}
 	}
 }

@@ -1,0 +1,121 @@
+import type { ReactNode } from 'react';
+import type { AppColumnDef } from '@/components/dataTable';
+import { CellPlaceholder } from '@/components/dataTable/cells/CellPlaceholder.tsx';
+import type { TagOption } from '@/components/ui/tags';
+import { TagBadgeList, TagBadgeOf } from '@/components/ui/tags';
+import { GROUP_TYPE_OPTIONS } from '@/modules/groups/types/groupRows.ts';
+import { ACTIVE_TAG_OPTIONS, ACTIVE_TAGS } from '@/types/rowTags.ts';
+import { formatAge, formatShortDate } from '../utils/personFormat';
+import type { PersonRow } from './personRows.ts';
+
+
+/**
+ * The persons table's columns.
+ */
+export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<PersonRow>[] {
+	return [
+		{
+			accessorKey: 'name',
+			header: 'Imię',
+			fieldType: 'text',
+			size: 160,
+			meta: {
+				editable: true,
+				globalSearch: true
+			},
+		},
+		{
+			accessorKey: 'lastName',
+			header: 'Nazwisko',
+			fieldType: 'text',
+			size: 180,
+			meta: {
+				editable: true,
+				globalSearch: true
+			},
+		},
+		{
+			accessorKey: 'dateOfBirth',
+			header: 'Wiek',
+			fieldType: 'date',
+			size: 200,
+			meta: {
+				editable: true,
+				displayFormatter: (value) => formatAge(value == null ? '' : String(value)),
+				// Both halves of "23 lata · 12.03.2002" are matched, through the formatter.
+				globalSearch: true,
+			},
+		},
+		{
+			accessorKey: 'contractSigned',
+			header: 'Umowa',
+			fieldType: 'boolean',
+			size: 110,
+			meta: { editable: true },
+		},
+		{
+			accessorKey: 'studentDiscount',
+			header: 'Student',
+			fieldType: 'boolean',
+			size: 110,
+			meta: { editable: true },
+		},
+		{
+			accessorKey: 'groupIds',
+			header: 'Grupy',
+			fieldType: 'tag',
+			size: 320,
+			meta: {
+				multiTag: true,
+				tagOptions: groupOptions,
+				globalSearch: true,
+			},
+			cell: ({ getValue }) => <TagBadgeList ids={ getValue<string[]>() } options={ groupOptions }/>,
+		},
+		{
+			accessorKey: 'groupTypes',
+			header: 'Rodzaj',
+			fieldType: 'tag',
+			size: 220,
+			meta: { multiTag: true, tagOptions: GROUP_TYPE_OPTIONS, globalSearch: false },
+			cell: ({ getValue }) => <TagBadgeList ids={ getValue<string[]>() } options={ GROUP_TYPE_OPTIONS }/>,
+		},
+		{
+			accessorKey: 'activeTag',
+			header: 'Status Osoby',
+			fieldType: 'tag',
+			size: 160,
+			meta: { editable: true, groupable: true, tagOptions: ACTIVE_TAG_OPTIONS, globalSearch: true },
+			cell: ({ row }) => <TagBadgeOf tag={ ACTIVE_TAGS[row.original.activeTag] }/>,
+		},
+		{
+			accessorKey: 'joinedClubDate',
+			header: 'Dołączenie do klubu',
+			fieldType: 'date',
+			size: 190,
+			meta: {
+				displayFormatter: (value) => formatShortDate(value == null ? '' : String(value)),
+				globalSearch: true,
+			},
+			cell: ({ getValue }) => renderClubDate(getValue<string>()),
+		},
+		{
+			accessorKey: 'leftClubDate',
+			header: 'Odejście z klubu',
+			fieldType: 'date',
+			size: 190,
+			meta: {
+				displayFormatter: (value) => formatShortDate(value == null ? '' : String(value)),
+				globalSearch: true,
+			},
+			cell: ({ getValue }) => renderClubDate(getValue<string>()),
+		}
+	];
+}
+
+
+function renderClubDate(value: string): ReactNode {
+	const display = formatShortDate(value);
+
+	return display === '' ? <CellPlaceholder/> : display;
+}

@@ -15,17 +15,20 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+
 @RestController
 @RequiredArgsConstructor
 public class MembershipController {
 
 	private final MembershipService membershipService;
 
+
 	@GetMapping("/api/persons/{personId}/memberships")
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
 	public List<MembershipView> listForPerson(@PathVariable UUID personId) {
 		return membershipService.getAllForPerson(personId);
 	}
+
 
 	@PostMapping("/api/persons/{personId}/memberships")
 	@ResponseStatus(HttpStatus.CREATED)
@@ -34,14 +37,13 @@ public class MembershipController {
 		return membershipService.create(personId, request);
 	}
 
-	/**
-	 * Changing a cost here shifts the family discount order, so recalculate any open list afterwards.
-	 */
+
 	@PatchMapping("/api/memberships/{id}")
 	@PreAuthorize("hasAuthority('MODIFY_PERSONS')")
 	public MembershipView update(@PathVariable UUID id, @RequestBody @Valid UpdateMembershipRequest request) {
 		return membershipService.update(id, request);
 	}
+
 
 	/**
 	 * Ends the membership without removing it, so past lists keep explaining their own figures.
@@ -51,6 +53,7 @@ public class MembershipController {
 	public MembershipView leave(@PathVariable UUID id, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate leftAt) {
 		return membershipService.leave(id, leftAt);
 	}
+
 
 	@DeleteMapping("/api/memberships/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)

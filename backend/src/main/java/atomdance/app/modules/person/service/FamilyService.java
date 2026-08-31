@@ -2,36 +2,32 @@ package atomdance.app.modules.person.service;
 
 import atomdance.app.common.exception.InvalidOperationException;
 import atomdance.app.common.exception.NotFoundException;
-import atomdance.app.common.utils.SearchPatterns;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.person.dto.CreateFamilyRequest;
+import atomdance.app.modules.finance.paymentList.service.PaymentListService;
+import atomdance.app.modules.person.dto.CreateUpdateFamilyRequest;
+import atomdance.app.modules.person.dto.FamilyMemberView;
 import atomdance.app.modules.person.dto.FamilyView;
-import atomdance.app.modules.person.dto.UpdateFamilyRequest;
 import atomdance.app.modules.person.model.Family;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.FamilyRepository;
 import atomdance.app.modules.person.repository.PersonRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Slf4j
+
 @Service
 @RequiredArgsConstructor
 public class FamilyService {
 
 	private final FamilyRepository familyRepository;
 	private final PersonRepository personRepository;
-	private final SecurityService securityService;
+	private final PaymentListService paymentListService;
+	private final PersonService personService;
 	private final AuditLogger auditLogger;
 
 
@@ -42,93 +38,88 @@ public class FamilyService {
 
 
 	@Transactional(readOnly = true)
-	public Page<FamilyView> getAll(String search, Pageable pageable) {
-		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.FAMILY_PREVIEW, AuditOutcome.SUCCESS, "Previewed all families.");
-		return familyRepository.search(SearchPatterns.contains(search), pageable).map(FamilyView::from);
+	public List<FamilyView> getAll() {
+		return toViews(familyRepository.findAllWithPersons());
 	}
 
 
 	@Transactional(readOnly = true)
 	public FamilyView get(UUID id) {
-		auditLogger.record(securityService.getCurrentUserId(), id, AuditEventType.FAMILY_PREVIEW, AuditOutcome.SUCCESS, "Previewed family data.");
-		return FamilyView.from(getOrThrow(id));
+		auditLogger.read(AuditEventType.FAMILY_PREVIEW, id, "Previewed family data.");
+		return toView(getOrThrow(id));
 	}
 
 
 	@Transactional
-	public FamilyView create(CreateFamilyRequest request) {
+	public FamilyView create(CreateUpdateFamilyRequest request) {
 		Family family = familyRepository.saveAndFlush(Family.builder()
 				.name(request.name().trim())
 				.phone(Person.normalizePhone(request.phone()))
-				.email(Person.normalizeEmail(request.email()))
 				.note(request.note())
 				.build());
 
-		if (request.memberIds() != null && !request.memberIds().isEmpty()) {
-			attach(family, request.memberIds());
-		}
+		auditLogger.success(AuditEventType.FAMILY_MANAGEMENT, family.getId(), "Family %s has been created.", family.getName());
 
-		log.info("Created family {} ({})", family.getId(), family.getName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Family %s has been created.", family.getName()));
-
-		return FamilyView.from(family);
+		return toView(family);
 	}
 
 
 	@Transactional
-	public FamilyView update(UUID id, UpdateFamilyRequest request) {
+	public FamilyView update(UUID id, CreateUpdateFamilyRequest request) {
 		Family family = getOrThrow(id);
 
-		if (request.name() != null) {
-			family.setName(request.name().trim());
-		}
+		family.setName(request.name().trim());
+		family.setPhone(Person.normalizePhone(request.phone()));
+		family.setNote(request.note());
 
-		if (request.phone() != null) {
-			family.setPhone(Person.normalizePhone(request.phone()));
-		}
+		auditLogger.success(AuditEventType.FAMILY_MANAGEMENT, family.getId(), "Family %s has been updated.", family.getName());
 
-		if (request.email() != null) {
-			family.setEmail(Person.normalizeEmail(request.email()));
-		}
-
-		if (request.note() != null) {
-			family.setNote(request.note());
-		}
-
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Family %s has been updated.", family.getName()));
-
-		return FamilyView.from(family);
+		return toView(family);
 	}
 
 
+	/**
+	 * Replaces the whole roster with {@code personIds}: anybody in the list joins, anybody currently in the family but absent from it leaves. An empty list therefore empties the family.
+	 * Both directions change the discount order for everybody involved, so every open list is rebuilt afterwards - see {@link PaymentListService#recalculateOpenStandardLists()}.
+	 */
 	@Transactional
-	public FamilyView addMembers(UUID id, List<UUID> personIds) {
+	public FamilyView setMembers(UUID id, List<UUID> personIds) {
 		Family family = getOrThrow(id);
 
-		attach(family, personIds);
+		Set<UUID> targetIds = new LinkedHashSet<>(personIds);
+		Set<UUID> currentIds = family.getPersons().stream().map(Person::getId).collect(Collectors.toCollection(LinkedHashSet::new));
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%d member(s) added to family %s.", personIds.size(), family.getName()));
+		List<Person> removed = family.getPersons().stream()
+				.filter(person -> !targetIds.contains(person.getId()))
+				.toList();
 
-		return FamilyView.from(family);
-	}
+		for (Person person : removed) {
+			family.removePerson(person);
+		}
 
+		List<UUID> addedIds = targetIds.stream().filter(personId -> !currentIds.contains(personId)).toList();
+		List<Person> added = addedIds.isEmpty() ? List.of() : personRepository.findAllByIdWithFamily(addedIds);
 
-	@Transactional
-	public FamilyView removeMember(UUID id, UUID personId) {
-		Family family = getOrThrow(id);
-		Person person = personRepository.findByIdWithFamily(personId)
-				.orElseThrow(() -> new NotFoundException("entity.person"));
-
-		if (person.getFamily() == null || !person.getFamily().getId().equals(family.getId())) {
+		if (added.size() != addedIds.size()) {
 			throw new NotFoundException("entity.person");
 		}
 
-		person.setFamily(null);
-		family.getPersons().removeIf(member -> member.getId().equals(personId));
+		for (Person person : added) {
+			family.addPerson(person);
+		}
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("%s removed from family %s.", person.getFullName(), family.getName()));
+		if (added.isEmpty() && removed.isEmpty()) {
+			return toView(family);
+		}
 
-		return FamilyView.from(family);
+		paymentListService.recalculateOpenStandardLists();
+
+		auditLogger.success(AuditEventType.FAMILY_MANAGEMENT, family.getId(), "Family %s roster updated: %s member(s) added, %s removed.",
+				family.getName(),
+				added.stream().map(Person::getFullName).toList(),
+				removed.stream().map(Person::getFullName).toList());
+
+		return toView(family);
 	}
 
 
@@ -142,26 +133,25 @@ public class FamilyService {
 
 		familyRepository.delete(family);
 
-		log.info("Deleted family {} ({})", family.getId(), family.getName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), family.getId(), AuditEventType.FAMILY_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Family %s has been deleted.", family.getName()));
+		auditLogger.success(AuditEventType.FAMILY_MANAGEMENT, family.getId(), "Family %s has been deleted.", family.getName());
 	}
 
-	/**
-	 * Moving somebody into a family changes the discount order for everybody already in it, so any open ist needs recalculating afterwards - {@code PaymentListService.recalculate}.
-	 */
-	private void attach(Family family, List<UUID> personIds) {
-		List<Person> persons = personRepository.findAllByIdWithFamily(personIds);
 
-		if (persons.size() != personIds.size()) {
-			throw new NotFoundException("entity.person");
-		}
+	private FamilyView toView(Family family) {
+		return toViews(List.of(family)).getFirst();
+	}
 
-		for (Person person : persons) {
-			person.setFamily(family);
 
-			if (family.getPersons().stream().noneMatch(member -> member.getId().equals(person.getId()))) {
-				family.getPersons().add(person);
-			}
-		}
+	private List<FamilyView> toViews(List<Family> families) {
+		List<UUID> personIds = families.stream()
+				.flatMap(family -> family.getPersons().stream())
+				.map(Person::getId)
+				.toList();
+
+		Map<UUID, Set<UUID>> groupIds = personService.activeGroupIdsOf(personIds);
+
+		return families.stream()
+				.map(family -> FamilyView.of(family, person -> FamilyMemberView.of(person, groupIds.getOrDefault(person.getId(), Set.of()))))
+				.toList();
 	}
 }

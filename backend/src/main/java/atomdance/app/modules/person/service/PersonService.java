@@ -2,10 +2,10 @@ package atomdance.app.modules.person.service;
 
 import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.AppClock;
-import atomdance.app.common.utils.SearchPatterns;
 import atomdance.app.modules.audit.model.AuditEventType;
-import atomdance.app.modules.audit.model.AuditOutcome;
 import atomdance.app.modules.audit.service.AuditLogger;
+import atomdance.app.modules.finance.paymentList.service.PaymentListService;
+import atomdance.app.modules.group.repository.MembershipRepository;
 import atomdance.app.modules.person.dto.CreatePersonRequest;
 import atomdance.app.modules.person.dto.PersonView;
 import atomdance.app.modules.person.dto.UpdatePersonRequest;
@@ -13,43 +13,52 @@ import atomdance.app.modules.person.model.Family;
 import atomdance.app.modules.person.model.Person;
 import atomdance.app.modules.person.repository.FamilyRepository;
 import atomdance.app.modules.person.repository.PersonRepository;
-import atomdance.app.modules.user.service.SecurityService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Slf4j
+
 @Service
 @RequiredArgsConstructor
 public class PersonService {
 
 	private final PersonRepository personRepository;
 	private final FamilyRepository familyRepository;
-	private final SecurityService securityService;
+	private final MembershipRepository membershipRepository;
+	private final PaymentListService paymentListService;
 	private final AuditLogger auditLogger;
 	private final AppClock clock;
+
 
 	public Person getOrThrow(UUID id) {
 		return personRepository.findByIdWithFamily(id)
 				.orElseThrow(() -> new NotFoundException("entity.person"));
 	}
 
+
 	@Transactional(readOnly = true)
-	public Page<PersonView> getAll(String search, boolean activeOnly, Pageable pageable) {
-		auditLogger.record(securityService.getCurrentUserId(), AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all persons.");
-		return personRepository.search(SearchPatterns.contains(search), activeOnly, pageable).map(PersonView::from);
+	public List<PersonView> getAll() {
+		List<Person> persons = personRepository.findAllWithFamily();
+
+		Map<UUID, Set<UUID>> groupIds = activeGroupIdsOf(persons.stream().map(Person::getId).toList());
+
+		return persons.stream()
+				.map(person -> PersonView.from(person, groupIds.getOrDefault(person.getId(), Set.of())))
+				.toList();
 	}
+
 
 	@Transactional(readOnly = true)
 	public PersonView get(UUID id) {
-		auditLogger.record(securityService.getCurrentUserId(), id, AuditEventType.PERSON_PREVIEW, AuditOutcome.SUCCESS, "Previewed all data of a person.");
-		return PersonView.from(getOrThrow(id));
+		Person person = getOrThrow(id);
+
+		auditLogger.read(AuditEventType.PERSON_PREVIEW, id, "Previewed all data of %s.", person.getFullName());
+		return toView(person);
 	}
+
 
 	@Transactional
 	public PersonView create(CreatePersonRequest request) {
@@ -60,25 +69,27 @@ public class PersonService {
 				.email(Person.normalizeEmail(request.email()))
 				.dateOfBirth(request.dateOfBirth())
 				.joinedStudioAt(request.joinedStudioAt() != null ? request.joinedStudioAt() : clock.today())
-				.isActive(request.active() == null || request.active())
+				.joinedClubDate(request.joinedClubDate())
+				.leftClubDate(request.leftClubDate())
 				.isContractSigned(request.contractSigned() != null && request.contractSigned())
-				.family(request.familyId() == null ? null : familyOrThrow(request.familyId()))
+				.studentDiscount(request.studentDiscount() != null && request.studentDiscount())
+				.family(request.familyId() == null ? null : getFamilyOrThrow(request.familyId()))
 				.note(request.note())
+				.isActive(true)
 				.build();
 
 		person = personRepository.saveAndFlush(person);
 
-		log.info("Created person {} ({})", person.getId(), person.getFullName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS,
-				String.format("Person %s has been created.", person.getFullName())
-		);
+		auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Person %s has been created.", person.getFullName());
 
 		return PersonView.from(person);
 	}
 
+
 	@Transactional
 	public PersonView update(UUID id, UpdatePersonRequest request) {
 		Person person = getOrThrow(id);
+		boolean repricesOthers = false;
 
 		if (request.name() != null) {
 			person.setName(request.name().trim());
@@ -89,6 +100,8 @@ public class PersonService {
 		}
 
 		if (request.phone() != null) {
+			auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Changed phone number on %s from %s to %s.", person.getFullName(), person.getPhone(), request.phone());
+
 			person.setPhone(Person.normalizePhone(request.phone()));
 		}
 
@@ -100,56 +113,116 @@ public class PersonService {
 			person.setDateOfBirth(request.dateOfBirth());
 		}
 
-		if (request.joinedStudioAt() != null) {
+		if (request.joinedStudioAt() != null && !request.joinedStudioAt().equals(person.getJoinedStudioAt())) {
 			person.setJoinedStudioAt(request.joinedStudioAt());
+			repricesOthers = true;
 		}
+
+		applyClubDates(person, request);
 
 		if (request.contractSigned() != null) {
 			person.setContractSigned(request.contractSigned());
 		}
 
-		if (request.active() != null && request.active() != person.isActive()) {
-			log.info("Changed isActive status on person {} from {} to {}", person.getId(), person.isActive(), request.active());
-			auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Status of %s has been changed.", person.getFullName()));
+		// Changes what this person is charged, so any open sheet holding them is now out of date.
+		if (request.studentDiscount() != null && request.studentDiscount() != person.isStudentDiscount()) {
+			auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Changed studentDiscount on %s from %s to %s", person.getFullName(), person.isStudentDiscount(), request.studentDiscount());
 
-			person.setActive(request.active());
+			person.setStudentDiscount(request.studentDiscount());
+			repricesOthers = true;
 		}
 
-		applyFamilyChange(person, request);
+		if (request.active() != null && request.active() != person.isActive()) {
+			auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Changed isActive status on %s from %s to %s.", person.getFullName(), person.isActive(), request.active());
 
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Person %s has been updated.", person.getFullName()));
+			person.setActive(request.active());
+			repricesOthers = true;
+		}
+
+		repricesOthers |= applyFamilyChange(person, request);
+
+		auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Person %s has been updated.", person.getFullName());
 
 		if (request.note() != null) {
 			person.setNote(request.note());
 		}
 
-		return PersonView.from(person);
-	}
+		if (repricesOthers) {
+			paymentListService.recalculateOpenStandardLists();
+		}
 
-	@Transactional
-	public void delete(UUID id) {
-		Person person = getOrThrow(id);
-
-		personRepository.delete(person);
-
-		log.info("Deleted person {} ({})", person.getId(), person.getFullName());
-		auditLogger.recordOnCommit(securityService.getCurrentUserId(), person.getId(), AuditEventType.PERSON_MANAGEMENT, AuditOutcome.SUCCESS, String.format("Person %s has been deleted.", person.getFullName()));
+		return toView(person);
 	}
 
 
-	private void applyFamilyChange(Person person, UpdatePersonRequest request) {
+	private PersonView toView(Person person) {
+		return PersonView.from(person, activeGroupIdsOf(List.of(person.getId())).getOrDefault(person.getId(), Set.of()));
+	}
+
+
+	/**
+	 * The groups each of these people is currently attending, in one query.
+	 */
+	public Map<UUID, Set<UUID>> activeGroupIdsOf(Collection<UUID> personIds) {
+		if (personIds.isEmpty()) {
+			return Map.of();
+		}
+
+		return membershipRepository.findActiveGroupIdsForPersons(personIds).stream()
+				.collect(Collectors.groupingBy(
+						MembershipRepository.PersonGroupId::getPersonId,
+						Collectors.mapping(MembershipRepository.PersonGroupId::getGroupId, Collectors.toCollection(LinkedHashSet::new))
+				));
+	}
+
+
+	private static void applyClubDates(Person person, UpdatePersonRequest request) {
+		if (Boolean.TRUE.equals(request.clearJoinedClubDate())) {
+			person.setJoinedClubDate(null);
+		} else if (request.joinedClubDate() != null) {
+			person.setJoinedClubDate(request.joinedClubDate());
+		}
+
+		if (Boolean.TRUE.equals(request.clearLeftClubDate())) {
+			person.setLeftClubDate(null);
+		} else if (request.leftClubDate() != null) {
+			person.setLeftClubDate(request.leftClubDate());
+		}
+	}
+
+
+	/**
+	 * @return whether the person actually changed household, rather than merely being sent the one they were already in.
+	 */
+	private boolean applyFamilyChange(Person person, UpdatePersonRequest request) {
 		if (Boolean.TRUE.equals(request.clearFamily())) {
+			if (person.getFamily() == null) {
+				return false;
+			}
+
 			person.setFamily(null);
 
-			return;
+			return true;
 		}
 
-		if (request.familyId() != null) {
-			person.setFamily(familyOrThrow(request.familyId()));
+		if (request.familyId() == null || isAlreadyInFamily(person, request.familyId())) {
+			return false;
 		}
+
+		auditLogger.success(AuditEventType.PERSON_MANAGEMENT, person.getId(), "Changed family on %s from %s to %s.", person.getFullName(), person.getFamily(), request.familyId());
+
+		person.setFamily(getFamilyOrThrow(request.familyId()));
+
+		return true;
 	}
 
-	private Family familyOrThrow(UUID familyId) {
+
+	private static boolean isAlreadyInFamily(Person person, UUID familyId) {
+		return person.getFamily() != null && familyId.equals(person.getFamily().getId());
+	}
+
+
+	private Family getFamilyOrThrow(UUID familyId) {
 		return familyRepository.findById(familyId)
 				.orElseThrow(() -> new NotFoundException("entity.family"));
 	}
