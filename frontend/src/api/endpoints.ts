@@ -48,6 +48,7 @@ const INSTRUCTORS = '/api/instructors';
 const DEPOSITS = '/api/deposits';
 const ATTENDANCE = '/api/attendance';
 const SMS = '/api/sms';
+const PRICE_QUOTES = '/api/price-quotes';
 
 
 /**
@@ -81,6 +82,14 @@ export const GROUP_ENDPOINTS = {
 	base: GROUPS,
 	byId: (id: string) => `${ GROUPS }/${ id }`,
 	attendanceList: (groupId: string) => `${ ATTENDANCE }/${ groupId }`,
+} as const;
+
+
+/**
+ * `READ_GROUPS`
+ */
+export const PRICE_QUOTE_ENDPOINTS = {
+	base: PRICE_QUOTES,
 } as const;
 
 
