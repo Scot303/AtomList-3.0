@@ -16,8 +16,7 @@ public record PriceQuoteRequest(
 
 		@NotEmpty(message = "At least one person is required")
 		@Size(max = 5, message = "A household of more than 5 people cannot be quoted")
-		@Valid
-		List<Member> members
+		List<@Valid Member> members
 ) {
 
 	/**
@@ -28,8 +27,7 @@ public record PriceQuoteRequest(
 
 			@NotNull(message = "The group selection is required")
 			@Size(max = 5, message = "More than 5 groups cannot be quoted for one person")
-			@Valid
-			List<Selection> groups,
+			List<@Valid Selection> groups,
 
 			boolean studentDiscount
 	) {}
