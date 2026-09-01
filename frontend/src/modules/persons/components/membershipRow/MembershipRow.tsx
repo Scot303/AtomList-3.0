@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { AlertTriangle, CalendarOff } from 'lucide-react';
 import { DateCellPicker } from '@/components/ui/fields/DateCellPicker.tsx';
 import { dateToISO, todayInTimeZone } from '@/utils/dateUtils.ts';
@@ -7,6 +8,7 @@ import { Tooltip } from '@/components/ui/tooltip/Tooltip.tsx';
 import { cn } from '@/lib/cn.ts';
 import { resolveGroupColor } from '@/modules/groups/types/groupRows.ts';
 import type { GroupView } from '@/modules/groups/types/types.ts';
+import { ROW_CARD_MOTION, ROW_MOTION } from './rowMotion.ts';
 import { useMembershipActions } from './useMembershipActions.ts';
 import type { MembershipView } from '../../types/types.ts';
 import { formatShortDate } from '../../utils/personFormat.ts';
@@ -31,25 +33,28 @@ export function MembershipRow(props: MembershipRowProps) {
 	const { busy, handleLeave, handleContextMenu } = useMembershipActions({ membership, personId, personName, canModify });
 
 	return (
-		<li
-			onContextMenu={ handleContextMenu }
-			className={ cn(
-				'styled-card rounded-2xl px-4 py-3 border-l-8 transition-colors will-change-transform',
-				membership.active ? 'border-l-os-green' : 'border-l-os-border opacity-60'
-			) }
-		>
-			<div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)_auto] lg:items-center lg:gap-5">
-				<GroupHeading membership={ membership } group={ group }/>
-
-				<MembershipCostControl membership={ membership } personId={ personId } canModify={ canModify }/>
-
-				{ canModify && membership.active && (
-					<div className="lg:justify-self-end">
-						<LeaveButton onLeave={ handleLeave } busy={ busy }/>
-					</div>
+		<motion.li { ...ROW_MOTION }>
+			<motion.div
+				{ ...ROW_CARD_MOTION }
+				onContextMenu={ handleContextMenu }
+				className={ cn(
+					'styled-card rounded-2xl px-4 py-3 border-l-8',
+					membership.active ? 'border-l-os-green' : 'border-l-os-border opacity-60'
 				) }
-			</div>
-		</li>
+			>
+				<div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)_auto] lg:items-center lg:gap-5">
+					<GroupHeading membership={ membership } group={ group }/>
+
+					<MembershipCostControl membership={ membership } personId={ personId } canModify={ canModify }/>
+
+					{ canModify && membership.active && (
+						<div className="lg:justify-self-end">
+							<LeaveButton onLeave={ handleLeave } busy={ busy }/>
+						</div>
+					) }
+				</div>
+			</motion.div>
+		</motion.li>
 	);
 }
 
@@ -113,7 +118,8 @@ function LeaveButton({ onLeave, busy }: { onLeave: (leftAt: string) => void; bus
 			onChange={ onLeave }
 			showIcon={ false }
 			className={ cn(
-				'w-auto justify-center gap-2 rounded-xl border border-os-border-highlight bg-os-surface/25 px-4 py-2 font-bold text-os-text-muted shadow-md transition-all will-change-transform',
+				'w-auto justify-center gap-2 rounded-xl border border-os-border-highlight bg-os-surface/25 px-4 py-2 font-bold text-os-text-muted shadow-md',
+				'transition-[background-color,color,opacity,scale]',
 				'hover:bg-os-border/15 hover:text-os-text active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-os-primary/40',
 				busy && 'pointer-events-none opacity-50',
 			) }
