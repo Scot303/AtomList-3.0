@@ -2,33 +2,61 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { paymentListKeys } from '@/modules/paymentLists/api/paymentListKeys.ts';
 import { createMembership, deleteMembership, leaveMembership, updateMembership } from '../../api/membershipsApi.ts';
 import { personKeys } from '../../api/personKeys.ts';
-import type { CreateMembershipPayload, UpdateMembershipPayload } from '../../types/types.ts';
+import { ROW_SETTLE_MS } from '../../components/membershipRow/rowMotion.ts';
+import type { CreateMembershipPayload, MembershipView, UpdateMembershipPayload } from '../../types/types.ts';
+
+
+/* ------------------ CACHE ------------------ */
+
+function byJoinedAtDesc(a: MembershipView, b: MembershipView): number {
+	return b.joinedAt.localeCompare(a.joinedAt);
+}
+
+
+function useMembershipCache(personId: string) {
+	const queryClient = useQueryClient();
+
+	return (apply: (current: MembershipView[]) => MembershipView[]) => {
+		queryClient.setQueryData<MembershipView[]>(
+			personKeys.memberships(personId),
+			(current) => ( current === undefined ? undefined : apply(current) ),
+		);
+	};
+}
 
 
 /* ------------------ INVALIDATE ------------------ */
 
-/** Everything a membership change touches. */
-function useMembershipInvalidation(personId: string) {
+/**
+ * Everything a membership change touches, refreshed once the row has stopped moving.
+ */
+function useMembershipInvalidation() {
 	const queryClient = useQueryClient();
 
-	return () =>
-		Promise.all([
-			queryClient.invalidateQueries({ queryKey: personKeys.memberships(personId) }),
-			queryClient.invalidateQueries({ queryKey: personKeys.list() }),
-			queryClient.invalidateQueries({ queryKey: paymentListKeys.all }),
-			queryClient.invalidateQueries({ queryKey: personKeys.discounts() }),
-		]);
+	return () => {
+		setTimeout(() => {
+			void queryClient.invalidateQueries({ queryKey: personKeys.list() });
+			void queryClient.invalidateQueries({ queryKey: paymentListKeys.all });
+			void queryClient.invalidateQueries({ queryKey: personKeys.discounts() });
+		}, ROW_SETTLE_MS);
+	};
 }
 
 
 /* ------------------ CREATE ------------------ */
 
 export function useCreateMembership(personId: string) {
-	const invalidate = useMembershipInvalidation(personId);
+	const writeCache = useMembershipCache(personId);
+	const invalidate = useMembershipInvalidation();
 
 	return useMutation({
 		mutationFn: (payload: CreateMembershipPayload) => createMembership(personId, payload),
-		onSuccess: invalidate,
+
+		onSuccess: (created) => {
+			writeCache((current) => [...current, created].sort(byJoinedAtDesc));
+
+			invalidate();
+		},
 	});
 }
 
@@ -42,11 +70,17 @@ export interface UpdateMembershipVariables {
 
 
 export function useUpdateMembership(personId: string) {
-	const invalidate = useMembershipInvalidation(personId);
+	const writeCache = useMembershipCache(personId);
+	const invalidate = useMembershipInvalidation();
 
 	return useMutation({
 		mutationFn: ({ id, payload }: UpdateMembershipVariables) => updateMembership(id, payload),
-		onSuccess: invalidate,
+
+		onSuccess: (saved) => {
+			writeCache((current) => current.map((membership) => ( membership.id === saved.id ? saved : membership )).sort(byJoinedAtDesc));
+
+			invalidate();
+		},
 	});
 }
 
@@ -60,11 +94,17 @@ export interface LeaveMembershipVariables {
 
 
 export function useLeaveMembership(personId: string) {
-	const invalidate = useMembershipInvalidation(personId);
+	const writeCache = useMembershipCache(personId);
+	const invalidate = useMembershipInvalidation();
 
 	return useMutation({
 		mutationFn: ({ id, leftAt }: LeaveMembershipVariables) => leaveMembership(id, leftAt),
-		onSuccess: invalidate,
+
+		onSuccess: (saved) => {
+			writeCache((current) => current.map((membership) => ( membership.id === saved.id ? saved : membership )));
+
+			invalidate();
+		},
 	});
 }
 
@@ -72,10 +112,16 @@ export function useLeaveMembership(personId: string) {
 /* ------------------ DELETE ------------------ */
 
 export function useDeleteMembership(personId: string) {
-	const invalidate = useMembershipInvalidation(personId);
+	const writeCache = useMembershipCache(personId);
+	const invalidate = useMembershipInvalidation();
 
 	return useMutation({
 		mutationFn: (id: string) => deleteMembership(id),
-		onSuccess: invalidate,
+
+		onSuccess: (_response, id) => {
+			writeCache((current) => current.filter((membership) => membership.id !== id));
+
+			invalidate();
+		},
 	});
 }

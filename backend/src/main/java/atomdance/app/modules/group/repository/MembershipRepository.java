@@ -48,7 +48,7 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 			JOIN FETCH m.group
 			JOIN FETCH m.person
 			WHERE m.person.id = :personId
-			ORDER BY m.joinedAt DESC
+			ORDER BY m.joinedAt DESC, m.id DESC
 			""")
 	List<Membership> findByPersonId(@Param("personId") UUID personId);
 
