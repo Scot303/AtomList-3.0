@@ -17,11 +17,13 @@ export interface ContextMenuItem {
 	separatorBefore?: boolean;
 }
 
+
 /** The viewport point the menu hangs off - where the pointer was when it was summoned. */
 export interface ContextMenuAnchor {
 	x: number;
 	y: number;
 }
+
 
 /** Whatever a `onContextMenu` handler was handed. */
 export interface ContextMenuTrigger {
@@ -30,35 +32,45 @@ export interface ContextMenuTrigger {
 	preventDefault: () => void;
 }
 
+
 interface ContextMenuState {
 	items: ContextMenuItem[];
 	/** Null while the menu is closed. */
 	anchor: ContextMenuAnchor | null;
+	/** What the open menu was raised on, for a caller that marks whatever the menu acts on. Null until something claims it. */
+	owner: string | null;
 	/** Whether the menu is closing without its animation, which is what picking something does. */
 	instantClose: boolean;
 	/** Puts these items in the menu and opens it at the cursor. */
 	open: (event: ContextMenuTrigger, items: ContextMenuItem[]) => void;
+	/** Names what the open menu belongs to. A no-op when nothing is open, so a claim cannot land on a menu that has gone. */
+	claim: (owner: string) => void;
 	/** Closes the menu, leaving the items be so the closing animation still has something to draw. */
 	close: (options?: { instant?: boolean }) => void;
 	/** Drops the items, so their handlers cannot outlive the screen they were built on. */
 	clear: () => void;
 }
 
-export const useContextMenuStore = create<ContextMenuState>((set) => ({
+
+export const useContextMenuStore = create<ContextMenuState>((set) => ( {
 	items: [],
 	anchor: null,
+	owner: null,
 	instantClose: false,
 
 	open: (event, items) => {
 		event.preventDefault();
 
-		set({ items, anchor: { x: event.clientX, y: event.clientY }, instantClose: false });
+		set({ items, anchor: { x: event.clientX, y: event.clientY }, owner: null, instantClose: false });
 	},
+
+	claim: (owner) => set((state) => ( state.anchor === null ? state : { owner } )),
 
 	close: (options) => set({ anchor: null, instantClose: options?.instant === true }),
 
-	clear: () => set({ items: [] }),
-}));
+	clear: () => set({ items: [], owner: null }),
+} ));
+
 
 /**
  * Closes the menu.
@@ -69,6 +81,7 @@ export const useContextMenuStore = create<ContextMenuState>((set) => ({
 export function dismissContextMenu(): void {
 	useContextMenuStore.getState().close();
 }
+
 
 /**
  * `const openMenu = useContextMenu()` then `onContextMenu={ (event) => openMenu(event, items) }`.

@@ -1,4 +1,5 @@
-import type { TagOption } from '@/components/ui/tags';
+import type { TagOption, TagRecord } from '@/components/ui/tags';
+import { tagOptions } from '@/components/ui/tags';
 import type { PaymentChargeKind, PaymentView } from './types.ts';
 
 
@@ -10,11 +11,13 @@ export const NONE_ID = 'none';
 
 export type SettleState = typeof SETTLED_ID | typeof PARTIAL_ID | typeof NONE_ID;
 
-export const SETTLE_STATE_OPTIONS: TagOption[] = [
-	{ id: SETTLED_ID, name: 'Opłacone', color: 'emerald' },
-	{ id: PARTIAL_ID, name: 'Częściowo', color: 'orange' },
-	{ id: NONE_ID, name: 'Nieopłacone', color: 'red' },
-];
+export const SETTLE_STATE_TAGS: TagRecord<SettleState> = {
+	[SETTLED_ID]: { id: SETTLED_ID, name: 'Opłacone', color: 'emerald' },
+	[PARTIAL_ID]: { id: PARTIAL_ID, name: 'Częściowo', color: 'orange' },
+	[NONE_ID]: { id: NONE_ID, name: 'Nieopłacone', color: 'red' },
+};
+
+export const SETTLE_STATE_OPTIONS: TagOption[] = tagOptions(SETTLE_STATE_TAGS);
 
 
 export function toSettleState(payment: Pick<PaymentView, 'outstanding' | 'amountSettled'>): SettleState {
@@ -28,11 +31,13 @@ export function toSettleState(payment: Pick<PaymentView, 'outstanding' | 'amount
 
 /* ── What the charge is for ──────────────────────────────────────────────── */
 
-export const CHARGE_KIND_OPTIONS: TagOption[] = [
-	{ id: 'MEMBERSHIP_MONTHLY', name: 'Miesięczna', color: 'indigo' },
-	{ id: 'MEMBERSHIP_PER_CLASS', name: 'Za wejście', color: 'amber' },
-	{ id: 'ONE_TIME', name: 'Jednorazowa', color: 'violet' },
-];
+export const CHARGE_KIND_TAGS: TagRecord<PaymentChargeKind> = {
+	MEMBERSHIP_MONTHLY: { id: 'MEMBERSHIP_MONTHLY', name: 'Miesięczna', color: 'indigo' },
+	MEMBERSHIP_PER_CLASS: { id: 'MEMBERSHIP_PER_CLASS', name: 'Za wejście', color: 'amber' },
+	ONE_TIME: { id: 'ONE_TIME', name: 'Jednorazowa', color: 'violet' },
+};
+
+export const CHARGE_KIND_OPTIONS: TagOption[] = tagOptions(CHARGE_KIND_TAGS);
 
 
 export function isMembershipDerived(chargeKind: PaymentChargeKind): boolean {
@@ -52,10 +57,12 @@ export const CONTRACT_PENDING_ID = 'pending';
 
 export type ContractTag = typeof CONTRACT_RETURNED_ID | typeof CONTRACT_PENDING_ID;
 
-export const CONTRACT_TAG_OPTIONS: TagOption[] = [
-	{ id: CONTRACT_RETURNED_ID, name: 'Zwrócona', color: 'emerald' },
-	{ id: CONTRACT_PENDING_ID, name: 'Brak zwrotu', color: 'slate' },
-];
+export const CONTRACT_TAGS: TagRecord<ContractTag> = {
+	[CONTRACT_RETURNED_ID]: { id: CONTRACT_RETURNED_ID, name: 'Zwrócona', color: 'emerald' },
+	[CONTRACT_PENDING_ID]: { id: CONTRACT_PENDING_ID, name: 'Brak zwrotu', color: 'slate' },
+};
+
+export const CONTRACT_TAG_OPTIONS: TagOption[] = tagOptions(CONTRACT_TAGS);
 
 
 /* ── Row ─────────────────────────────────────────────────────────────────── */

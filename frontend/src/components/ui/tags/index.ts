@@ -1,10 +1,12 @@
 export { TagBadge } from './TagBadge';
+export { TagBadgeById } from './TagBadgeById';
 export { TagBadgeList } from './TagBadgeList';
-export { TagBadgeSingle } from './TagBadgeSingle';
+export { TagBadgeOf } from './TagBadgeOf';
 export { TagSelect } from './TagSelect';
 export type { TagSelectProps } from './TagSelect';
 export { TagCellSelect } from './TagCellSelect';
 export type { TagCellSelectProps } from './TagCellSelect';
 export { buildTagPanelOptions } from './tagPanelOptions';
-export type { TagColor, TagOption } from './tagTypes';
-export { resolveTagHex, TAG_COLOR_CLASSES, TAG_COLOR_HEX } from './tagTypes';
+export type { TagColor, TagOption, TagRecord } from './tagTypes';
+export { tagOptions } from './tagTypes';
+export { resolveTagHex, TAG_COLOR_CLASSES, TAG_COLOR_HEX, unknownTag } from './tagTypes';

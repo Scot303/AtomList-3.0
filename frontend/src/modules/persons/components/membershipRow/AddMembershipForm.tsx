@@ -19,13 +19,14 @@ interface AddMembershipFormProps {
 	memberships: MembershipView[];
 	/** True while the groups are still on their way, or when they cannot be listed at all. */
 	groupsUnavailable: boolean;
+	onCreated: () => void;
 }
 
 
 /**
  * Puts a person into a group, on a date and optionally at a rate of their own.
  */
-export function AddMembershipForm({ personId, groups, memberships, groupsUnavailable }: AddMembershipFormProps) {
+export function AddMembershipForm({ personId, groups, memberships, groupsUnavailable, onCreated }: AddMembershipFormProps) {
 	const createMembership = useCreateMembership(personId);
 
 	const [groupId, setGroupId] = useState<string | undefined>(undefined);
@@ -110,6 +111,8 @@ export function AddMembershipForm({ personId, groups, memberships, groupsUnavail
 					setCustomCost('');
 					setFirstMonthCost('');
 					setJoinedAt(dateToISO(todayInTimeZone()));
+
+					onCreated();
 				},
 				onError: (failure) => setError(failure.message),
 			},
@@ -155,7 +158,7 @@ export function AddMembershipForm({ personId, groups, memberships, groupsUnavail
 				/>
 			</div>
 
-			<div className="mt-3 grid grid-cols-1 items-end gap-3 sm:grid-cols-[2fr_1fr_8rem]">
+			<div className="mt-3 grid min-h-17 grid-cols-1 items-end gap-3 sm:grid-cols-[2fr_1fr_8rem]">
 				{ showFirstMonth && (
 					<div className="flex min-w-0 items-end gap-2">
 						<div className="min-w-0 flex-1">

@@ -54,14 +54,15 @@ export function GlobalDialog() {
 				<div className="fixed inset-0 flex items-center justify-center p-4">
 					<TransitionChild
 						as={ Fragment }
-						enter="ease-out duration-300"
+						enter="ease-out-soft duration-300"
 						enterFrom="opacity-0 scale-95"
 						enterTo="opacity-100 scale-100"
 						leave="ease-in duration-200"
 						leaveFrom="opacity-100 scale-100"
 						leaveTo="opacity-0 scale-95"
 					>
-						<DialogPanel className="popover-surface w-full max-w-md rounded-2xl p-6 pb-5 shadow-2xl will-change-transform">
+						<DialogPanel
+							className="popover-surface w-full max-w-md rounded-2xl p-6 pb-5 shadow-2xl transition-[opacity,scale] duration-200 will-change-[opacity,scale] motion-reduce:transition-none">
 							<div className="flex items-start gap-4">
 								<div className={ cn('shrink-0 pt-px', iconColor) }>
 									<Icon size={ 24 } aria-hidden/>

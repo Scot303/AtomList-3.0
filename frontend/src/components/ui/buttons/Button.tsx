@@ -30,7 +30,8 @@ export const Button = (props: ButtonProps) => {
 	const isGhost = variant === 'ghost' || variant === 'ghost_primary';
 
 	const baseStyles = cn(
-		'relative inline-flex items-center justify-center font-bold transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none overflow-hidden will-change-transform',
+		'relative inline-flex items-center justify-center font-bold transition-all active:scale-[0.98] disabled:pointer-events-none overflow-hidden will-change-transform',
+		!isLoading && 'disabled:opacity-50',
 		!isGhost && 'border',
 	);
 

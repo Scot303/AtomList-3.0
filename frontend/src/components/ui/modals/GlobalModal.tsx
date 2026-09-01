@@ -74,7 +74,7 @@ export function GlobalModal() {
 				<div className="fixed inset-0 flex items-center justify-center">
 					<TransitionChild
 						as={ Fragment }
-						enter="ease-out duration-300"
+						enter="ease-out-soft duration-300"
 						enterFrom="opacity-0 scale-95"
 						enterTo="opacity-100 scale-100"
 						leave="ease-in duration-200"
@@ -84,8 +84,8 @@ export function GlobalModal() {
 						<DialogPanel
 							style={ { height, maxHeight } }
 							className={ cn(
-								'popover-surface relative flex max-h-[calc(100dvh-2rem)] w-full flex-col rounded-3xl shadow-2xl will-change-transform',
-								'transition-[max-width,transform,border-color,box-shadow] duration-200 motion-reduce:transition-none',
+								'popover-surface relative flex max-h-[calc(100dvh-2rem)] w-full flex-col rounded-3xl shadow-2xl will-change-[opacity,scale]',
+								'transition-[max-width,opacity,scale] duration-200 motion-reduce:transition-none',
 								maxWidthClass(size),
 								current?.options.className,
 							) }

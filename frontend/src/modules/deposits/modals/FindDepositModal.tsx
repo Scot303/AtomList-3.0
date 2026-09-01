@@ -5,14 +5,14 @@ import { useForm } from 'react-hook-form';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { Button } from '@/components/ui/buttons/Button';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { fieldMessageReserve, Input } from '@/components/ui/fields';
 import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { formatCurrency } from '@/lib/locale';
-import { coveredPersonsNames, coveredPersonsSummary, PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
+import { coveredPersonsNames, coveredPersonsSummary, PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
 import { useModalStore } from '@/stores/modalStore';
 import { useDepositByCode } from '../hooks/queries/useDeposits.ts';
-import { SCOPE_OPTIONS } from '../types/depositRows.ts';
+import { SCOPE_TAGS } from '../types/depositRows.ts';
 import { type DepositCodeFormValues, depositCodeSchema } from '../schemas/depositSchemas';
 import { cn } from "@/lib/cn.ts";
 
@@ -85,9 +85,9 @@ export default function FindDepositModal() {
 					<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-os-text-muted">
 						<span>{ formatInstantDate(deposit.receivedAt) }</span>
 						<span aria-hidden>·</span>
-						<TagBadgeSingle id={ deposit.paymentMethod } options={ PAYMENT_METHOD_OPTIONS } size="sm"/>
+						<TagBadgeOf tag={ PAYMENT_METHOD_TAGS[deposit.paymentMethod] } size="sm"/>
 						<span aria-hidden>·</span>
-						<TagBadgeSingle id={ deposit.scope } options={ SCOPE_OPTIONS } size="sm"/>
+						<TagBadgeOf tag={ SCOPE_TAGS[deposit.scope] } size="sm"/>
 					</div>
 
 					<div className="flex items-center justify-between gap-3 pt-1">

@@ -40,12 +40,6 @@ function defineModal<P>(definition: ModalDefinition<P>): ModalDefinition<P> {
  * Every modal the application can open, by key.
  */
 export const MODAL_REGISTRY = {
-	'auth.account': defineModal({
-		load: () => import('@/modules/auth/modals/AccountModal.tsx'),
-		title: 'Twoje konto',
-		size: 'md'
-	}),
-
 	'users.create': defineModal({
 		load: () => import('@/modules/users/modals/CreateUserModal.tsx'),
 		title: 'Nowy użytkownik',
@@ -238,7 +232,7 @@ export const MODAL_REGISTRY = {
 	'lists.overpayments': defineModal({
 		load: () => import('@/modules/paymentLists/modals/CreditSweepModal.tsx'),
 		title: 'Rozlicz nadpłaty',
-		size: 'lg',
+		size: 'xl',
 		dismissible: false
 	}),
 };

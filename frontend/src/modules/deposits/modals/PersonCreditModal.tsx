@@ -2,15 +2,15 @@ import { Eye, Wallet } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { Button } from '@/components/ui/buttons/Button';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { formatCurrency, pluralise } from '@/lib/locale';
 import { LinePanel, MoneyLine } from '@/components/shared/MoneyLines.tsx';
-import { PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
+import { PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useModalStore } from '@/stores/modalStore';
 import { usePersonCredit } from '../hooks/queries/usePersonCredit.ts';
-import { SCOPE_OPTIONS } from '../types/depositRows.ts';
+import { SCOPE_TAGS } from '../types/depositRows.ts';
 import type { DepositView } from '../types/types.ts';
 
 
@@ -78,11 +78,11 @@ function CreditRow({ deposit }: { deposit: DepositView }) {
 			<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-os-text-muted">
 				<span className="font-semibold text-os-text">{ deposit.code }</span>
 				<span aria-hidden>·</span>
-				<TagBadgeSingle id={ deposit.paymentMethod } options={ PAYMENT_METHOD_OPTIONS } size="sm"/>
+				<TagBadgeOf tag={ PAYMENT_METHOD_TAGS[deposit.paymentMethod] } size="sm"/>
 				<span aria-hidden>·</span>
 				<span>{ formatInstantDate(deposit.receivedAt) }</span>
 				<span aria-hidden>·</span>
-				<TagBadgeSingle id={ deposit.scope } options={ SCOPE_OPTIONS } size="sm"/>
+				<TagBadgeOf tag={ SCOPE_TAGS[deposit.scope] } size="sm"/>
 			</div>
 
 			<div className="flex flex-wrap items-center justify-between gap-2 pt-1">

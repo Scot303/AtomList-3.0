@@ -1,9 +1,9 @@
 import type { AppColumnDef } from '@/components/dataTable';
-import { TagBadge, TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadge, TagBadgeOf } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { resolveGroupColor } from '@/modules/groups/types/groupRows.ts';
 import type { GroupView } from '@/modules/groups/types/types.ts';
-import { CHARGE_KIND_OPTIONS, CONTRACT_TAG_OPTIONS, type PaymentRow, SETTLE_STATE_OPTIONS, } from './paymentRows.ts';
+import { CHARGE_KIND_OPTIONS, CHARGE_KIND_TAGS, CONTRACT_TAG_OPTIONS, CONTRACT_TAGS, type PaymentRow, SETTLE_STATE_OPTIONS, SETTLE_STATE_TAGS, } from './paymentRows.ts';
 
 
 function moneyColumn(accessorKey: keyof PaymentRow, header: string, summarised: boolean): AppColumnDef<PaymentRow> {
@@ -86,7 +86,7 @@ export function buildPaymentColumns(tracksContracts: boolean, groupsById: Readon
 			fieldType: 'tag',
 			size: 150,
 			meta: { groupable: true, globalSearch: false, tagOptions: CHARGE_KIND_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ CHARGE_KIND_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ CHARGE_KIND_TAGS[row.original.chargeKind] }/>,
 		},
 		{
 			accessorKey: 'quantity',
@@ -106,7 +106,7 @@ export function buildPaymentColumns(tracksContracts: boolean, groupsById: Readon
 			fieldType: 'tag',
 			size: 160,
 			meta: { groupable: true, globalSearch: false, tagOptions: SETTLE_STATE_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ SETTLE_STATE_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ SETTLE_STATE_TAGS[row.original.settleState] }/>,
 		}
 	];
 
@@ -117,7 +117,7 @@ export function buildPaymentColumns(tracksContracts: boolean, groupsById: Readon
 			fieldType: 'tag',
 			size: 170,
 			meta: { groupable: true, globalSearch: false, tagOptions: CONTRACT_TAG_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ CONTRACT_TAG_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ CONTRACT_TAGS[row.original.contractReturned] }/>,
 		});
 	}
 

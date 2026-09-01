@@ -1,7 +1,8 @@
 import type { ExtendedSelectOption } from '@/components/ui/extendedSelect';
-import type { TagColor, TagOption } from '@/components/ui/tags';
+import type { TagColor, TagOption, TagRecord } from '@/components/ui/tags';
+import { tagOptions } from '@/components/ui/tags';
 import { type Permission, PERMISSIONS, type Role } from '@/types/auth.ts';
-import { ACTIVE_ID, INACTIVE_ID } from '@/types/rowTags.ts';
+import { ACTIVE_ID, ACTIVE_TAGS, type ActiveTag, INACTIVE_ID } from '@/types/rowTags.ts';
 
 
 /**
@@ -33,10 +34,12 @@ export const ROLE_OPTIONS: TagOption[] = ROLE_ORDER.map((role) => ( {
 } ));
 
 /** The same colors groups and persons use for the same state - only the Polish differs, for a masculine noun. */
-export const ACTIVE_OPTIONS: TagOption[] = [
-	{ id: ACTIVE_ID, name: 'Aktywny', color: 'emerald' },
-	{ id: INACTIVE_ID, name: 'Nieaktywny', color: 'slate' },
-];
+export const USER_ACTIVE_TAGS: TagRecord<ActiveTag> = {
+	[ACTIVE_ID]: { ...ACTIVE_TAGS[ACTIVE_ID], name: 'Aktywny' },
+	[INACTIVE_ID]: { ...ACTIVE_TAGS[INACTIVE_ID], name: 'Nieaktywny' },
+};
+
+export const ACTIVE_OPTIONS: TagOption[] = tagOptions(USER_ACTIVE_TAGS);
 
 export const PERMISSION_LABELS: Record<Permission, string> = {
 	MANAGE_USERS: 'Zarządzanie użytkownikami',

@@ -1,9 +1,9 @@
 import type { AppColumnDef } from '@/components/dataTable';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { formatPhone } from '@/modules/persons/utils/personFormat';
 import { formatInstantDateTime } from '@/utils/dateUtils.ts';
-import { RECIPIENT_KIND_OPTIONS, type SmsRow } from './smsRows.ts';
+import { RECIPIENT_KIND_OPTIONS, RECIPIENT_KIND_TAGS, type SmsRow } from './smsRows.ts';
 
 
 export function buildSmsColumns(): AppColumnDef<SmsRow>[] {
@@ -34,7 +34,7 @@ export function buildSmsColumns(): AppColumnDef<SmsRow>[] {
 			size: 170,
 			aggregatedCell: () => null,
 			meta: { groupable: true, globalSearch: false, tagOptions: RECIPIENT_KIND_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ RECIPIENT_KIND_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ RECIPIENT_KIND_TAGS[row.original.recipientKind] }/>,
 		},
 		{
 			accessorKey: 'sentToPhone',

@@ -5,6 +5,7 @@ export const paths = {
 	paymentListDetail: '/listy-platnosci/:listId',
 	paymentListTransactions: '/listy-platnosci/:listId/przychody-wydatki',
 	deposits: '/wplaty',
+	priceCalculator: '/kalkulator-cen',
 	users: '/uzytkownicy',
 	persons: '/osoby',
 	groups: '/grupy',

@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import type { AppColumnDef } from '@/components/dataTable';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { formatLongDate } from '@/utils/dateUtils.ts';
 import { CellPlaceholder } from '@/components/dataTable/cells/CellPlaceholder';
-import { TRANSACTION_TYPE_OPTIONS, type TransactionRow } from './transactionRows.ts';
+import { TRANSACTION_TYPE_OPTIONS, TRANSACTION_TYPE_TAGS, type TransactionRow } from './transactionRows.ts';
 
 
 function money(value: unknown): string {
@@ -95,7 +95,7 @@ export function buildTransactionColumns(editable: boolean): AppColumnDef<Transac
 			fieldType: 'tag',
 			size: 130,
 			meta: { groupable: true, globalSearch: false, tagOptions: TRANSACTION_TYPE_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ TRANSACTION_TYPE_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ TRANSACTION_TYPE_TAGS[row.original.type] }/>,
 		},
 	];
 }

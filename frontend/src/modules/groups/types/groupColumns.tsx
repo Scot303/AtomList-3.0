@@ -1,8 +1,8 @@
 import type { AppColumnDef } from '@/components/dataTable';
-import { TagBadge, TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadge, TagBadgeOf } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
-import { ACTIVE_TAG_OPTIONS } from '@/types/rowTags.ts';
-import { BILLING_TYPE_OPTIONS, GROUP_TYPE_OPTIONS, type GroupRow } from './groupRows.ts';
+import { ACTIVE_TAG_OPTIONS, ACTIVE_TAGS } from '@/types/rowTags.ts';
+import { BILLING_TYPE_OPTIONS, BILLING_TYPE_TAGS, GROUP_TYPE_OPTIONS, GROUP_TYPE_TAGS, type GroupRow } from './groupRows.ts';
 
 
 /**
@@ -24,7 +24,7 @@ export function buildGroupColumns(): AppColumnDef<GroupRow>[] {
 			fieldType: 'tag',
 			size: 180,
 			meta: { groupable: true, tagOptions: GROUP_TYPE_OPTIONS, globalSearch: false },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ GROUP_TYPE_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ GROUP_TYPE_TAGS[row.original.type] }/>,
 		},
 		{
 			accessorKey: 'costForAttending',
@@ -44,7 +44,7 @@ export function buildGroupColumns(): AppColumnDef<GroupRow>[] {
 			fieldType: 'tag',
 			size: 180,
 			meta: { groupable: true, tagOptions: BILLING_TYPE_OPTIONS, globalSearch: false },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ BILLING_TYPE_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ BILLING_TYPE_TAGS[row.original.billingType] }/>,
 		},
 		{
 			accessorKey: 'activeTag',
@@ -52,7 +52,7 @@ export function buildGroupColumns(): AppColumnDef<GroupRow>[] {
 			fieldType: 'tag',
 			size: 170,
 			meta: { editable: true, groupable: true, tagOptions: ACTIVE_TAG_OPTIONS, globalSearch: false },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ ACTIVE_TAG_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ ACTIVE_TAGS[row.original.activeTag] }/>,
 		},
 	];
 }

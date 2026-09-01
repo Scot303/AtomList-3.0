@@ -1,33 +1,28 @@
 import { COLOR_POOL } from '@/components/dataTable';
-import type { TagOption } from '@/components/ui/tags';
+import type { TagOption, TagRecord } from '@/components/ui/tags';
+import { tagOptions } from '@/components/ui/tags';
 import { type ActiveTag, toActiveTag } from '@/types/rowTags.ts';
 import type { GroupBillingType, GroupType, GroupView } from './types.ts';
 
 
 /* ── Kind of group ───────────────────────────────────────────────────────── */
 
-export const GROUP_TYPE_OPTIONS: TagOption[] = [
-	{ id: 'OPEN', name: 'OPEN', color: 'blue' },
-	{ id: 'TOURNAMENT', name: 'TURNIEJOWE', color: 'red' },
-];
+export const GROUP_TYPE_TAGS: TagRecord<GroupType> = {
+	OPEN: { id: 'OPEN', name: 'OPEN', color: 'blue' },
+	TOURNAMENT: { id: 'TOURNAMENT', name: 'TURNIEJOWE', color: 'red' },
+};
 
-
-export function groupTypeName(type: GroupType): string {
-	return GROUP_TYPE_OPTIONS.find((option) => option.id === type)?.name ?? type;
-}
+export const GROUP_TYPE_OPTIONS: TagOption[] = tagOptions(GROUP_TYPE_TAGS);
 
 
 /* ── Billing ─────────────────────────────────────────────────────────────── */
 
-export const BILLING_TYPE_OPTIONS: TagOption[] = [
-	{ id: 'MONTHLY', name: 'Miesięczne', color: 'indigo' },
-	{ id: 'PER_CLASS', name: 'Za wejście', color: 'amber' },
-];
+export const BILLING_TYPE_TAGS: TagRecord<GroupBillingType> = {
+	MONTHLY: { id: 'MONTHLY', name: 'Miesięczne', color: 'indigo' },
+	PER_CLASS: { id: 'PER_CLASS', name: 'Za wejście', color: 'amber' },
+};
 
-
-export function billingTypeName(billingType: GroupBillingType): string {
-	return BILLING_TYPE_OPTIONS.find((option) => option.id === billingType)?.name ?? billingType;
-}
+export const BILLING_TYPE_OPTIONS: TagOption[] = tagOptions(BILLING_TYPE_TAGS);
 
 
 /* ── Row ─────────────────────────────────────────────────────────────────── */

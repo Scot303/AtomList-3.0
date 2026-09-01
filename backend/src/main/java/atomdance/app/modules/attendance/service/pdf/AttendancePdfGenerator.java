@@ -101,6 +101,7 @@ public class AttendancePdfGenerator {
 			}
 			return "+" + PHONE_COUNTRY_CODE + " " + phoneNumber;
 		};
+
 		return membershipRepository.findActivePersonsInGroup(groupId).stream()
 				.map(person ->
 						"%s (%s)".formatted(

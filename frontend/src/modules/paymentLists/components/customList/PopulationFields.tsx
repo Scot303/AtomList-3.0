@@ -44,7 +44,7 @@ export function PopulationFields({ control, busy }: PopulationFieldsProps) {
 					render={ ({ field }) => (
 						<Toggle
 							label="Lista obozowa"
-							description="Dodatkowo pilnuje zwrotu umów, a jej opłaty trafiają na konto turniejowe."
+							description="Dodatkowo pilnuje zwrotu umów, a jej opłaty trafiają na konto klubowe."
 							checked={ field.value }
 							onChange={ field.onChange }
 							disabled={ busy }

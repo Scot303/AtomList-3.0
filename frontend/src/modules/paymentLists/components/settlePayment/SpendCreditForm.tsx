@@ -11,7 +11,7 @@ import { notifySuccess } from '@/lib/toast';
 import { useModalStore } from '@/stores/modalStore';
 import { useAllocateDeposit } from '@/modules/deposits/hooks/mutations/useDepositMutations.ts';
 import { allocateFormSchema, type AllocateFormValues, parseAmount } from '../../schemas/paymentSchemas';
-import { PAYMENT_METHOD_NAMES } from '@/types/finance.ts';
+import { PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
 import type { DepositView } from '@/modules/deposits/types/types.ts';
 import type { PaymentView } from '../../types/types.ts';
 
@@ -27,7 +27,7 @@ export function SpendCreditForm({ payment, deposits }: { payment: PaymentView; d
 	const options = deposits.map((deposit) => ( {
 		id: deposit.id,
 		name: `${ deposit.code } · ${ formatCurrency(deposit.unallocatedAmount) }`,
-		hint: `${ PAYMENT_METHOD_NAMES[deposit.paymentMethod] }, ${ formatInstantDate(deposit.receivedAt) }`,
+		hint: `${ PAYMENT_METHOD_TAGS[deposit.paymentMethod].name }, ${ formatInstantDate(deposit.receivedAt) }`,
 	} ));
 
 	const first = deposits[0];

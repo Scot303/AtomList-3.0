@@ -1,7 +1,7 @@
 import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { formatCurrency } from '@/lib/locale';
 import { DepositPlanTable } from '@/modules/deposits/components/DepositPlanTable';
-import { PAYMENT_METHOD_NAMES } from '@/types/finance.ts';
+import { PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
 import type { CreditSweepEntryView } from '../../types/types.ts';
 
 
@@ -15,7 +15,7 @@ export function SweepEntry({ entry }: { entry: CreditSweepEntryView }) {
 				<div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-os-text-muted">
 					<span>{ entry.depositCode }</span>
 					<span aria-hidden>·</span>
-					<span>{ PAYMENT_METHOD_NAMES[entry.paymentMethod] }</span>
+					<span>{ PAYMENT_METHOD_TAGS[entry.paymentMethod].name }</span>
 					<span aria-hidden>·</span>
 					<span>{ formatInstantDate(entry.receivedAt) }</span>
 				</div>

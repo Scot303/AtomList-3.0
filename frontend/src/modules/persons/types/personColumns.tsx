@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import type { AppColumnDef } from '@/components/dataTable';
 import { CellPlaceholder } from '@/components/dataTable/cells/CellPlaceholder.tsx';
 import type { TagOption } from '@/components/ui/tags';
-import { TagBadgeList, TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeList, TagBadgeOf } from '@/components/ui/tags';
 import { GROUP_TYPE_OPTIONS } from '@/modules/groups/types/groupRows.ts';
-import { ACTIVE_TAG_OPTIONS } from '@/types/rowTags.ts';
+import { ACTIVE_TAG_OPTIONS, ACTIVE_TAGS } from '@/types/rowTags.ts';
 import { formatAge, formatShortDate } from '../utils/personFormat';
 import type { PersonRow } from './personRows.ts';
 
@@ -86,7 +86,7 @@ export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<Pers
 			fieldType: 'tag',
 			size: 160,
 			meta: { editable: true, groupable: true, tagOptions: ACTIVE_TAG_OPTIONS, globalSearch: true },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ ACTIVE_TAG_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ ACTIVE_TAGS[row.original.activeTag] }/>,
 		},
 		{
 			accessorKey: 'joinedClubDate',

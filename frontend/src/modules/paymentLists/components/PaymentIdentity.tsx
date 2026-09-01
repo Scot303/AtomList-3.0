@@ -1,7 +1,7 @@
-import { TagBadge, TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadge, TagBadgeOf } from '@/components/ui/tags';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
 import { indexGroups, resolveGroupColor } from '@/modules/groups/types/groupRows';
-import { CHARGE_KIND_OPTIONS } from '../types/paymentRows';
+import { CHARGE_KIND_TAGS } from '../types/paymentRows';
 import type { PaymentView } from '../types/types.ts';
 
 
@@ -21,7 +21,7 @@ export function PaymentIdentity({ payment }: PaymentIdentityProps) {
 			<div className="min-w-0">
 				<p className="text-base font-bold text-os-text">{ payment.personName }</p>
 				<p className="truncate text-sm text-os-text-muted ml-0.5 mt-0.5">
-					{ payment.code } · <TagBadgeSingle id={ payment.chargeKind } options={ CHARGE_KIND_OPTIONS } size="sm"/>
+					{ payment.code } · <TagBadgeOf tag={ CHARGE_KIND_TAGS[payment.chargeKind] } size="sm"/>
 				</p>
 			</div>
 

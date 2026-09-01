@@ -46,8 +46,8 @@ const DataTableRowInner = <T extends object>(props: DataTableRowProps<T>) => {
 			onContextMenu={ onRowContextMenu
 				? (event) => {
 					event.stopPropagation();
-					onContextRowChange?.(row.id);
 					onRowContextMenu(event, row.original);
+					onContextRowChange?.(row.id);
 				}
 				: undefined
 			}

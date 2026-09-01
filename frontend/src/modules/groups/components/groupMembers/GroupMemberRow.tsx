@@ -12,15 +12,16 @@ import { useModalStore } from '@/stores/modalStore';
 
 const INACTIVE_HINT = 'Osoba nieaktywna, członkostwo powinno być zakończone.';
 
-export const MEMBER_GRID = 'grid grid-cols-[minmax(0,1fr)_9rem_7rem_6rem] items-center gap-3 px-3';
+export const MEMBER_GRID = 'grid grid-cols-[3rem_minmax(0,1fr)_8rem_4rem_6rem] items-center gap-3 px-3';
 
 
 interface GroupMemberRowProps {
+	number: number;
 	member: PersonView;
 }
 
 
-export function GroupMemberRow({ member }: GroupMemberRowProps) {
+export function GroupMemberRow({ number, member }: GroupMemberRowProps) {
 	const openModal = useModalStore((state) => state.openModal);
 
 	const prefetchMemberships = usePrefetchMemberships();
@@ -64,8 +65,10 @@ export function GroupMemberRow({ member }: GroupMemberRowProps) {
 				!member.active && 'opacity-50',
 			) }
 		>
+			<span className="text-os-text-muted">{ number }</span>
+
 			<span className="flex min-w-0 items-center gap-1.5">
-				<span className="truncate">{ member.fullName }</span>
+				<span className="truncate" title={ member.fullName }>{ member.fullName }</span>
 
 				{ !member.active && (
 					<Tooltip content={ INACTIVE_HINT } className="shrink-0 items-center text-os-warning">

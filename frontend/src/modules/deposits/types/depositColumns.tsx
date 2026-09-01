@@ -1,9 +1,9 @@
 import type { AppColumnDef } from '@/components/dataTable';
 import { formatInstantDate } from '@/utils/dateUtils.ts';
-import { TagBadgeSingle } from '@/components/ui/tags';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
-import { coveredPersonsSummary, PAYMENT_METHOD_OPTIONS } from '@/types/finance.ts';
-import { ALLOCATION_STATE_OPTIONS, DEPOSIT_CODE_PREFIX, type DepositRow, ORIGIN_OPTIONS, SCOPE_OPTIONS, } from './depositRows.ts';
+import { coveredPersonsSummary, PAYMENT_METHOD_OPTIONS, PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
+import { ALLOCATION_STATE_OPTIONS, ALLOCATION_STATE_TAGS, DEPOSIT_CODE_PREFIX, type DepositRow, ORIGIN_OPTIONS, ORIGIN_TAGS, SCOPE_OPTIONS, SCOPE_TAGS, } from './depositRows.ts';
 
 
 function moneyColumn(accessorKey: keyof DepositRow, header: string): AppColumnDef<DepositRow> {
@@ -58,7 +58,7 @@ export function buildDepositColumns(): AppColumnDef<DepositRow>[] {
 			size: 160,
 			aggregatedCell: () => null,
 			meta: { groupable: true, globalSearch: false, tagOptions: ALLOCATION_STATE_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ ALLOCATION_STATE_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ ALLOCATION_STATE_TAGS[row.original.allocationState] }/>,
 		},
 		{
 			accessorKey: 'paymentMethod',
@@ -67,7 +67,7 @@ export function buildDepositColumns(): AppColumnDef<DepositRow>[] {
 			size: 170,
 			aggregatedCell: () => null,
 			meta: { groupable: true, globalSearch: false, tagOptions: PAYMENT_METHOD_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ PAYMENT_METHOD_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ PAYMENT_METHOD_TAGS[row.original.paymentMethod] }/>,
 		},
 		{
 			accessorKey: 'receivedAt',
@@ -85,7 +85,7 @@ export function buildDepositColumns(): AppColumnDef<DepositRow>[] {
 			size: 140,
 			aggregatedCell: () => null,
 			meta: { groupable: true, globalSearch: false, tagOptions: SCOPE_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ SCOPE_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ SCOPE_TAGS[row.original.scope] }/>,
 		},
 		{
 			accessorKey: 'origin',
@@ -94,7 +94,7 @@ export function buildDepositColumns(): AppColumnDef<DepositRow>[] {
 			size: 160,
 			aggregatedCell: () => null,
 			meta: { groupable: true, globalSearch: false, tagOptions: ORIGIN_OPTIONS },
-			cell: ({ getValue }) => <TagBadgeSingle id={ getValue<string>() } options={ ORIGIN_OPTIONS }/>,
+			cell: ({ row }) => <TagBadgeOf tag={ ORIGIN_TAGS[row.original.origin] }/>,
 		},
 		{
 			accessorKey: 'coveredCount',
