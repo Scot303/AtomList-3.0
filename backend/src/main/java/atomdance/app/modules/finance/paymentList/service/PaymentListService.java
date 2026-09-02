@@ -95,7 +95,7 @@ public class PaymentListService {
 	public PaymentListView get(UUID id) {
 		PaymentList list = getOrThrow(id);
 
-		auditLogger.read(AuditEventType.LIST_PREVIEW, id, "List %s previewed.", list.getName());
+		auditLogger.read(AuditEventType.LIST_PREVIEW, id, "List %s previewed.", describeList(list));
 		return PaymentListView.from(list);
 	}
 
