@@ -43,25 +43,27 @@ public class ListReportService {
 	private final MessageSource messageSource;
 	private final AppClock clock;
 
-	@Transactional(readOnly = true)
-	public ListReportView build(UUID listId) {
-		return buildListReportView(listId);
-	}
 
-	protected ListReportView buildListReportView(UUID listId) {
+	@Transactional(readOnly = true)
+	public ListReportView buildForModal(UUID listId) {
 		PaymentList list = paymentListService.getOrThrow(listId);
 
 		List<Payment> payments = paymentRepository.findByListIdWithSettlements(listId).stream()
 				.sorted(PaymentView.DISPLAY_ORDER)
 				.toList();
 
+		return buildListReportView(list, payments);
+	}
+
+
+	protected ListReportView buildListReportView(PaymentList list, List<Payment> payments) {
 		CashIn cash = cashInFor(list, payments);
 		Map<UUID, Integer> refs = referenceNumbers(cash.deposits());
 
 		List<ListReportView.Row> rows = payments.stream().map(payment -> row(payment, refs)).toList();
 		List<ListReportView.Deposit> cashIn = cash.deposits().stream().map(deposit -> deposit(deposit, list, refs, cash.belongsHere(deposit))).toList();
 
-		auditLogger.read(AuditEventType.LIST_PREVIEW, listId, "List report generated for %s.", list.getName());
+		auditLogger.read(AuditEventType.LIST_PREVIEW, list.getId(), "List report generated for %s.", list.getName());
 
 		return new ListReportView(
 				list.getId(),

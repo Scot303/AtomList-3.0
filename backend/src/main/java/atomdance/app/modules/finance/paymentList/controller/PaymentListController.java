@@ -5,10 +5,10 @@ import atomdance.app.modules.finance.deposit.dto.CreditSweepView;
 import atomdance.app.modules.finance.deposit.dto.SettleCreditRequest;
 import atomdance.app.modules.finance.deposit.service.CreditSweepService;
 import atomdance.app.modules.finance.paymentList.dto.*;
+import atomdance.app.modules.finance.paymentList.service.FinanceSheetService;
 import atomdance.app.modules.finance.paymentList.service.ListReportService;
 import atomdance.app.modules.finance.paymentList.service.ListSummaryService;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
-import atomdance.app.modules.finance.paymentList.service.FinanceSheetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -70,14 +70,16 @@ public class PaymentListController {
 	@GetMapping("/{id}/report")
 	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
 	public ListReportView report(@PathVariable UUID id) {
-		return listReportService.build(id);
+		return listReportService.buildForModal(id);
 	}
+
 
 	@GetMapping("{id}/spreadsheet")
 	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
 	public byte[] reportSpreadsheet(@PathVariable UUID id) throws IOException {
 		return paymentSpreadsheetService.getPaymentSpreadsheet(id);
 	}
+
 
 	/**
 	 * Every bit of leftover credit that could be spent on this list, and what each bit would settle here.
