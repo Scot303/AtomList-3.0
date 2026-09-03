@@ -21,20 +21,20 @@ import java.util.*;
  * <ul>
  *     <li>Seniority. {@link FamilyPositions} breaks a tie on equal monthly charges by who joined the studio first;
  *     nobody here has joined, so the order they were entered in stands in for it.</li>
- *     <li>A month. There are no memberships, so there is no part-month joining rate and no mid-month change - the rate is always the group's own.</li>
+ *     <li>A month. There are no memberships, so there is no part-month joining rate and no mid-month change.</li>
  * </ul>
  */
 @Service
 @RequiredArgsConstructor
 public class PriceQuoteService {
 
-	private static final Comparator<Pick> BY_GROUP_NAME = Comparator
-			.comparing((Pick pick) -> pick.group().getName(), String.CASE_INSENSITIVE_ORDER)
-			.thenComparing(pick -> String.valueOf(pick.group().getId()));
+	private static final Comparator<PickedGroup> BY_GROUP_NAME = Comparator
+			.comparing((PickedGroup pickedGroup) -> pickedGroup.group().getName(), String.CASE_INSENSITIVE_ORDER)
+			.thenComparing(pickedGroup -> String.valueOf(pickedGroup.group().getId()));
 
-	private static final Comparator<Draft> BY_DISCOUNT_PRIORITY = Comparator
-			.comparing(Draft::monthlyBase, Comparator.reverseOrder())
-			.thenComparingInt(Draft::index);
+	private static final Comparator<DraftMember> BY_DISCOUNT_PRIORITY = Comparator
+			.comparing(DraftMember::monthlyBase, Comparator.reverseOrder())
+			.thenComparingInt(DraftMember::index);
 
 	private final GroupRepository groupRepository;
 	private final DiscountService discountService;
@@ -45,19 +45,19 @@ public class PriceQuoteService {
 		Map<UUID, Group> groups = resolveGroups(request);
 		DiscountRules rules = discountService.currentRules();
 
-		List<Draft> drafts = new ArrayList<>();
+		List<DraftMember> draftMembers = new ArrayList<>();
 
 		for (int index = 0; index < request.members().size(); index++) {
-			drafts.add(draft(index, request.members().get(index), groups));
+			draftMembers.add(draft(index, request.members().get(index), groups));
 		}
 
-		Map<Integer, Integer> positions = positions(drafts);
+		Map<Integer, Integer> positions = positions(draftMembers);
 
 		List<PriceQuoteView.Member> members = new ArrayList<>();
 		PriceQuoteView.Totals household = PriceQuoteView.Totals.zero();
 
-		for (Draft draft : drafts) {
-			PriceQuoteView.Member member = price(draft, positions.get(draft.index()), rules);
+		for (DraftMember draftMember : draftMembers) {
+			PriceQuoteView.Member member = price(draftMember, positions.get(draftMember.index()), rules);
 
 			members.add(member);
 			household = household.plus(member.totals());
@@ -102,42 +102,47 @@ public class PriceQuoteService {
 	/**
 	 * Reduces one requested person to the figures both ladders are read off.
 	 */
-	private static Draft draft(int index, PriceQuoteRequest.Member member, Map<UUID, Group> groups) {
-		Map<UUID, Pick> byGroup = new LinkedHashMap<>();
+	private static DraftMember draft(int index, PriceQuoteRequest.Member member, Map<UUID, Group> groups) {
+		Map<UUID, PickedGroup> byGroup = new LinkedHashMap<>();
 
 		for (PriceQuoteRequest.Selection selection : member.groups()) {
 			Group group = groups.get(selection.groupId());
 
-			byGroup.putIfAbsent(group.getId(), new Pick(group, group.isPerClass() ? selection.entriesOrOne() : 1));
+			byGroup.putIfAbsent(group.getId(), new PickedGroup(
+					group,
+					group.isPerClass() ? selection.entriesOrOne() : 1,
+					Money.normalize(selection.unitCostOr(group.getCostForAttending()))
+			));
 		}
 
-		List<Pick> picks = byGroup.values().stream().sorted(BY_GROUP_NAME).toList();
+		List<PickedGroup> pickedGroups = byGroup.values().stream().sorted(BY_GROUP_NAME).toList();
 
 		BigDecimal monthlyBase = Money.ZERO;
 		int groupCount = 0;
 
-		for (Pick pick : picks) {
+		for (PickedGroup pickedGroup : pickedGroups) {
 			// The household order is decided on the recurring charge only, since what a per-class group costs depends on attendance.
-			if (!pick.group().isPerClass()) {
-				monthlyBase = Money.add(monthlyBase, Money.normalize(pick.group().getCostForAttending()));
+			if (!pickedGroup.group().isPerClass()) {
+				monthlyBase = Money.add(monthlyBase, pickedGroup.unitCost());
 			}
 
-			if (isCharged(pick.group())) {
+			if (isCharged(pickedGroup.unitCost())) {
 				groupCount++;
 			}
 		}
 
 		// Neither ladder counts a group somebody pays nothing for, so somebody whose every group is free is not billed at all.
-		return new Draft(index, member.studentDiscount(), picks, monthlyBase, groupCount, groupCount > 0);
+		return new DraftMember(index, member.studentDiscount(), pickedGroups, monthlyBase, groupCount, groupCount > 0);
 	}
 
 
 	/**
 	 * Whether a group bills anything at all, which is what decides whether either ladder counts it.
 	 * The rate is read, not the total: a per-class group at a positive rate counts even before any class is attended.
+	 * An agreed rate of nothing therefore takes a paid-for group out of both ladders, exactly as a {@code customMonthlyCost} of zero does on a real membership.
 	 */
-	private static boolean isCharged(Group group) {
-		return Money.isPositive(Money.normalize(group.getCostForAttending()));
+	private static boolean isCharged(BigDecimal unitCost) {
+		return Money.isPositive(unitCost);
 	}
 
 
@@ -147,9 +152,9 @@ public class PriceQuoteService {
 	 *
 	 * @return the position of each billed person, keyed by their index in the request
 	 */
-	private static Map<Integer, Integer> positions(List<Draft> drafts) {
-		List<Draft> billed = drafts.stream()
-				.filter(Draft::billed)
+	private static Map<Integer, Integer> positions(List<DraftMember> draftMembers) {
+		List<DraftMember> billed = draftMembers.stream()
+				.filter(DraftMember::billed)
 				.sorted(BY_DISCOUNT_PRIORITY)
 				.toList();
 
@@ -166,10 +171,10 @@ public class PriceQuoteService {
 	/**
 	 * @param position where this person sits in the household, or {@code null} when nothing is billed for them
 	 */
-	private static PriceQuoteView.Member price(Draft draft, Integer position, DiscountRules rules) {
+	private static PriceQuoteView.Member price(DraftMember draftMember, Integer position, DiscountRules rules) {
 		boolean billed = position != null;
-		int groupCount = draft.groupCount();
-		boolean student = draft.student();
+		int groupCount = draftMember.groupCount();
+		boolean student = draftMember.student();
 
 		BigDecimal familyPercent = billed ? rules.familyPercent(position) : Money.ZERO;
 		BigDecimal groupCountPercent = billed ? rules.groupCountPercent(groupCount) : Money.ZERO;
@@ -179,27 +184,26 @@ public class PriceQuoteService {
 		List<PriceQuoteView.Line> lines = new ArrayList<>();
 		PriceQuoteView.Totals totals = PriceQuoteView.Totals.zero();
 
-		for (Pick pick : draft.picks()) {
-			PriceQuoteView.Line line = line(pick, totalPercent);
+		for (PickedGroup pickedGroup : draftMember.pickedGroups()) {
+			PriceQuoteView.Line line = line(pickedGroup, totalPercent);
 
 			lines.add(line);
-			totals = totals.plus(pick.group().getType(), line.asScope());
+			totals = totals.plus(pickedGroup.group().getType(), line.asScope());
 		}
 
 		return new PriceQuoteView.Member(
-				draft.index(),
+				draftMember.index(),
 				billed,
 				position,
 				billed ? rules.familyThreshold(position) : null,
 				groupCount,
 				billed ? rules.groupCountThreshold(groupCount) : null,
-				Money.normalize(draft.monthlyBase()),
+				Money.normalize(draftMember.monthlyBase()),
 				student,
 				familyPercent,
 				groupCountPercent,
 				studentPercent,
 				totalPercent,
-				// The three parts add up rather than compounding, so a deep enough configuration can sum past the cap.
 				Money.isGreaterThan(Money.add(Money.add(familyPercent, groupCountPercent), studentPercent), totalPercent),
 				lines,
 				totals
@@ -210,11 +214,11 @@ public class PriceQuoteService {
 	/**
 	 * One group's price, discounted exactly as a payment line is.
 	 */
-	private static PriceQuoteView.Line line(Pick pick, BigDecimal percent) {
-		Group group = pick.group();
+	private static PriceQuoteView.Line line(PickedGroup pickedGroup, BigDecimal percent) {
+		Group group = pickedGroup.group();
 
-		BigDecimal unitCost = Money.normalize(group.getCostForAttending());
-		BigDecimal gross = Money.multiply(unitCost, BigDecimal.valueOf(pick.entries()));
+		BigDecimal unitCost = pickedGroup.unitCost();
+		BigDecimal gross = Money.multiply(unitCost, BigDecimal.valueOf(pickedGroup.entries()));
 		BigDecimal discountAmount = Money.percentOf(gross, percent);
 
 		return PriceQuoteView.Line.of(
@@ -223,11 +227,11 @@ public class PriceQuoteService {
 				group.getType(),
 				group.isPerClass(),
 				unitCost,
-				pick.entries(),
+				pickedGroup.entries(),
 				gross,
 				discountAmount,
 				Money.atLeastZero(Money.subtract(gross, discountAmount)),
-				isCharged(group)
+				isCharged(unitCost)
 		);
 	}
 
@@ -241,8 +245,10 @@ public class PriceQuoteService {
 
 	/**
 	 * One group somebody would join, and how many times they would be billed for it.
+	 *
+	 * @param unitCost the rate to bill, already resolved: the individually agreed amount when one was named, the group's own otherwise.
 	 */
-	private record Pick(Group group, int entries) {}
+	private record PickedGroup(Group group, int entries, BigDecimal unitCost) {}
 
 
 	/**
@@ -251,5 +257,5 @@ public class PriceQuoteService {
 	 * @param index  their position in the request, which is the tiebreaker seniority would be in a real household
 	 * @param billed whether anything at all is charged for them
 	 */
-	private record Draft(int index, boolean student, List<Pick> picks, BigDecimal monthlyBase, int groupCount, boolean billed) {}
+	private record DraftMember(int index, boolean student, List<PickedGroup> pickedGroups, BigDecimal monthlyBase, int groupCount, boolean billed) {}
 }

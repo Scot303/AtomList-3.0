@@ -3,6 +3,7 @@ package atomdance.app.modules.discount.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +35,8 @@ public record PriceQuoteRequest(
 
 
 	/**
-	 * @param entries how many classes are expected, for a group billed per class. Ignored for a monthly group, which is always billed once. {@code null} means one.
+	 * @param entries        how many classes are expected, for a group billed per class. Ignored for a monthly group, which is always billed once. {@code null} means one.
+	 * @param customUnitCost an individually agreed rate for this group, standing in for the amount a real membership carries in {@code customMonthlyCost}. {@code null} bills the group's own rate.
 	 */
 	public record Selection(
 
@@ -43,11 +45,23 @@ public record PriceQuoteRequest(
 
 			@Min(value = 0, message = "The number of classes cannot be negative")
 			@Max(value = 12, message = "The number of classes is unreasonably large")
-			Integer entries
+			Integer entries,
+
+			@DecimalMin(value = "0.00", message = "Custom cost cannot be negative")
+			@Digits(integer = 10, fraction = 2, message = "Custom cost may have at most 2 decimal places")
+			BigDecimal customUnitCost
 	) {
 
 		public int entriesOrOne() {
 			return entries == null ? 1 : entries;
+		}
+
+
+		/**
+		 * The rate to bill, honoring an individually agreed amount over the group's default.
+		 */
+		public BigDecimal unitCostOr(BigDecimal groupCost) {
+			return customUnitCost != null ? customUnitCost : groupCost;
 		}
 	}
 }
