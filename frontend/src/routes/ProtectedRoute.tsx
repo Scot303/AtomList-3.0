@@ -9,6 +9,7 @@ import type { Permission } from '@/types/auth';
 
 import { paths } from './paths';
 
+
 /**
  * Gate in front of everything that needs a session.
  */
@@ -39,6 +40,7 @@ export function ProtectedRoute() {
 	return <Outlet/>;
 }
 
+
 /**
  * The dead end for a session that could not be verified.
  * Offers the two ways out: try again, or give up and sign in from scratch.
@@ -57,7 +59,7 @@ function SessionUnavailable() {
 	};
 
 	return (
-		<div className="flex min-h-dvh flex-col items-center justify-center px-6">
+		<div className="flex h-dvh flex-col items-center justify-center overflow-hidden px-6">
 			<div className="flex max-w-xl flex-col items-center gap-4 px-6 py-14 text-center">
 				<ServerCrash className="size-10"/>
 				<div>
@@ -81,6 +83,7 @@ function SessionUnavailable() {
 	);
 }
 
+
 /** Wraps a single route whose module needs a specific permission. */
 export function RequirePermission({ permissions, children, }: { permissions: readonly Permission[]; children: React.ReactNode; }) {
 	const { hasAnyPermission } = useAuth();
@@ -90,8 +93,8 @@ export function RequirePermission({ permissions, children, }: { permissions: rea
 	}
 
 	return (
-		<div className="mx-auto flex min-h-screen max-w-xl items-center justify-center">
-			<div className="flex flex-col items-center gap-4 px-6 py-14 text-center">
+		<div className="mx-auto flex h-(--page-height) max-w-xl items-center justify-center overflow-hidden">
+			<div className="flex flex-col items-center gap-4 px-10 py-14 text-center">
 				<ShieldCheck className="size-10"/>
 				<div>
 					<h2 className="text-xl font-bold text-os-text">Brak uprawnień</h2>
