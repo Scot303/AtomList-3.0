@@ -1,5 +1,5 @@
 import type { GroupView } from '@/modules/groups/types/types.ts';
-import { type DraftMember, entriesFor } from '../types/draft.ts';
+import { type DraftMember, entriesFor, unitCostFor } from '../types/draft.ts';
 
 
 /**
@@ -34,7 +34,7 @@ export function grossOf(member: DraftMember, groupsById: Map<string, GroupView>)
 			continue;
 		}
 
-		const amount = round(group.costForAttending * ( group.billingType === 'PER_CLASS' ? entriesFor(member, groupId) : 1 ));
+		const amount = round(unitCostFor(member, group) * ( group.billingType === 'PER_CLASS' ? entriesFor(member, groupId) : 1 ));
 
 		if (group.type === 'TOURNAMENT') {
 			tournament = round(tournament + amount);

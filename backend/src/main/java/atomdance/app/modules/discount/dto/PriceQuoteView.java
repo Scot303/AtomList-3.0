@@ -66,7 +66,7 @@ public record PriceQuoteView(
 	/**
 	 * One group on one person's quote.
 	 *
-	 * @param unitCost               the group's rate - a monthly fee, or the price of one class
+	 * @param unitCost               the rate billed - a monthly fee, or the price of one class. The individually agreed amount when the request named one, the group's own otherwise.
 	 * @param entries                how many of them are billed: always 1 for a monthly group
 	 * @param countedTowardsDiscount false for a group priced at nothing, which is shown but counts towards neither ladder
 	 */

@@ -7,7 +7,7 @@ import { Tooltip } from '@/components/ui/tooltip/Tooltip';
 import { cn } from '@/lib/cn';
 import { formatCurrency, formatPercent, pluralise } from '@/lib/locale';
 import type { GroupView } from '@/modules/groups/types/types.ts';
-import { type DraftMember, withEntries, withGroupIds } from '../types/draft.ts';
+import { type DraftMember, withCustomPrice, withEntries, withGroupIds } from '../types/draft.ts';
 import type { QuoteLine, QuoteMember } from '../types/types.ts';
 import { grossOf } from '../utils/grossTotals.ts';
 import { BreakdownCard, BreakdownDivider } from './BreakdownCard.tsx';
@@ -69,6 +69,7 @@ export function MemberCard({ member, ordinal, groupOptions, groupsById, quoted, 
 								groupsById={ groupsById }
 								pricedByGroup={ pricedByGroup }
 								onEntriesChange={ (groupId, entries) => onChange(withEntries(member, groupId, entries)) }
+								onCustomPriceChange={ (groupId, price) => onChange(withCustomPrice(member, groupId, price)) }
 							/>
 
 							{ member.groupIds.length === 0 && (

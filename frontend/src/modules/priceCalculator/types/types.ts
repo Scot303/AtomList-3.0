@@ -10,6 +10,8 @@ export interface QuoteSelectionPayload {
 	groupId: string;
 	/** Expected classes, for a group billed per entry. Ignored for a monthly group; null bills one. */
 	entries: number | null;
+	/** An individually agreed rate replacing the group's own. Null bills the group's price. */
+	customUnitCost: number | null;
 }
 
 
