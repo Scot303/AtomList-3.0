@@ -12,6 +12,9 @@ import type { QuoteLine } from '../types/types.ts';
 
 const MAX_ENTRIES = 12;
 const MAX_PRICE = 99999.99;
+const MAX_PRICE_DIGITS = String(Math.trunc(MAX_PRICE)).length;
+
+const LINE_INPUT = 'h-6 appearance-none rounded-md border bg-os-surface px-1.5 text-right text-sm tabular-nums text-os-text outline-none ring-0';
 
 
 interface MemberLinesProps {
@@ -94,19 +97,18 @@ function Line({ group, entries, unitCost, customPrice, priced, onEntriesChange, 
 			{ perClass && (
 				<div className="flex shrink-0 items-center ml-3 gap-1.5">
 					<input
-						type="number"
-						min={ 0 }
-						max={ MAX_ENTRIES }
-						step={ 1 }
+						type="text"
+						inputMode="numeric"
 						aria-label={ `Liczba wejść - ${ group.name }` }
 						value={ entries }
+						onFocus={ (event) => event.currentTarget.select() }
 						onChange={ (event) => {
-							const normalised = clampEntries(event.target.value);
+							const normalised = clampEntries(event.currentTarget.value.replace(/\D/g, ''));
 
 							event.currentTarget.value = String(normalised);
 							onEntriesChange(normalised);
 						} }
-						className="h-7 w-16 appearance-none rounded-md border border-os-border bg-os-surface px-2 text-right text-sm tabular-nums text-os-text outline-none transition-colors focus:border-os-primary ring-0"
+						className={ cn(LINE_INPUT, 'w-12 border-os-border transition-colors focus:border-os-primary') }
 					/>
 
 					<span className="text-sm text-os-text-muted">{ pluralise(entries, 'wejście', 'wejścia', 'wejść') }</span>
@@ -189,6 +191,19 @@ function PriceCell({ group, perClass, customPrice, gross, struck, onChange }: Pr
 					placeholder={ toInputValue(group.costForAttending) }
 					defaultValue={ customPrice === null ? '' : toInputValue(customPrice) }
 					onFocus={ (event) => event.currentTarget.select() }
+					onChange={ (event) => {
+						const input = event.currentTarget;
+						const cleaned = sanitisePrice(input.value);
+
+						if (cleaned === input.value) {
+							return;
+						}
+
+						const caret = ( input.selectionStart ?? cleaned.length ) - ( input.value.length - cleaned.length );
+
+						input.value = cleaned;
+						input.setSelectionRange(caret, caret);
+					} }
 					onKeyDown={ (event) => {
 						if (event.key === 'Enter') {
 							event.preventDefault();
@@ -210,7 +225,7 @@ function PriceCell({ group, perClass, customPrice, gross, struck, onChange }: Pr
 
 						commit(event.currentTarget.value);
 					} }
-					className="h-full w-full appearance-none rounded-md border border-os-primary bg-os-surface px-1.5 text-right text-sm tabular-nums text-os-text outline-none ring-0 placeholder:text-os-text-muted"
+					className={ cn(LINE_INPUT, 'w-22 border-os-primary placeholder:text-os-text-muted') }
 				/>
 			</span>
 		);
@@ -262,6 +277,24 @@ function clampEntries(raw: string): number {
 	}
 
 	return Math.min(Math.max(Math.trunc(value), 0), MAX_ENTRIES);
+}
+
+
+/**
+ * Strips a half-typed rate down to what a price may look like: digits, one separator, and at most two decimals.
+ */
+function sanitisePrice(raw: string): string {
+	const kept = raw.replace(/[^\d.,]/g, '');
+	const separator = kept.search(/[.,]/);
+
+	if (separator === -1) {
+		return kept.slice(0, MAX_PRICE_DIGITS);
+	}
+
+	const whole = kept.slice(0, separator).slice(0, MAX_PRICE_DIGITS);
+	const fraction = kept.slice(separator + 1).replace(/[.,]/g, '').slice(0, 2);
+
+	return `${ whole }${ kept[separator] }${ fraction }`;
 }
 
 
