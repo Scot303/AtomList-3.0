@@ -5,8 +5,9 @@ import { VerifyEmailPage } from '@/modules/auth/pages/VerifyEmailPage';
 import { PaymentListDetailPage } from '@/modules/paymentLists/PaymentListDetailPage';
 import { TransactionsPage } from '@/modules/transactions/TransactionsPage';
 import { MODULES } from '@/modules/registry';
-import { DEFAULT_AUTHENTICATED_PATH, paths } from './paths';
+import { paths } from './paths';
 import { ProtectedRoute, RequirePermission } from './ProtectedRoute';
+import { useLandingPath } from './useLandingPath';
 
 
 export function AppRoutes() {
@@ -18,7 +19,7 @@ export function AppRoutes() {
 
 			<Route element={ <ProtectedRoute/> }>
 				<Route path="/" element={ <Dashboard/> }>
-					<Route index element={ <Navigate to={ DEFAULT_AUTHENTICATED_PATH } replace/> }/>
+					<Route index element={ <LandingRedirect/> }/>
 
 					{ /* One route per module, guarded by the permissions declared alongside it in the registry - the same ones the sidebar filters the menu on. */ }
 					{ MODULES.map(({ id, path, permissions, Component }) => (
@@ -56,4 +57,14 @@ export function AppRoutes() {
 			<Route path="*" element={ <Navigate to="/" replace/> }/>
 		</Routes>
 	);
+}
+
+
+/**
+ * The root of the signed-in application.
+ */
+function LandingRedirect() {
+	const landingPath = useLandingPath();
+
+	return <Navigate to={ landingPath } replace/>;
 }
