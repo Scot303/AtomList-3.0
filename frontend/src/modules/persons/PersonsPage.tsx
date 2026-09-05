@@ -26,6 +26,7 @@ const HIDDEN_COLS: ColumnVisibilityState = {
 	groupTypes: false,
 	joinedClubDate: false,
 	leftClubDate: false,
+	note: false,
 };
 
 

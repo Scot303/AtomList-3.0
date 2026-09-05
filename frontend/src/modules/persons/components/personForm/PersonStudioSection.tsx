@@ -61,6 +61,7 @@ export const PersonStudioSection = ({ control, busy, showActive }: PersonStudioS
 						onChange={ field.onChange }
 						onBlur={ field.onBlur }
 						disabled={ busy }
+						clearable
 						error={ errors.joinedClubDate?.message }
 					/>
 				) }
@@ -76,6 +77,7 @@ export const PersonStudioSection = ({ control, busy, showActive }: PersonStudioS
 						onChange={ field.onChange }
 						onBlur={ field.onBlur }
 						disabled={ busy }
+						clearable
 						error={ errors.leftClubDate?.message }
 					/>
 				) }

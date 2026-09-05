@@ -1,15 +1,12 @@
 import type { GroupView } from '@/modules/groups/types/types.ts';
+import type { GrossSplit } from '@/types/finance.ts';
 import { type DraftMember, entriesFor, unitCostFor } from '../types/draft.ts';
 
 
 /**
  * The undiscounted price, split the way the two sheets are.
  */
-export interface GrossTotals {
-	open: number;
-	tournament: number;
-	total: number;
-}
+export type GrossTotals = GrossSplit;
 
 
 export const EMPTY_GROSS: GrossTotals = { open: 0, tournament: 0, total: 0 };

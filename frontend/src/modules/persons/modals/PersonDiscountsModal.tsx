@@ -2,13 +2,13 @@ import { AlertTriangle, Ban } from 'lucide-react';
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
 import { Tooltip } from '@/components/ui/tooltip/Tooltip';
-import { MONTH_NAMES } from '@/utils/dateUtils.ts';
+import { currentYearMonth, MONTH_NAMES } from '@/utils/dateUtils.ts';
 import { cn } from '@/lib/cn';
 import { formatPercent } from '@/lib/locale';
 import { FamilyDiscountSection } from '../components/discountBreakdown/FamilyDiscountSection';
 import { GroupCountDiscountSection } from '../components/discountBreakdown/GroupCountDiscountSection';
 import { StudentDiscountSection } from '../components/discountBreakdown/StudentDiscountSection';
-import { usePersonDiscounts } from '../hooks/mutations/usePersonDiscounts.ts';
+import { usePersonDiscounts } from '../hooks/queries/usePersonDiscounts.ts';
 import type { PersonDiscountView } from '../types/types.ts';
 
 
@@ -26,7 +26,9 @@ interface PersonDiscountsModalProps {
  * the flat student rate was added on top.
  */
 export default function PersonDiscountsModal({ personId }: PersonDiscountsModalProps) {
-	const discounts = usePersonDiscounts(personId);
+	const { year, month } = currentYearMonth();
+
+	const discounts = usePersonDiscounts(personId, year, month);
 
 	if (discounts.isPending) {
 		return (

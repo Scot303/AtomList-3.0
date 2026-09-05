@@ -1,4 +1,5 @@
 import type { GroupType } from '@/modules/groups/types/types.ts';
+import type { MoneyScope, ScopeSplit } from '@/types/finance.ts';
 
 
 /* ── What is sent ────────────────────────────────────────────────────────── */
@@ -38,23 +39,12 @@ export interface QuoteRung {
 }
 
 
-/** Mirror of `PriceQuoteView.Scope`. */
-export interface QuoteScope {
-	gross: number;
-	discount: number;
-	net: number;
-}
+/** Mirror of the backend's `MoneyScope`. */
+export type QuoteScope = MoneyScope;
 
 
-/**
- * The same figures split by the sheet they are billed on, since the two are paid into different accounts.
- * Mirror of `PriceQuoteView.Totals`.
- */
-export interface QuoteTotals {
-	open: QuoteScope;
-	tournament: QuoteScope;
-	total: QuoteScope;
-}
+/** Mirror of the backend's `ScopeSplit` - the quote split by the sheet each part is billed on. */
+export type QuoteTotals = ScopeSplit;
 
 
 /** One group on one person's quote. Mirror of `PriceQuoteView.Line`. */

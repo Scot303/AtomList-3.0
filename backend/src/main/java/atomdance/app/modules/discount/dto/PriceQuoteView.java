@@ -23,7 +23,7 @@ import java.util.UUID;
  */
 public record PriceQuoteView(
 		List<Member> members,
-		Totals totals,
+		ScopeSplit totals,
 		List<Rung> familyLadder,
 		List<Rung> groupCountLadder,
 		BigDecimal studentDiscountPercent
@@ -59,7 +59,7 @@ public record PriceQuoteView(
 			BigDecimal totalPercent,
 			boolean capped,
 			List<Line> lines,
-			Totals totals
+			ScopeSplit totals
 	) {}
 
 
@@ -88,58 +88,8 @@ public record PriceQuoteView(
 		}
 
 
-		public Scope asScope() {
-			return new Scope(gross, discountAmount, amountToPay);
-		}
-	}
-
-
-	/**
-	 * The same figures split by where they are billed, since the two sheets are paid into different accounts.
-	 */
-	public record Totals(Scope open, Scope tournament, Scope total) {
-
-		public static Totals zero() {
-			return new Totals(Scope.zero(), Scope.zero(), Scope.zero());
-		}
-
-
-		/**
-		 * Adds one group's figures into the scope its type is billed on, and into the overall total.
-		 */
-		public Totals plus(GroupType type, Scope scope) {
-			return new Totals(
-					type == GroupType.TOURNAMENT ? open : open.plus(scope),
-					type == GroupType.TOURNAMENT ? tournament.plus(scope) : tournament,
-					total.plus(scope)
-			);
-		}
-
-
-		public Totals plus(Totals other) {
-			return new Totals(open.plus(other.open), tournament.plus(other.tournament), total.plus(other.total));
-		}
-	}
-
-
-	/**
-	 * @param gross    the charge before any discount
-	 * @param discount what the discount took off
-	 * @param net      what is actually owed
-	 */
-	public record Scope(BigDecimal gross, BigDecimal discount, BigDecimal net) {
-
-		public static Scope zero() {
-			return new Scope(Money.ZERO, Money.ZERO, Money.ZERO);
-		}
-
-
-		public Scope plus(Scope other) {
-			return new Scope(
-					Money.add(gross, other.gross),
-					Money.add(discount, other.discount),
-					Money.add(net, other.net)
-			);
+		public MoneyScope asScope() {
+			return new MoneyScope(gross, discountAmount, amountToPay);
 		}
 	}
 }

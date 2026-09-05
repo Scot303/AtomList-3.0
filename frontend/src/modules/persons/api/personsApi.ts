@@ -10,8 +10,8 @@ export async function fetchPersons(): Promise<PersonView[]> {
 }
 
 
-export async function fetchPersonDiscounts(personId: string): Promise<PersonDiscountView> {
-	const { data } = await axiosInstance.get<PersonDiscountView>(PERSON_ENDPOINTS.discounts(personId));
+export async function fetchPersonDiscounts(personId: string, year: number, month: number): Promise<PersonDiscountView> {
+	const { data } = await axiosInstance.get<PersonDiscountView>(PERSON_ENDPOINTS.discounts(personId, year, month));
 
 	return data;
 }
