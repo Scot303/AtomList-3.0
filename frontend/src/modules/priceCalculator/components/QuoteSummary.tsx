@@ -4,7 +4,7 @@ import { formatCurrency, formatPercent, pluralise } from '@/lib/locale';
 import type { PriceQuoteView, QuoteMember } from '../types/types.ts';
 import type { GrossTotals } from '../utils/grossTotals.ts';
 import { QuoteLadders } from './QuoteLadders.tsx';
-import { ScopeTotals } from './ScopeTotals.tsx';
+import { ScopeTotals } from '@/components/shared/ScopeTotals.tsx';
 
 
 interface QuoteSummaryProps {
@@ -44,7 +44,7 @@ export function QuoteSummary({ gross, quote }: QuoteSummaryProps) {
 
 				<ScopeTotals
 					gross={ gross }
-					quoted={ quote?.totals ?? null }
+					priced={ quote?.totals ?? null }
 					title="Cała rodzina"
 					className="self-start"
 				/>

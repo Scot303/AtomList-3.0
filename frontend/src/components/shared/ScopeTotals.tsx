@@ -1,26 +1,28 @@
 import { cn } from '@/lib/cn';
 import { formatCurrency } from '@/lib/locale';
-import type { QuoteTotals } from '../types/types.ts';
-import type { GrossTotals } from '../utils/grossTotals.ts';
+import type { GrossSplit, ScopeSplit } from '@/types/finance.ts';
 import { BreakdownCard, BreakdownDivider } from './BreakdownCard.tsx';
 
 
 interface ScopeTotalsProps {
-	gross: GrossTotals;
-	/** What the backend priced, or null while nothing has been calculated for this exact configuration. */
-	quoted: QuoteTotals | null;
+	/** The undiscounted figures, shown on their own while nothing has been priced. */
+	gross: GrossSplit;
+	priced: ScopeSplit | null;
 	title?: string;
 	className?: string;
 }
 
 
-export function ScopeTotals({ gross, quoted, title, className }: ScopeTotalsProps) {
+/**
+ * What is owed on each of the two sheets, and altogether.
+ */
+export function ScopeTotals({ gross, priced, title, className }: ScopeTotalsProps) {
 	const rows = [
-		{ label: 'OPEN', gross: quoted?.open.gross ?? gross.open, net: quoted?.open.net ?? null },
-		{ label: 'KLUBOWE', gross: quoted?.tournament.gross ?? gross.tournament, net: quoted?.tournament.net ?? null },
+		{ label: 'OPEN', gross: priced?.open.gross ?? gross.open, net: priced?.open.net ?? null },
+		{ label: 'KLUBOWE', gross: priced?.tournament.gross ?? gross.tournament, net: priced?.tournament.net ?? null },
 	];
 
-	const total = { gross: quoted?.total.gross ?? gross.total, net: quoted?.total.net ?? null };
+	const total = { gross: priced?.total.gross ?? gross.total, net: priced?.total.net ?? null };
 
 	return (
 		<BreakdownCard title={ title } className={ className } gridClassName="grid-cols-[1fr_auto_auto]">

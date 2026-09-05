@@ -10,9 +10,9 @@ import type { GroupView } from '@/modules/groups/types/types.ts';
 import { type DraftMember, withCustomPrice, withEntries, withGroupIds } from '../types/draft.ts';
 import type { QuoteLine, QuoteMember } from '../types/types.ts';
 import { grossOf } from '../utils/grossTotals.ts';
-import { BreakdownCard, BreakdownDivider } from './BreakdownCard.tsx';
+import { BreakdownCard, BreakdownDivider } from '@/components/shared/BreakdownCard.tsx';
 import { MemberLines } from './MemberLines.tsx';
-import { ScopeTotals } from './ScopeTotals.tsx';
+import { ScopeTotals } from '@/components/shared/ScopeTotals.tsx';
 
 
 const FAMILY_ORDER_HINT =
@@ -81,7 +81,7 @@ export function MemberCard({ member, ordinal, groupOptions, groupsById, quoted, 
 					<div className="self-start space-y-3">
 						<PercentBreakdown quoted={ quoted } member={ member }/>
 
-						<ScopeTotals gross={ gross } quoted={ quoted?.totals ?? null } title="Do zapłaty"/>
+						<ScopeTotals gross={ gross } priced={ quoted?.totals ?? null } title="Do zapłaty"/>
 					</div>
 				</div>
 			</section>
