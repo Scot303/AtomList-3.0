@@ -23,6 +23,7 @@ export interface PersonRow {
 	groupIds: string[];
 	/** Which kinds of group those are. What the OPEN and TURNIEJOWI chips filter on. */
 	groupTypes: GroupType[];
+	note: string;
 	person: PersonView;
 }
 
@@ -47,6 +48,7 @@ export function toPersonRow(person: PersonView, groupsById: Map<string, GroupVie
 		activeTag: toActiveTag(person.active),
 		groupIds: person.groupIds,
 		groupTypes: types,
+		note: person.note ?? '',
 		person,
 	};
 }
