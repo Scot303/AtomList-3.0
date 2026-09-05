@@ -1,5 +1,7 @@
 import { ChargeLabel, ListCell } from '@/components/shared/ChargeCells';
+import { TagBadgeOf } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
+import { SCOPE_TAGS } from '@/modules/deposits/types/depositRows.ts';
 import { useGroups } from '@/modules/groups/hooks/useGroups';
 import { indexGroups } from '@/modules/groups/types/groupRows';
 import { paymentListDetailPath } from '@/routes/paths.ts';
@@ -14,7 +16,7 @@ interface PersonArrearsTableProps {
 
 
 /**
- * What one person still owes, line by line, oldest month first.
+ * What one person still owes, line by line, oldest month first, with the account each debt is paid into.
  */
 export function PersonArrearsTable({ payments, linkLists = false, onNavigate }: PersonArrearsTableProps) {
 	const groups = useGroups();
@@ -30,6 +32,9 @@ export function PersonArrearsTable({ payments, linkLists = false, onNavigate }: 
 					</th>
 					<th scope="col" className="px-3.5 py-2 text-left font-normal">
 						Lista
+					</th>
+					<th scope="col" className="px-3.5 py-2 text-left font-normal">
+						Konto
 					</th>
 					<th scope="col" className="px-3.5 py-2 text-left font-normal">
 						Do zapłaty
@@ -54,6 +59,10 @@ export function PersonArrearsTable({ payments, linkLists = false, onNavigate }: 
 								href={ linkLists ? paymentListDetailPath(line.listId) : undefined }
 								onNavigate={ onNavigate }
 							/>
+						</td>
+
+						<td className="px-3.5 py-2 align-baseline">
+							<TagBadgeOf tag={ SCOPE_TAGS[line.tournamentList ? 'TOURNAMENT' : 'OPEN'] } size="sm"/>
 						</td>
 
 						<td className="px-3.5 py-2 align-baseline">
