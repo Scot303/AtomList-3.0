@@ -1,12 +1,16 @@
 package atomdance.app.modules.person.dto;
 
+import atomdance.app.modules.discount.dto.MoneyScope;
+import atomdance.app.modules.discount.dto.ScopeSplit;
+import atomdance.app.modules.group.model.GroupType;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 
 /**
- * One person's discount for the current month, together with everything it was worked out from.
+ * One person's discount for one month, together with everything it was worked out from and what it comes to in złoty.
  * <p>
  * This is a <em>preview</em>, computed on read from the memberships running now and the ladders configured now.
  * It is not a record of anything: what somebody was actually charged is snapshotted onto their payment lines when the sheet is built,
@@ -15,7 +19,8 @@ import java.util.UUID;
  * @param billed          whether anything is being charged for this person this month. False leaves both parts at zero: somebody inactive, with no membership
  *                        running, or with nothing but free ones, takes up no slot in their household's ladder and so does not push their siblings down either.
  * @param household       the household ladder this person sits in, or null when they have no family - in which case they are positioned as the first person.
- * @param memberships     every membership running this month, counted towards {@code groupCountDiscount.input} or not - a group that charges nothing is shown but does not count.
+ * @param memberships     every membership running this month, priced, counted towards {@code groupCountDiscount.input} or not - a group that charges nothing is shown but does not count.
+ * @param totals          what those memberships come to, split by the sheet each is billed on. Per-class groups are not in it, since what they cost depends on attendance nobody has recorded yet.
  * @param studentDiscount whether this person holds a student status.
  * @param studentPercent  what that student status is worth here, which is zero whenever nothing is charged.
  * @param totalPercent    the three parts added together and capped, which is what a sheet built now would apply.
@@ -30,6 +35,7 @@ public record PersonDiscountView(
 		boolean billed,
 		Household household,
 		List<CountedMembership> memberships,
+		ScopeSplit totals,
 		Component familyDiscount,
 		Component groupCountDiscount,
 		boolean studentDiscount,
@@ -88,20 +94,31 @@ public record PersonDiscountView(
 
 
 	/**
-	 * One membership the group-count discount was worked out from.
+	 * One membership the group-count discount was worked out from, priced for the month.
 	 *
-	 * @param monthlyCost the agreed rate, or null for a per-class group, which has no monthly figure.
-	 * @param current     false for a membership that ended mid-month: it still counts here, because the month was charged for it, but it is no longer running.
-	 * @param counted     whether it counted towards the group count. False for a group this person pays nothing for this month, which is shown for the explanation but adds nothing to the total.
+	 * @param unitCost       the rate billed this month - the joining month's part-month amount where one was agreed, the standing rate otherwise. For a per-class group it is the price of one class.
+	 * @param gross          the charge before the discount. Zero for a per-class group: what it comes to depends on how many classes are attended, which is not known until they are.
+	 * @param discountAmount what the discount takes off {@code gross}.
+	 * @param amountToPay    what is left owing, which is what a sheet built now would charge.
+	 * @param current        false for a membership that ended mid-month: it still counts here, because the month was charged for it, but it is no longer running.
+	 * @param counted        whether it counted towards the group count. False for a group this person pays nothing for this month, which is shown for the explanation but adds nothing to the total.
 	 */
 	public record CountedMembership(
 			UUID membershipId,
 			UUID groupId,
 			String groupName,
+			GroupType type,
 			boolean perClass,
-			BigDecimal monthlyCost,
+			BigDecimal unitCost,
+			BigDecimal gross,
+			BigDecimal discountAmount,
+			BigDecimal amountToPay,
 			boolean current,
 			boolean counted
 	) {
+
+		public MoneyScope asScope() {
+			return new MoneyScope(gross, discountAmount, amountToPay);
+		}
 	}
 }

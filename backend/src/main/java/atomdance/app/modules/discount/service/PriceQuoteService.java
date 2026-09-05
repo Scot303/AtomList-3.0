@@ -4,6 +4,7 @@ import atomdance.app.common.exception.NotFoundException;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.discount.dto.PriceQuoteRequest;
 import atomdance.app.modules.discount.dto.PriceQuoteView;
+import atomdance.app.modules.discount.dto.ScopeSplit;
 import atomdance.app.modules.group.model.Group;
 import atomdance.app.modules.group.repository.GroupRepository;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class PriceQuoteService {
 		Map<Integer, Integer> positions = positions(draftMembers);
 
 		List<PriceQuoteView.Member> members = new ArrayList<>();
-		PriceQuoteView.Totals household = PriceQuoteView.Totals.zero();
+		ScopeSplit household = ScopeSplit.zero();
 
 		for (DraftMember draftMember : draftMembers) {
 			PriceQuoteView.Member member = price(draftMember, positions.get(draftMember.index()), rules);
@@ -182,7 +183,7 @@ public class PriceQuoteService {
 		BigDecimal totalPercent = billed ? rules.combinedPercent(position, groupCount, student) : Money.ZERO;
 
 		List<PriceQuoteView.Line> lines = new ArrayList<>();
-		PriceQuoteView.Totals totals = PriceQuoteView.Totals.zero();
+		ScopeSplit totals = ScopeSplit.zero();
 
 		for (PickedGroup pickedGroup : draftMember.pickedGroups()) {
 			PriceQuoteView.Line line = line(pickedGroup, totalPercent);
