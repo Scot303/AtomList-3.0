@@ -24,15 +24,18 @@ export function ScopeTotals({ gross, priced, title, className }: ScopeTotalsProp
 
 	const total = { gross: priced?.total.gross ?? gross.total, net: priced?.total.net ?? null };
 
+	// With nothing discounted anywhere, the emphasis column would sit empty, so the gross figures move into it instead.
+	const anyDiscounted = [...rows, total].some((row) => isDiscounted(row.gross, row.net));
+
 	return (
 		<BreakdownCard title={ title } className={ className } gridClassName="grid-cols-[1fr_auto_auto]">
 			{ rows.map((row) => (
-				<Row key={ row.label } label={ row.label } gross={ row.gross } net={ row.net }/>
+				<Row key={ row.label } label={ row.label } gross={ row.gross } net={ row.net } grossOnly={ !anyDiscounted }/>
 			)) }
 
 			<BreakdownDivider className="col-span-3"/>
 
-			<Row label="RAZEM" gross={ total.gross } net={ total.net } strong/>
+			<Row label="RAZEM" gross={ total.gross } net={ total.net } grossOnly={ !anyDiscounted } strong/>
 		</BreakdownCard>
 	);
 }
@@ -43,32 +46,52 @@ interface RowProps {
 	gross: number;
 	/** Null until this configuration has been priced. */
 	net: number | null;
+	grossOnly?: boolean;
 	strong?: boolean;
 }
 
 
-function Row({ label, gross, net, strong = false }: RowProps) {
-	const discounted = net !== null && net !== gross;
+function Row({ label, gross, net, grossOnly = false, strong = false }: RowProps) {
+	const discounted = isDiscounted(gross, net);
+	const grossText = formatCurrency(gross);
 
 	return (
 		<>
 			<span className={ cn('min-w-0 truncate tracking-wide text-sm', strong ? 'text-os-text' : 'text-os-text-muted') }>{ label }</span>
 
 			<span
+				aria-hidden={ grossOnly }
 				className={ cn(
 					'shrink-0 tabular-nums text-sm',
-					discounted ? 'text-os-text-muted line-through decoration-os-text-muted/60' : strong ? 'text-os-text' : 'text-os-text-muted',
+					grossOnly
+						? 'text-transparent'
+						: discounted
+							? 'text-os-text-muted line-through decoration-os-text-muted/60'
+							: strong ? 'text-os-text' : 'text-os-text-muted',
 				) }
 			>
-				{ formatCurrency(gross) }
+				{ grossText }
 			</span>
 
 			<span
-				aria-hidden={ !discounted }
-				className={ cn('shrink-0 text-right tabular-nums text-base', strong ? 'font-semibold' : 'font-medium', discounted ? 'text-os-green' : 'text-transparent') }
+				aria-hidden={ !discounted && !grossOnly }
+				className={ cn(
+					'shrink-0 text-right tabular-nums text-base',
+					strong ? 'font-semibold' : 'font-medium',
+					discounted
+						? 'text-os-green'
+						: grossOnly
+							? strong ? 'text-os-text' : 'text-os-text-muted'
+							: 'text-transparent',
+				) }
 			>
-				{ discounted ? formatCurrency(net) : formatCurrency(gross) }
+				{ discounted ? formatCurrency(net) : grossText }
 			</span>
 		</>
 	);
+}
+
+
+function isDiscounted(gross: number, net: number | null) {
+	return net !== null && net !== gross;
 }
