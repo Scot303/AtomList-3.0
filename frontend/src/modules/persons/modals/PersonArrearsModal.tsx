@@ -13,10 +13,12 @@ interface PersonArrearsModalProps {
  */
 export default function PersonArrearsModal({ personId, personName }: PersonArrearsModalProps) {
 	return (
-		<div className="mt-2 space-y-6">
+		<div className="mt-2 space-y-5">
 			<PersonFeesSection personId={ personId }/>
 
-			<PersonArrearsSection personId={ personId } personName={ personName }/>
+			<div className="border-t border-os-border-highlight pt-5">
+				<PersonArrearsSection personId={ personId } personName={ personName }/>
+			</div>
 		</div>
 	);
 }

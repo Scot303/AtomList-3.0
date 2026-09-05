@@ -1,9 +1,11 @@
 import { Alert } from '@/components/feedback/Alert';
 import { Spinner } from '@/components/feedback/Spinner';
-import { LinePanel, MoneyLine } from '@/components/shared/MoneyLines.tsx';
+import { ScopeTotals } from '@/components/shared/ScopeTotals.tsx';
 import { pluralise } from '@/lib/locale';
 import { useAuth } from '@/modules/auth/hooks/useAuth';
 import { useModalStore } from '@/stores/modalStore';
+import type { ScopeSplit } from '@/types/finance.ts';
+import type { OutstandingPaymentView } from '../../types/types.ts';
 import { usePersonArrears } from '../../hooks/queries/usePersonArrears.ts';
 import { PersonArrearsTable } from './PersonArrearsTable.tsx';
 
@@ -52,13 +54,44 @@ export function PersonArrearsSection({ personId, personName }: PersonArrearsSect
 						onNavigate={ closeModal }
 					/>
 
-					<LinePanel className="mt-5">
-						<MoneyLine label="Kwota zaległych opłat:" amount={ arrears.data.totalBilled } tone="strong"/>
-						<MoneyLine label="Już zapłacono:" amount={ arrears.data.totalSettled } tone="good"/>
-						<MoneyLine label="Pozostało do zapłaty:" amount={ arrears.data.totalOutstanding } tone="bad" separated/>
-					</LinePanel>
+					<ArrearsTotals payments={ arrears.data.payments }/>
 				</div>
 			) }
 		</section>
 	);
+}
+
+
+function ArrearsTotals({ payments }: { payments: OutstandingPaymentView[] }) {
+	const priced = arrearsTotals(payments);
+
+	return (
+		<ScopeTotals
+			gross={ { open: priced.open.gross, tournament: priced.tournament.gross, total: priced.total.gross } }
+			priced={ priced }
+			title="Suma zaległych opłat"
+			className="ml-auto w-full max-w-80 sm:w-80"
+		/>
+	);
+}
+
+
+function arrearsTotals(payments: OutstandingPaymentView[]): ScopeSplit {
+	const totals: ScopeSplit = {
+		open: { gross: 0, discount: 0, net: 0 },
+		tournament: { gross: 0, discount: 0, net: 0 },
+		total: { gross: 0, discount: 0, net: 0 },
+	};
+
+	for (const payment of payments) {
+		const scope = payment.tournamentList ? totals.tournament : totals.open;
+		const remaining = payment.amountToPay - payment.amountSettled;
+
+		scope.gross += remaining;
+		scope.net += remaining;
+		totals.total.gross += remaining;
+		totals.total.net += remaining;
+	}
+
+	return totals;
 }
