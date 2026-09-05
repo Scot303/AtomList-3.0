@@ -46,10 +46,30 @@ export function todayInTimeZone(): Date {
 }
 
 
+/**
+ * The month it currently is in the studio's time-zone.
+ */
+export function currentYearMonth(): { year: number; month: number } {
+	const today = todayInTimeZone();
+
+	return { year: today.getFullYear(), month: today.getMonth() + 1 };
+}
+
+
 export function monthHasEnded(year: number, month: number): boolean {
 	const today = todayInTimeZone();
 
 	return year * 12 + month < today.getFullYear() * 12 + ( today.getMonth() + 1 );
+}
+
+
+/**
+ * The month `offset` months away from this one.
+ */
+export function shiftMonth(year: number, month: number, offset: number): { year: number; month: number } {
+	const index = year * 12 + ( month - 1 ) + offset;
+
+	return { year: Math.floor(index / 12), month: ( index % 12 ) + 1 };
 }
 
 

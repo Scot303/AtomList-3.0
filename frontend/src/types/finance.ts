@@ -54,3 +54,33 @@ export function coveredPersonsPhones(persons: CoveredPersonView[]): string {
 
 	return [...new Set(phones)].join(', ');
 }
+
+
+/* ── Money split by the sheet it is billed on ────────────────────────────── */
+
+/** Mirror of the backend's `MoneyScope` - one pile of money as a discount leaves it. */
+export interface MoneyScope {
+	gross: number;
+	discount: number;
+	net: number;
+}
+
+
+/**
+ * Mirror of the backend's `ScopeSplit` - the same figures split by the sheet they are billed on, since the two are paid into different accounts.
+ */
+export interface ScopeSplit {
+	open: MoneyScope;
+	tournament: MoneyScope;
+	total: MoneyScope;
+}
+
+
+/**
+ * The same split before anything has been priced - gross figures only.
+ */
+export interface GrossSplit {
+	open: number;
+	tournament: number;
+	total: number;
+}
