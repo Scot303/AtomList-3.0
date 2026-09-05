@@ -65,7 +65,7 @@ public class PaymentCalculator {
 		for (Map.Entry<UUID, List<Membership>> entry : billableByPerson.entrySet()) {
 			Map<UUID, Payment> byGroup = membershipDerived.getOrDefault(entry.getKey(), Map.of());
 
-			for (Membership membership : oneMembershipPerGroup(entry.getValue())) {
+			for (Membership membership : ChargedMemberships.oneMembershipPerGroup(entry.getValue())) {
 				// For each person/group pair, try to reuse an existing payment
 				Payment payment = byGroup.get(membership.getGroup().getId());
 
@@ -185,28 +185,6 @@ public class PaymentCalculator {
 	}
 
 
-	/**
-	 * A person can hold two memberships of one group in a month - having left and rejoined - and that is one
-	 * group to bill, not two. The most recent one carries the rate.
-	 */
-	private static List<Membership> oneMembershipPerGroup(List<Membership> memberships) {
-		Map<UUID, Membership> byGroup = new LinkedHashMap<>();
-
-		for (Membership membership : sortedForStableOutput(memberships)) {
-			byGroup.merge(membership.getGroup().getId(), membership, PaymentCalculator::mostRecent);
-		}
-
-		return List.copyOf(byGroup.values());
-	}
-
-
-	private static Membership mostRecent(Membership left, Membership right) {
-		int byJoined = left.getJoinedAt().compareTo(right.getJoinedAt());
-
-		return byJoined >= 0 ? left : right;
-	}
-
-
 	private static Map<UUID, Person> personsOf(Collection<Payment> payments, Collection<Membership> memberships) {
 		Map<UUID, Person> persons = new LinkedHashMap<>();
 
@@ -244,16 +222,5 @@ public class PaymentCalculator {
 		}
 
 		return candidates.values();
-	}
-
-
-	/**
-	 * Fixes the order rows are created in, so two runs produce identical output rather than output that merely adds up the same.
-	 */
-	private static List<Membership> sortedForStableOutput(List<Membership> memberships) {
-		return memberships.stream()
-				.sorted(Comparator.comparing((Membership membership) -> membership.getGroup().getName(), String.CASE_INSENSITIVE_ORDER)
-						.thenComparing(membership -> String.valueOf(membership.getId())))
-				.toList();
 	}
 }

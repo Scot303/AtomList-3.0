@@ -109,6 +109,14 @@ export function buildPersonColumns(groupOptions: TagOption[]): AppColumnDef<Pers
 				globalSearch: true,
 			},
 			cell: ({ getValue }) => renderClubDate(getValue<string>()),
+		},
+		{
+			accessorKey: 'note',
+			header: 'Notatka',
+			fieldType: 'text',
+			size: 300,
+			aggregatedCell: () => null,
+			meta: { globalSearch: true },
 		}
 	];
 }

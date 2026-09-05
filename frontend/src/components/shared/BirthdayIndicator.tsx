@@ -51,7 +51,7 @@ export function BirthdayIndicator({ persons, className }: BirthdayIndicatorProps
 					<p className="font-semibold">Dziś mają urodziny:</p>
 					<ul className="space-y-0.5">
 						{ birthdays.map((birthday) => (
-							<li key={ birthday.id }>{ birthday.fullName } - ({ birthday.age }) lat</li>
+							<li key={ birthday.id }>{ birthday.fullName } - kończy ({ birthday.age }) lat</li>
 						)) }
 					</ul>
 				</div>

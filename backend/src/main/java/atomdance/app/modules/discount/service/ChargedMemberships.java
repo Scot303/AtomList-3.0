@@ -4,10 +4,7 @@ import atomdance.app.common.utils.Money;
 import atomdance.app.modules.group.model.Membership;
 
 import java.time.YearMonth;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 
 /**
@@ -61,5 +58,42 @@ public final class ChargedMemberships {
 		}
 
 		return groups.size();
+	}
+
+
+	/**
+	 * A person can hold two memberships of one group in a month - having left and rejoined - and that is one group to bill, not two.
+	 * The most recent one carries the rate.
+	 */
+	public static List<Membership> oneMembershipPerGroup(List<Membership> memberships) {
+		if (memberships == null) {
+			return List.of();
+		}
+
+		Map<UUID, Membership> byGroup = new LinkedHashMap<>();
+
+		for (Membership membership : sortedForStableOutput(memberships)) {
+			byGroup.merge(membership.getGroup().getId(), membership, ChargedMemberships::mostRecent);
+		}
+
+		return List.copyOf(byGroup.values());
+	}
+
+
+	private static Membership mostRecent(Membership left, Membership right) {
+		int byJoined = left.getJoinedAt().compareTo(right.getJoinedAt());
+
+		return byJoined >= 0 ? left : right;
+	}
+
+
+	/**
+	 * Fixes the order rows are produced in, so two runs give identical output rather than output that merely adds up the same.
+	 */
+	private static List<Membership> sortedForStableOutput(List<Membership> memberships) {
+		return memberships.stream()
+				.sorted(Comparator.comparing((Membership membership) -> membership.getGroup().getName(), String.CASE_INSENSITIVE_ORDER)
+						.thenComparing(membership -> String.valueOf(membership.getId())))
+				.toList();
 	}
 }

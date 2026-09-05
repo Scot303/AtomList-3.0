@@ -25,9 +25,17 @@ export function paymentListTransactionsPath(listId: string): string {
 
 
 /**
- * Where a signed-in user lands when they have not asked for anywhere in particular.
+ * The screens a signed-in user may land on when they have not asked for anywhere in particular.
+ * Whoever cannot open the first one is sent to the next.
  */
-export const DEFAULT_AUTHENTICATED_PATH = paths.paymentLists;
+export const LANDING_PATHS = [paths.paymentLists, paths.persons] as const;
+
+
+/**
+ * Where a signed-in user is sent when they have not asked for anywhere in particular.
+ * Which screen that turns out to be depends on what their account can open.
+ */
+export const DEFAULT_AUTHENTICATED_PATH = '/';
 
 
 /**

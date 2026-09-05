@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/fields';
 import { notifySuccess } from '@/lib/toast';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
+import { currentYearMonth } from '@/utils/dateUtils.ts';
 import { usePrefetchMemberships } from '../../hooks/queries/useMemberships.ts';
-import { usePrefetchPersonDiscounts } from '../../hooks/mutations/usePersonDiscounts.ts';
+import { usePrefetchPersonDiscounts } from '../../hooks/queries/usePersonDiscounts.ts';
 import { useCreatePerson, useUpdatePerson } from '../../hooks/mutations/usePersonMutations.ts';
 import { personFormSchema, type PersonFormValues } from '../../schemas/personSchemas';
 import { blankPersonForm, buildCreatePayload, buildUpdatePayload, personToForm } from '../../utils/personForm';
@@ -59,7 +60,9 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 		preloadModal('persons.discounts');
 
 		if (personId !== undefined) {
-			prefetchDiscounts(personId);
+			const { year, month } = currentYearMonth();
+
+			prefetchDiscounts(personId, year, month);
 		}
 	};
 

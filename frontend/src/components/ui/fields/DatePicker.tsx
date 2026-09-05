@@ -1,12 +1,12 @@
 import { useId } from 'react';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { usePopover } from '@/hooks/usePopover';
 import { Popover } from '@/components/ui/popover';
 import { Calendar } from './Calendar';
 import { FieldShell } from './FieldShell';
 import { formatLongDate, parseISODate } from '@/utils/dateUtils.ts';
-import { fieldControl, fieldControlWithLeftIcon, fieldLeftIcon, type FieldSize, } from './fieldStyles';
+import { fieldControl, fieldControlWithLeftIcon, fieldControlWithRightAdornment, fieldLeftIcon, fieldRightAdornment, type FieldSize, } from './fieldStyles';
 
 
 interface DatePickerProps {
@@ -21,6 +21,7 @@ interface DatePickerProps {
 	hint?: string;
 	className?: string;
 	disabled?: boolean;
+	clearable?: boolean;
 	min?: string;
 	max?: string;
 	size?: FieldSize;
@@ -31,7 +32,7 @@ interface DatePickerProps {
  * A date field that opens a calendar.
  */
 export const DatePicker = (props: DatePickerProps) => {
-	const { label, value, onChange, onBlur, error, hint, className, disabled, min, max, size = 'default' } = props;
+	const { label, value, onChange, onBlur, error, hint, className, disabled, clearable, min, max, size = 'default' } = props;
 
 	const id = useId();
 
@@ -40,6 +41,8 @@ export const DatePicker = (props: DatePickerProps) => {
 
 	const selected = parseISODate(value);
 	const display = formatLongDate(value);
+
+	const showClear = clearable === true && value !== '' && !disabled;
 
 	return (
 		<FieldShell
@@ -64,6 +67,7 @@ export const DatePicker = (props: DatePickerProps) => {
 					'peer block text-left',
 					fieldControl(size, { hasError: Boolean(error), disabled, active: open }),
 					fieldControlWithLeftIcon[size],
+					showClear && fieldControlWithRightAdornment[size],
 				) }
 			>
 				<span className={ cn('block min-h-5 truncate', display === '' && 'text-os-text-muted') }>
@@ -74,6 +78,25 @@ export const DatePicker = (props: DatePickerProps) => {
 			<div className={ fieldLeftIcon(size, { hasError: Boolean(error), active: open }) }>
 				<CalendarIcon size={ size === 'sm' ? 14 : 18 }/>
 			</div>
+
+			{ showClear && (
+				<div className={ cn(fieldRightAdornment(size), 'pointer-events-none') }>
+					<button
+						type="button"
+						tabIndex={ -1 }
+						title="Wyczyść"
+						aria-label="Wyczyść"
+						onMouseDown={ (event) => {
+							event.preventDefault();
+							event.stopPropagation();
+							onChange('');
+						} }
+						className="pointer-events-auto text-os-text-muted transition-colors hover:text-os-text"
+					>
+						<X size={ size === 'sm' ? 14 : 16 }/>
+					</button>
+				</div>
+			) }
 
 			<Popover state={ popover }>
 				<div role="dialog" aria-label={ label || 'Kalendarz' } className="popover-surface w-full rounded-xl p-3">

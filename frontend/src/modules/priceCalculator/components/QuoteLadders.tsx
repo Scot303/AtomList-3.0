@@ -39,7 +39,7 @@ export function QuoteLadders({ quote }: QuoteLaddersProps) {
 
 				<ul className="flex flex-wrap gap-2">
 					<Rung
-						label="status studenta"
+						label="Status studenta"
 						percent={ quote.studentDiscountPercent }
 						holders={ students }
 					/>

@@ -70,7 +70,7 @@ export const PERSON_ENDPOINTS = {
 	base: PERSONS,
 	byId: (id: string) => `${ PERSONS }/${ id }`,
 	memberships: (personId: string) => `${ PERSONS }/${ personId }/memberships`,
-	discounts: (personId: string) => `${ PERSONS }/${ personId }/discounts`,
+	discounts: (personId: string, year: number, month: number) => `${ PERSONS }/${ personId }/discounts/${ year }/${ month }`,
 	arrears: (personId: string) => `${ PERSONS }/${ personId }/arrears`,
 } as const;
 

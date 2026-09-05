@@ -14,7 +14,7 @@ export function buildGroupColumns(): AppColumnDef<GroupRow>[] {
 			accessorKey: 'name',
 			header: 'Nazwa',
 			fieldType: 'text',
-			size: 260,
+			size: 300,
 			meta: { globalSearch: true },
 			cell: ({ row, getValue }) => <TagBadge label={ getValue<string>() } color={ row.original.color }/>,
 		},

@@ -3,7 +3,7 @@ export const personKeys = {
 	list: () => [...personKeys.all, 'list'] as const,
 	memberships: (personId: string) => [...personKeys.all, 'memberships', personId] as const,
 	discounts: () => [...personKeys.all, 'discounts'] as const,
-	discount: (personId: string) => [...personKeys.discounts(), personId] as const,
+	discount: (personId: string, year: number, month: number) => [...personKeys.discounts(), personId, year, month] as const,
 };
 
 export const familyKeys = {

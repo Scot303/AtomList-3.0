@@ -70,7 +70,7 @@ function CountedMembershipList({ memberships }: { memberships: CountedMembership
 					<span className="shrink-0 font-mono text-sm">
 						{ membership.perClass
 							? 'rozliczana za wejście'
-							: `${ formatCurrency(membership.monthlyCost) } / miesięcznie` }
+							: `${ formatCurrency(membership.unitCost) } / miesięcznie` }
 					</span>
 				</li>
 			)) }

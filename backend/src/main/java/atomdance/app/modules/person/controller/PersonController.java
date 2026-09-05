@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+
 @RestController
 @RequestMapping("/api/persons")
 @RequiredArgsConstructor
@@ -23,11 +24,13 @@ public class PersonController {
 	private final PersonService personService;
 	private final PersonDiscountService personDiscountService;
 
+
 	@GetMapping
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
 	public List<PersonView> getAll() {
 		return personService.getAll();
 	}
+
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
@@ -35,14 +38,13 @@ public class PersonController {
 		return personService.get(id);
 	}
 
-	/**
-	 * This month's discount for one person, with the inputs it was worked out from.
-	 */
-	@GetMapping("/{id}/discounts")
+
+	@GetMapping("/{id}/discounts/{year}/{month}")
 	@PreAuthorize("hasAuthority('READ_PERSONS')")
-	public PersonDiscountView getDiscounts(@PathVariable UUID id) {
-		return personDiscountService.preview(id);
+	public PersonDiscountView getDiscounts(@PathVariable UUID id, @PathVariable int year, @PathVariable int month) {
+		return personDiscountService.preview(id, year, month);
 	}
+
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
@@ -50,6 +52,7 @@ public class PersonController {
 	public PersonView create(@RequestBody @Valid CreatePersonRequest request) {
 		return personService.create(request);
 	}
+
 
 	@PatchMapping("/{id}")
 	@PreAuthorize("hasAuthority('MODIFY_PERSONS')")

@@ -3,6 +3,7 @@
  */
 
 import type { GroupBillingType, GroupType } from '@/modules/groups/types/types.ts';
+import type { ScopeSplit } from '@/types/finance.ts';
 
 
 /** Mirror of the backend's `PersonView`. */
@@ -243,14 +244,21 @@ export interface DiscountHousehold {
 }
 
 
-/** Mirror of `PersonDiscountView.CountedMembership`. */
+/** Mirror of `PersonDiscountView.CountedMembership` - one group, priced for the month. */
 export interface CountedMembership {
 	membershipId: string;
 	groupId: string;
 	groupName: string;
+	/** Which sheet it is billed on, and so which account it is paid into. */
+	type: GroupType;
 	perClass: boolean;
-	/** Null for a per-class group, which has no monthly figure. */
-	monthlyCost: number | null;
+	/** The rate billed this month - the joining month's part-month amount where one was agreed. For a per-class group, the price of one class. */
+	unitCost: number;
+	/** The charge before the discount. Zero for a per-class group, which is billed by attendance nobody has recorded yet. */
+	gross: number;
+	discountAmount: number;
+	/** What is left owing, which is what a sheet built now would charge. */
+	amountToPay: number;
 	/** False for a membership that ended mid-month: still counted, but no longer running. */
 	current: boolean;
 	/** False for a group this person pays nothing for this month: shown for the explanation, but not counted towards the discount. */
@@ -259,7 +267,7 @@ export interface CountedMembership {
 
 
 /**
- * Mirror of the backend's `PersonDiscountView` - this month's discount for one person, with its inputs.
+ * Mirror of the backend's `PersonDiscountView` - one month's discount for one person, with its inputs and what it comes to.
  */
 export interface PersonDiscountView {
 	personId: string;
@@ -272,6 +280,8 @@ export interface PersonDiscountView {
 	/** Null when the person has no family, in which case they are positioned as the first person. */
 	household: DiscountHousehold | null;
 	memberships: CountedMembership[];
+	/** What those memberships come to, split by sheet. Per-class groups are not in it. */
+	totals: ScopeSplit;
 	familyDiscount: DiscountComponent;
 	groupCountDiscount: DiscountComponent;
 	/** Whether this person holds a student status. True even in a month nothing is charged. */
