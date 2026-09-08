@@ -1,19 +1,23 @@
 package atomdance.app.modules.finance.paymentList.service.financesheet;
 
 import atomdance.app.common.utils.Money;
-import atomdance.app.modules.finance.deposit.model.PaymentMethod;
-import atomdance.app.modules.finance.payment.model.PaymentChargeKind;
 import atomdance.app.modules.finance.paymentList.dto.ListReportView;
+import atomdance.app.modules.finance.paymentList.model.financesheet.PaymentChargeKindTranslate;
+import atomdance.app.modules.finance.paymentList.model.financesheet.PaymentMethodTranslate;
 import atomdance.app.modules.finance.paymentList.service.financesheet.model.Coordinates;
-import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.function.TriConsumer;
+import org.dhatim.fastexcel.ConditionalFormattingExpressionRule;
 import org.dhatim.fastexcel.Worksheet;
 
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_DARK;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_LIGHT;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_MEDIUM;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.cellFinder;
 
 public class RowTable extends FinanceSheetTable<ListReportView.Row> {
 
@@ -40,26 +44,26 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
         AtomicInteger columnReset = new AtomicInteger(coordinates.getTopLeftColumn());
         var columnToIncrement = new AtomicInteger(columnReset.intValue());
 
-        TriConsumer<Integer, AtomicInteger, String> putInWorksheet = (r, c, value) -> {
-            worksheet.value(r + coordinates.getTopLeftRow(), c.intValue(), value);
+        TriConsumer<TriConsumer<Integer, Integer, String>, Integer, String> insertInWorksheet = (function, r, value) -> {
+            function.accept(r + getFirstDataRowIndex(), columnToIncrement.intValue(), value);
             columnToIncrement.incrementAndGet();
         };
 
-        IntStream.range(getFirstDataRowIndex(), sheetContent.size())
+        IntStream.range(0, sheetContent.size())
                 .forEach(i -> {
-                    putInWorksheet.accept(i, columnToIncrement, sheetContent.get(i).personName());
-                    putInWorksheet.accept(i, columnToIncrement, sheetContent.get(i).description());
-                    putInWorksheet.accept(i, columnToIncrement, PaymentChargeKindTranslate.getTranslation(sheetContent.get(i).chargeKind()));
-                    putInWorksheet.accept(i, columnToIncrement, formatAmountString(sheetContent.get(i).amountToPay()));
-                    putInWorksheet.accept(i, columnToIncrement, formatAmountString(sheetContent.get(i).amountSettled()));
-                    putInWorksheet.accept(i, columnToIncrement, formatAmountString(sheetContent.get(i).outstanding()));
-                    putInWorksheet.accept(i, columnToIncrement, formatSettled(sheetContent.get(i)));
+                    insertInWorksheet.accept(worksheet::value, i, sheetContent.get(i).personName());
+                    insertInWorksheet.accept(worksheet::value, i, sheetContent.get(i).description());
+                    insertInWorksheet.accept(worksheet::value, i, PaymentChargeKindTranslate.getTranslation(sheetContent.get(i).chargeKind()));
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(sheetContent.get(i).amountToPay()));
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(sheetContent.get(i).amountSettled()));
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(sheetContent.get(i).outstanding()));
+                    formatStatusCell(i, columnToIncrement.intValue());
+                    insertInWorksheet.accept(worksheet::value, i, formatSettled(sheetContent.get(i)));
+
+                    sheetContent.get(i).parts().forEach(
+                            p -> insertInWorksheet.accept(worksheet::formula, i, "HYPERLINK(\"#'Wpłaty'!A" + (p.depositRef() + 1) + "\",\"" + (p.depositCode() + " (" + Money.format(p.amount()) + " " + PaymentMethodTranslate.getTranslation(p.paymentMethod())) + ")" + "\")"));
                     columnToIncrement.set(columnReset.intValue());
                 });
-    }
-
-    private String formatAmountString(BigDecimal bd) {
-        return Money.format(bd);
     }
 
     private String formatSettled(ListReportView.Row row) {
@@ -77,22 +81,9 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
         return "Nie opłacono";
     }
 
-    @AllArgsConstructor
-    protected enum PaymentChargeKindTranslate {
-        MEMBERSHIP_MONTHLY(PaymentChargeKind.MEMBERSHIP_MONTHLY, "Opłata miesięczna"),
-        MEMBERSHIP_PER_CLASS(PaymentChargeKind.MEMBERSHIP_PER_CLASS, "Opłata od liczby wejść na zajęcia"),
-        ONE_TIME(PaymentChargeKind.ONE_TIME, "Jednorazowo");
-
-        private PaymentChargeKind paymentChargeKind;
-        private String plTranslation;
-
-        protected static String getTranslation(PaymentChargeKind paymentChargeKind) {
-            for (var value : RowTable.PaymentChargeKindTranslate.values()) {
-                if (value.paymentChargeKind.equals(paymentChargeKind)) {
-                    return value.plTranslation;
-                }
-            }
-            return null;
-        }
+    private void formatStatusCell(int row, int column) {
+        worksheet.style(row, column).fillColor(COLOR_LIGHT).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono częściowo\"", true));
+        worksheet.style(row, column).fillColor(COLOR_MEDIUM).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
+        worksheet.style(row, column).fillColor(COLOR_DARK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
     }
 }
