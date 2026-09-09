@@ -11,11 +11,16 @@ import atomdance.app.modules.finance.paymentList.service.ListSummaryService;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -74,10 +79,20 @@ public class PaymentListController {
 	}
 
 
-	@GetMapping("{id}/spreadsheet")
+	@GetMapping(value = "{id}/spreadsheet", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
-	public byte[] reportSpreadsheet(@PathVariable UUID id) throws IOException {
-		return paymentSpreadsheetService.getPaymentSpreadsheet(id);
+	public ResponseEntity<byte[]> reportSpreadsheet(@PathVariable UUID id) throws IOException {
+		var genResultPayload =  paymentSpreadsheetService.getPaymentSpreadsheet(id);
+
+		var disposition = ContentDisposition.attachment()
+				.filename(genResultPayload.fileName(), StandardCharsets.UTF_8)
+				.build();
+
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+				.contentType(MediaType.valueOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+				.contentLength(genResultPayload.pdfBytes().length)
+				.body(genResultPayload.pdfBytes());
 	}
 
 

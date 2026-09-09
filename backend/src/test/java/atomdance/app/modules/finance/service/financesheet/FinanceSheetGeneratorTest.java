@@ -9,6 +9,8 @@ import org.springframework.test.context.ActiveProfiles;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,11 +24,14 @@ class FinanceSheetGeneratorTest {
 
     @Test
     void testSomething() throws IOException {
-        byte[] sheet = financeSheetService.getPaymentSpreadsheet(UUID.fromString("09fc5592-e2a0-43f1-b767-4c795e0bbec7"));
+        var start = Instant.now();
+        var sheet = financeSheetService.getPaymentSpreadsheet(UUID.fromString("09fc5592-e2a0-43f1-b767-4c795e0bbec7"));
+        var finish = Instant.now();
 
         assertThat(sheet)
                 .isNotNull();
 
-        Files.write(Paths.get("test-sheet.xlsx"), sheet);
+        Files.write(Paths.get("test-sheet.xlsx"), sheet.pdfBytes());
+        System.out.println("Elapsed time (ms):" + Duration.between(start, finish).toMillis());
     }
 }

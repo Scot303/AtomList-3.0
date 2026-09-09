@@ -1,5 +1,8 @@
 package atomdance.app.modules.finance.paymentList.service;
 
+import atomdance.app.modules.attendance.model.GenResultPayload;
+import atomdance.app.modules.audit.model.AuditEventType;
+import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.payment.dto.PaymentView;
 import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
@@ -22,10 +25,11 @@ public class FinanceSheetService {
 	private final FinanceSheetGenerator financeSheetGenerator;
 	private final PaymentListService paymentListService;
 	private final PaymentRepository paymentRepository;
+	private final AuditLogger auditLogger;
 
 
 	@Transactional(readOnly = true)
-	public byte[] getPaymentSpreadsheet(UUID id) throws IOException {
+	public GenResultPayload getPaymentSpreadsheet(UUID id) throws IOException {
 		PaymentList list = paymentListService.getOrThrow(id);
 
 		List<Payment> payments = paymentRepository.findByListId(id).stream()
@@ -34,6 +38,17 @@ public class FinanceSheetService {
 
 		var listReportView = listReportService.buildListReportView(list, payments);
 
-		return financeSheetGenerator.generateFinanceSheet(listReportView);
+		GenResultPayload genResult;
+
+		try {
+			genResult = financeSheetGenerator.generateFinanceSheet(listReportView);
+		} catch (IOException e) {
+			var errorMsg = "Failed to create payment list %s spreadsheet".formatted(list.getName());
+			auditLogger.failure(AuditEventType.PAYMENT_SPREADSHEET_CREATION, list.getId(), errorMsg);
+			throw e;
+        }
+
+		auditLogger.successNow(AuditEventType.PAYMENT_SPREADSHEET_CREATION, list.getId(), "Created spreadsheet for list %s.", list.getName());
+		return genResult;
 	}
 }
