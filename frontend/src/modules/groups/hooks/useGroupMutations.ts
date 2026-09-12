@@ -4,8 +4,7 @@ import { createGroup, getAttendanceList, updateGroup } from '../api/groupsApi';
 import { groupKeys } from '../api/groupKeys';
 import type { CreateGroupPayload, GroupView, UpdateGroupPayload } from '../types/types.ts';
 import { useAuth } from "@/modules/auth/hooks/useAuth.ts";
-import { openBlobInNewTab } from "@/lib/download.ts";
-import { notifyApiError } from "@/lib/toast.ts";
+import { downloadTracked, openBlobInNewTab } from "@/lib/download.ts";
 
 
 /* ------------------ CREATE ------------------ */
@@ -72,9 +71,13 @@ export function usePrintAttendanceList() {
 	const { hasPermission } = useAuth();
 
 	const download = useMutation({
-		mutationFn: (groupId: string) => getAttendanceList(groupId),
-		onSuccess: ({ blob, fileName }) => openBlobInNewTab(blob, fileName),
-		onError: notifyApiError,
+		mutationFn: (groupId: string) => downloadTracked({
+			fetch: (onTransferStart) => getAttendanceList(groupId, onTransferStart),
+			pending: 'Generowanie listy obecności...',
+			transferring: 'Lista obecności jest gotowa, pobieranie pliku...',
+			done: () => 'Lista obecności została pobrana.',
+			deliver: ({ blob, fileName }) => openBlobInNewTab(blob, fileName),
+		}),
 	});
 
 	return {

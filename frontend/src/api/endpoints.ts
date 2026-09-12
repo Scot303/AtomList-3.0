@@ -121,6 +121,7 @@ export const PAYMENT_LIST_ENDPOINTS = {
 	seasonSummary: (startYear: number) => `${ LISTS }/summary/${ startYear }`,
 	standard: (year: number, month: number) => `${ LISTS }/standard/${ year }/${ month }`,
 	report: (id: string) => `${ LISTS }/${ id }/report`,
+	spreadsheet: (id: string) => `${ LISTS }/${ id }/spreadsheet`,
 	overpayments: (id: string) => `${ LISTS }/${ id }/overpayments`,
 	settleOverpayments: (id: string) => `${ LISTS }/${ id }/overpayments/settle`,
 	repopulate: (id: string) => `${ LISTS }/${ id }/repopulate`,

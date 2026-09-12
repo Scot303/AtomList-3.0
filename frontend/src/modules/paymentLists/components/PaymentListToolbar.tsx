@@ -1,4 +1,4 @@
-import { Calculator, ChevronDown, Coins, FileText, Lock, LockOpen, Plus, RefreshCw, Trash2, UserPlus, Wallet } from 'lucide-react';
+import { Calculator, ChevronDown, Coins, FileSpreadsheet, FileText, Lock, LockOpen, Plus, RefreshCw, Trash2, UserPlus, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ActionMenu, type ActionMenuItem } from '@/components/ui/buttons/ActionMenu';
 import { Button } from '@/components/ui/buttons/Button';
@@ -14,6 +14,7 @@ import { useConfirm } from '@/stores/dialogStore';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { useCreditSweep } from '../hooks/mutations/useCreditSweep.ts';
+import { useListSpreadsheet } from '../hooks/mutations/useListSpreadsheet.ts';
 import { useCloseList, useDeletePaymentList, useRecalculateList, useReopenList, useRepopulateList, } from '../hooks/mutations/usePaymentListMutations.ts';
 import { usePrefetchListReport } from '../hooks/queries/useListReport.ts';
 import { describeList, isCustomList } from '../types/listLabels';
@@ -43,6 +44,7 @@ export function PaymentListToolbar({ list }: PaymentListToolbarProps) {
 	const closeList = useCloseList();
 	const reopenList = useReopenList();
 	const deleteList = useDeletePaymentList();
+	const spreadsheet = useListSpreadsheet();
 
 	/**
 	 * Read here rather than only inside the dialog, so the amount waiting can sit in the menu item's own label.
@@ -213,6 +215,14 @@ export function PaymentListToolbar({ list }: PaymentListToolbarProps) {
 		separatorBefore: true,
 		disabled: !canReadReport,
 		onSelect: () => void openModal('lists.report', { listId: list.id }),
+	});
+
+	items.push({
+		id: 'spreadsheet',
+		label: 'Generuj raport',
+		icon: FileSpreadsheet,
+		disabled: !spreadsheet.canGenerate || spreadsheet.isPending,
+		onSelect: () => spreadsheet.generate(list),
 	});
 
 	items.push(

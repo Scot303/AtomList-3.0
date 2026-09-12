@@ -32,7 +32,7 @@ public class FinanceSheetService {
 	public GenResultPayload getPaymentSpreadsheet(UUID id) throws IOException {
 		PaymentList list = paymentListService.getOrThrow(id);
 
-		List<Payment> payments = paymentRepository.findByListId(id).stream()
+		List<Payment> payments = paymentRepository.findByListIdWithSettlements(id).stream()
 				.sorted(PaymentView.DISPLAY_ORDER)
 				.toList();
 
@@ -46,7 +46,7 @@ public class FinanceSheetService {
 			var errorMsg = "Failed to create payment list %s spreadsheet".formatted(list.getName());
 			auditLogger.failure(AuditEventType.PAYMENT_SPREADSHEET_CREATION, list.getId(), errorMsg);
 			throw e;
-        }
+		}
 
 		auditLogger.successNow(AuditEventType.PAYMENT_SPREADSHEET_CREATION, list.getId(), "Created spreadsheet for list %s.", list.getName());
 		return genResult;

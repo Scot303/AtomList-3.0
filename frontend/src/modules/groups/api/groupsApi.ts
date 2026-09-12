@@ -1,6 +1,7 @@
 import { axiosInstance } from '@/api/axiosInstance';
+import { DOCUMENT_TIMEOUT_MS } from '@/api/config';
 import { GROUP_ENDPOINTS } from '@/api/endpoints';
-import { fileNameFromDisposition } from '@/lib/download';
+import { type DownloadedFile, fileNameFromDisposition } from '@/lib/download';
 import type { CreateGroupPayload, GroupView, UpdateGroupPayload } from '../types/types.ts';
 
 
@@ -25,16 +26,20 @@ export async function updateGroup(id: string, payload: UpdateGroupPayload): Prom
 }
 
 
-export interface AttendancePdf {
-	blob: Blob;
-	fileName: string;
-}
+export async function getAttendanceList(groupId: string, onTransferStart?: () => void): Promise<DownloadedFile> {
+	let announced = false;
 
-
-export async function getAttendanceList(groupId: string): Promise<AttendancePdf> {
 	const response = await axiosInstance.get<Blob>(GROUP_ENDPOINTS.attendanceList(groupId), {
 		responseType: 'blob',
+		timeout: DOCUMENT_TIMEOUT_MS,
 		headers: { Accept: 'application/pdf, application/json' },
+
+		onDownloadProgress: () => {
+			if (!announced) {
+				announced = true;
+				onTransferStart?.();
+			}
+		},
 	});
 
 	return {
