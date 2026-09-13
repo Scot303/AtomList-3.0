@@ -3,6 +3,7 @@ package atomdance.app.modules.finance.paymentList.service.financesheet;
 import atomdance.app.modules.finance.paymentList.service.financesheet.model.Coordinates;
 import lombok.Data;
 import org.dhatim.fastexcel.BorderStyle;
+import org.dhatim.fastexcel.Position;
 import org.dhatim.fastexcel.Range;
 import org.dhatim.fastexcel.Worksheet;
 
@@ -12,12 +13,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Data
 public abstract class FinanceSheetTable<T> {
 
+    protected final String listName;
     protected final Worksheet worksheet;
     protected final Coordinates coordinates;
     protected final List<T> sheetContent;
     protected final Range tableRange;
 
-    protected FinanceSheetTable(Worksheet worksheet, Coordinates coordinates, List<T> sheetContent) {
+    protected FinanceSheetTable(String listName, Worksheet worksheet, Coordinates coordinates, List<T> sheetContent) {
+        this.listName = listName;
         this.worksheet = worksheet;
         this.coordinates = coordinates;
         this.sheetContent = sheetContent;
@@ -69,6 +72,17 @@ public abstract class FinanceSheetTable<T> {
                     .style(tableRange.getTop(), i)
                     .fillColor("46E1FC").set();
         }
+
+        worksheet.setFitToPage(true);
+        worksheet.fitToWidth((short) 1);
+        worksheet.fitToHeight((short) 999);
+        worksheet.pageOrientation("landscape");
+        worksheet.topMargin(0.2f);
+        worksheet.bottomMargin(0.5f);
+        worksheet.leftMargin(0.2f);
+        worksheet.rightMargin(0.2f);
+        worksheet.firstPageNumber(1);
+        worksheet.footer(listName + " - " + worksheet.getName() + ": Strona &P z &N", Position.LEFT, "Arial", 10);
     }
 
     protected int getHeaderColumnIndex(String header) {

@@ -21,8 +21,8 @@ import static atomdance.app.modules.finance.paymentList.service.financesheet.She
 
 public class RowTable extends FinanceSheetTable<ListReportView.Row> {
 
-    public RowTable(Worksheet worksheet, Coordinates coordinates, List<ListReportView.Row> rows) {
-        super(worksheet, coordinates, rows);
+    public RowTable(String listName, Worksheet worksheet, Coordinates coordinates, List<ListReportView.Row> rows) {
+        super(listName, worksheet, coordinates, rows);
     }
 
     @Override
@@ -42,8 +42,10 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
     @Override
     protected void styleTable() {
         super.styleTable();
-        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Wpłaty"), 25.0);
         worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Imię, nazwisko"), 25.0);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Opis"), 14.5);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Status"), 10.5);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Wpłaty"), 21.5);
     }
 
     @Override
@@ -80,7 +82,7 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
             return "Opłacono";
         } else {
             if (hasSomeAmountSettled && hasOutstandingPayment) {
-                return "Opłacono częściowo";
+                return "Częściowo";
             }
         }
 
@@ -88,7 +90,7 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
     }
 
     private void formatStatusCell(int row, int column) {
-        worksheet.style(row, column).fillColor(COLOR_LIGHT).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono częściowo\"", true));
+        worksheet.style(row, column).fillColor(COLOR_LIGHT).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Częściowo\"", true));
         worksheet.style(row, column).fillColor(COLOR_DARK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
         worksheet.style(row, column).fillColor(COLOR_MEDIUM).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
     }
@@ -98,7 +100,8 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
         var partsIterator = parts.iterator();
         while( partsIterator.hasNext() ) {
             var part = partsIterator.next();
-            sb.append(part.depositCode())
+            sb.append("#")
+                    .append(part.depositRef())
                     .append(" (")
                     .append(Money.format(part.amount()))
                     .append(" ")

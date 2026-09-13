@@ -22,8 +22,8 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
 
     private final AppClock appClock;
 
-    public DepositTable(Worksheet worksheet, Coordinates coordinates, List<ListReportView.Deposit> deposits, AppClock appClock) {
-        super(worksheet, coordinates, deposits);
+    public DepositTable(String listName, Worksheet worksheet, Coordinates coordinates, List<ListReportView.Deposit> deposits, AppClock appClock) {
+        super(listName, worksheet, coordinates, deposits);
         this.appClock = appClock;
     }
 
