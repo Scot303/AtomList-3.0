@@ -5,15 +5,18 @@ import atomdance.app.modules.finance.deposit.dto.CreditSweepView;
 import atomdance.app.modules.finance.deposit.dto.SettleCreditRequest;
 import atomdance.app.modules.finance.deposit.service.CreditSweepService;
 import atomdance.app.modules.finance.paymentList.dto.*;
+import atomdance.app.modules.finance.paymentList.service.FinanceSheetService;
 import atomdance.app.modules.finance.paymentList.service.ListReportService;
 import atomdance.app.modules.finance.paymentList.service.ListSummaryService;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +30,7 @@ public class PaymentListController {
 	private final ListSummaryService listSummaryService;
 	private final ListReportService listReportService;
 	private final CreditSweepService creditSweepService;
+	private final FinanceSheetService paymentSpreadsheetService;
 
 
 	@GetMapping
@@ -65,9 +69,26 @@ public class PaymentListController {
 	 * in for the period and where it went, and the totals underneath.
 	 */
 	@GetMapping("/{id}/report")
-	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
+	@PreAuthorize("hasAuthority('GENERATE_LIST_REPORT')")
 	public ListReportView report(@PathVariable UUID id) {
-		return listReportService.build(id);
+		return listReportService.buildForModal(id);
+	}
+
+
+	@GetMapping(value = "/{id}/spreadsheet", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	@PreAuthorize("hasAuthority('GENERATE_LIST_REPORT')")
+	public ResponseEntity<byte[]> reportSpreadsheet(@PathVariable UUID id) throws IOException {
+		var genResultPayload = paymentSpreadsheetService.getPaymentSpreadsheet(id);
+
+		var disposition = ContentDisposition.attachment()
+				.filename(genResultPayload.fileName(), StandardCharsets.UTF_8)
+				.build();
+
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+				.contentType(MediaType.valueOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+				.contentLength(genResultPayload.pdfBytes().length)
+				.body(genResultPayload.pdfBytes());
 	}
 
 

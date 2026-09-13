@@ -1,5 +1,6 @@
 package atomdance.app.common.utils;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ import java.time.*;
 @Component
 public class AppClock {
 
+	@Getter
 	private final ZoneId zone;
 
 

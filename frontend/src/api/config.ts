@@ -9,3 +9,6 @@ export const API_LANGUAGE = 'pl';
 
 /** Nothing here should hang for longer than this. */
 export const REQUEST_TIMEOUT_MS = 20_000;
+
+/** For the handful of endpoints that build a document before they answer. */
+export const DOCUMENT_TIMEOUT_MS = 180_000;
