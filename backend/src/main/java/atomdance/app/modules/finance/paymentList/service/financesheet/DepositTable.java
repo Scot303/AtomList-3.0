@@ -30,7 +30,7 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
     @Override
     public List<String> getHeaders() {
         return List.of(
-                "Etykieta",
+                "Wpłata",
                 "Wpłacona kwota",
                 "Metoda płatności",
                 "Data wpłaty",
