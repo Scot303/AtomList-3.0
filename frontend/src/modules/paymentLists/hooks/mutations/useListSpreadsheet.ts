@@ -23,8 +23,7 @@ export function useListSpreadsheet() {
 	});
 
 	return {
-		//TODO: Change to proper permission after it is created
-		canGenerate: hasPermission('READ_LISTS'),
+		canGenerate: hasPermission('GENERATE_LIST_REPORT') && hasPermission('READ_PAYMENTS'),
 		isPending: download.isPending,
 		generate: download.mutate,
 	};

@@ -55,7 +55,7 @@ export function PaymentListToolbar({ list }: PaymentListToolbarProps) {
 	const canModifyPayments = hasPermission('MODIFY_PAYMENTS');
 	const canModifyLists = hasPermission('MODIFY_LISTS');
 	const canCloseLists = hasPermission('CLOSE_LISTS');
-	const canReadReport = hasPermission('READ_LISTS') && hasPermission('READ_PAYMENTS');
+	const canReadReport = hasPermission('GENERATE_LIST_REPORT') && hasPermission('READ_PAYMENTS');
 
 	const closed = list.closed;
 	const listName = describeList(list);

@@ -28,6 +28,7 @@ export const PERMISSIONS = [
 	'READ_SMS',
 	'SEND_SMS',
 	'PRINT_ATTENDANCE',
+	'GENERATE_LIST_REPORT',
 ] as const;
 
 export type Permission = ( typeof PERMISSIONS )[number];
