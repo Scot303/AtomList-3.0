@@ -24,6 +24,7 @@ public class FinanceSheetGenerator {
     @SuppressWarnings({"java:S2095", "java:S4087"})
     public GenResultPayload generateFinanceSheet(ListReportView lrv) throws IOException {
         try (var outputStream = new ByteArrayOutputStream(); var wb = new Workbook(outputStream, "TestWorkbook", "1.0")) {
+            wb.setGlobalDefaultFont("Calibri", 10);
             Worksheet deposits = wb.newWorksheet("Wpłaty");
             Worksheet rows = wb.newWorksheet("Płatności");
 

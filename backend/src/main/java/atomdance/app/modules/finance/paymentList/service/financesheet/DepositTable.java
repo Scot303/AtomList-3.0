@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_MEDIUM;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.FONT_WHITE;
 import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.cellFinder;
 
 public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
@@ -41,7 +42,7 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
     @Override
     protected void styleTable() {
         super.styleTable();
-        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Należy do tego miesiąca"), 20.0);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Należy do tego miesiąca"), 22.0);
     }
 
     @Override
@@ -76,6 +77,6 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
     }
 
     private void formatBelongsHereCell(int row, int column) {
-        worksheet.style(row, column).fillColor(COLOR_MEDIUM).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"TAK\"", true));
+        worksheet.style(row, column).fillColor(COLOR_MEDIUM).fontColor(FONT_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"TAK\"", true));
     }
 }

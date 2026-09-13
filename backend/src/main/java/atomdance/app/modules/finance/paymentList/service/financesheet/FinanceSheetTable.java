@@ -73,10 +73,8 @@ public abstract class FinanceSheetTable<T> {
                     .fillColor("46E1FC").set();
         }
 
-        worksheet.setFitToPage(true);
-        worksheet.fitToWidth((short) 1);
-        worksheet.fitToHeight((short) 999);
         worksheet.pageOrientation("landscape");
+        worksheet.pageScale(105);
         worksheet.topMargin(0.2f);
         worksheet.bottomMargin(0.5f);
         worksheet.leftMargin(0.2f);

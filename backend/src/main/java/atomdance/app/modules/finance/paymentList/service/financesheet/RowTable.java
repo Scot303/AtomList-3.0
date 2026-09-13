@@ -17,6 +17,8 @@ import java.util.stream.IntStream;
 import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_DARK;
 import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_LIGHT;
 import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_MEDIUM;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.FONT_BLACK;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.FONT_WHITE;
 import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.cellFinder;
 
 public class RowTable extends FinanceSheetTable<ListReportView.Row> {
@@ -42,10 +44,13 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
     @Override
     protected void styleTable() {
         super.styleTable();
-        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Imię, nazwisko"), 25.0);
-        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Opis"), 14.5);
-        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Status"), 10.5);
-        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Wpłaty"), 21.5);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Imię, nazwisko"), 25);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Do zapłaty"), 11.5);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Opłacone"), 11.5);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Pozostało"), 11.5);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Opis"), 16);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Status"), 11.5);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Wpłaty"), 25);
     }
 
     @Override
@@ -90,15 +95,15 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
     }
 
     private void formatStatusCell(int row, int column) {
-        worksheet.style(row, column).fillColor(COLOR_LIGHT).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Częściowo\"", true));
-        worksheet.style(row, column).fillColor(COLOR_DARK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
-        worksheet.style(row, column).fillColor(COLOR_MEDIUM).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
+        worksheet.style(row, column).fillColor(COLOR_LIGHT).fontColor(FONT_BLACK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Częściowo\"", true));
+        worksheet.style(row, column).fillColor(COLOR_DARK).fontColor(FONT_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
+        worksheet.style(row, column).fillColor(COLOR_MEDIUM).fontColor(FONT_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
     }
 
     private String formatRowParts(List<ListReportView.Part> parts) {
         StringBuilder sb = new StringBuilder();
         var partsIterator = parts.iterator();
-        while( partsIterator.hasNext() ) {
+        while (partsIterator.hasNext()) {
             var part = partsIterator.next();
             sb.append("#")
                     .append(part.depositRef())
@@ -109,7 +114,7 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
                     .append(")");
 
             if ( partsIterator.hasNext() ) {
-                sb.append(System.lineSeparator());
+                sb.append("\r\n");
             }
         }
 
