@@ -8,6 +8,8 @@ public class SheetUtil {
     public static final String COLOR_LIGHT = "FFEA00";
     public static final String COLOR_MEDIUM = "873600";
     public static final String COLOR_DARK = "003300";
+    public static final String FONT_WHITE = "FFFFFF";
+    public static final String FONT_BLACK = "000000";
 
     /**
      * Find 'excel-style' cell address using fastexcel coordinates
