@@ -40,6 +40,13 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
     }
 
     @Override
+    protected void styleTable() {
+        super.styleTable();
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Wpłaty"), 25.0);
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Imię, nazwisko"), 25.0);
+    }
+
+    @Override
     public void fillWorksheetContent() {
         AtomicInteger columnReset = new AtomicInteger(coordinates.getTopLeftColumn());
         var columnToIncrement = new AtomicInteger(columnReset.intValue());
@@ -59,9 +66,8 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
                     insertInWorksheet.accept(worksheet::value, i, Money.format(sheetContent.get(i).outstanding()));
                     formatStatusCell(i, columnToIncrement.intValue());
                     insertInWorksheet.accept(worksheet::value, i, formatSettled(sheetContent.get(i)));
+                    insertInWorksheet.accept(worksheet::value, i, formatRowParts(sheetContent.get(i).parts()));
 
-                    sheetContent.get(i).parts().forEach(
-                            p -> insertInWorksheet.accept(worksheet::formula, i, "HYPERLINK(\"#'Wpłaty'!A" + (p.depositRef() + 1) + "\",\"" + (p.depositCode() + " (" + Money.format(p.amount()) + " " + PaymentMethodTranslate.getTranslation(p.paymentMethod())) + ")" + "\")"));
                     columnToIncrement.set(columnReset.intValue());
                 });
     }
@@ -83,7 +89,27 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
 
     private void formatStatusCell(int row, int column) {
         worksheet.style(row, column).fillColor(COLOR_LIGHT).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono częściowo\"", true));
-        worksheet.style(row, column).fillColor(COLOR_MEDIUM).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
-        worksheet.style(row, column).fillColor(COLOR_DARK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
+        worksheet.style(row, column).fillColor(COLOR_DARK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
+        worksheet.style(row, column).fillColor(COLOR_MEDIUM).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
+    }
+
+    private String formatRowParts(List<ListReportView.Part> parts) {
+        StringBuilder sb = new StringBuilder();
+        var partsIterator = parts.iterator();
+        while( partsIterator.hasNext() ) {
+            var part = partsIterator.next();
+            sb.append(part.depositCode())
+                    .append(" (")
+                    .append(Money.format(part.amount()))
+                    .append(" ")
+                    .append(PaymentMethodTranslate.getTranslation(part.paymentMethod()))
+                    .append(")");
+
+            if ( partsIterator.hasNext() ) {
+                sb.append(System.lineSeparator());
+            }
+        }
+
+        return sb.toString();
     }
 }

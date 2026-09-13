@@ -69,14 +69,14 @@ public class PaymentListController {
 	 * in for the period and where it went, and the totals underneath.
 	 */
 	@GetMapping("/{id}/report")
-	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
+	@PreAuthorize("hasAuthority('GENERATE_LIST_REPORT')")
 	public ListReportView report(@PathVariable UUID id) {
 		return listReportService.buildForModal(id);
 	}
 
 
 	@GetMapping(value = "/{id}/spreadsheet", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	@PreAuthorize("hasAuthority('READ_LISTS') and hasAuthority('READ_PAYMENTS')")
+	@PreAuthorize("hasAuthority('GENERATE_LIST_REPORT')")
 	public ResponseEntity<byte[]> reportSpreadsheet(@PathVariable UUID id) throws IOException {
 		var genResultPayload = paymentSpreadsheetService.getPaymentSpreadsheet(id);
 
