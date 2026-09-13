@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum PaymentChargeKindTranslate {
     MEMBERSHIP_MONTHLY(PaymentChargeKind.MEMBERSHIP_MONTHLY, "Opłata miesięczna"),
-    MEMBERSHIP_PER_CLASS(PaymentChargeKind.MEMBERSHIP_PER_CLASS, "Opłata od liczby wejść na zajęcia"),
+    MEMBERSHIP_PER_CLASS(PaymentChargeKind.MEMBERSHIP_PER_CLASS, "Opłata za wejścia"),
     ONE_TIME(PaymentChargeKind.ONE_TIME, "Jednorazowo");
 
     private final PaymentChargeKind paymentChargeKind;

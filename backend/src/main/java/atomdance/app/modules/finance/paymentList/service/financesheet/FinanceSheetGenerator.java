@@ -27,10 +27,10 @@ public class FinanceSheetGenerator {
             Worksheet deposits = wb.newWorksheet("Wpłaty");
             Worksheet rows = wb.newWorksheet("Płatności");
 
-            DepositTable depositTable = new DepositTable(deposits, Coordinates.getDefaultCoordinates(), lrv.cashIn(), appClock);
+            DepositTable depositTable = new DepositTable(describeList(lrv), deposits, Coordinates.getDefaultCoordinates(), lrv.cashIn(), appClock);
             depositTable.createWorksheet();
 
-            RowTable rowTable = new RowTable(rows, Coordinates.getDefaultCoordinates(), lrv.rows());
+            RowTable rowTable = new RowTable(describeList(lrv), rows, Coordinates.getDefaultCoordinates(), lrv.rows());
             rowTable.createWorksheet();
 
             wb.close();
@@ -39,5 +39,13 @@ public class FinanceSheetGenerator {
                     lrv.label().replace(" ", "_"));
             return new GenResultPayload(fileName, outputStream.toByteArray());
         }
+    }
+
+    private static String describeList(ListReportView list) {
+        if (list.type().isStandard() && (list.month() != null && list.year() != null)) {
+            return list.type().isTournament() ? list.month() + "-" + list.year() + " (Turniejowa)" : list.month() + "-" + list.year() ;
+        }
+
+        return list.name() != null ? "'" + list.name() + "'" : "Lista";
     }
 }
