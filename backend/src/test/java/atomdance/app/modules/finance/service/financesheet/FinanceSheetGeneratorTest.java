@@ -25,7 +25,7 @@ class FinanceSheetGeneratorTest {
     @Test
     void testSomething() throws IOException {
         var start = Instant.now();
-        var sheet = financeSheetService.getPaymentSpreadsheet(UUID.fromString("09fc5592-e2a0-43f1-b767-4c795e0bbec7"));
+        var sheet = financeSheetService.getPaymentSpreadsheet(UUID.fromString("de3e64bd-1443-4d97-9012-15c7aadaaa7d"));
         var finish = Instant.now();
 
         assertThat(sheet)

@@ -63,6 +63,7 @@ public abstract class FinanceSheetTable<T> {
 
         tableRange.style()
                 .borderStyle(BorderStyle.THIN)
+                .wrapText(true)
                 .horizontalAlignment("left").set();
 
         // default styling of header row in table
@@ -71,5 +72,9 @@ public abstract class FinanceSheetTable<T> {
                     .style(tableRange.getTop(), i)
                     .fillColor("46E1FC").set();
         }
+    }
+
+    protected int getHeaderColumnIndex(String header) {
+        return getHeaders().indexOf(header);
     }
 }

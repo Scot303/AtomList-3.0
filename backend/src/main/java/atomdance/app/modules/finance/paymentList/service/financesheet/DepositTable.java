@@ -39,6 +39,12 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
     }
 
     @Override
+    protected void styleTable() {
+        super.styleTable();
+        worksheet.width(coordinates.getTopLeftColumn() + getHeaderColumnIndex("Należy do tego miesiąca"), 20.0);
+    }
+
+    @Override
     public void fillWorksheetContent() {
         AtomicInteger columnReset = new AtomicInteger(coordinates.getTopLeftColumn());
         var columnToIncrement = new AtomicInteger(columnReset.intValue());
@@ -50,6 +56,7 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
 
         IntStream.range(0, sheetContent.size())
                 .forEach(i -> {
+                    //TODO set width on name column
                     insertInWorksheet.accept(worksheet::value, i, sheetContent.get(i).label().substring(8));
                     insertInWorksheet.accept(worksheet::value, i, formatTotalAmountString(sheetContent.get(i)));
                     insertInWorksheet.accept(worksheet::value, i, PaymentMethodTranslate.getTranslation(sheetContent.get(i).paymentMethod()));

@@ -3,7 +3,6 @@ package atomdance.app.modules.finance.paymentList.service;
 import atomdance.app.modules.attendance.model.GenResultPayload;
 import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.service.AuditLogger;
-import atomdance.app.modules.finance.payment.dto.PaymentView;
 import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +33,9 @@ public class FinanceSheetService {
 		PaymentList list = paymentListService.getOrThrow(id);
 
 		List<Payment> payments = paymentRepository.findByListIdWithSettlements(id).stream()
-				.sorted(PaymentView.DISPLAY_ORDER)
+				.sorted(Comparator
+						.comparing((Payment payment) -> !payment.isSettled())
+						.thenComparing(payment -> !payment.holdsSettlements()))
 				.toList();
 
 		var listReportView = listReportService.buildListReportView(list, payments);
