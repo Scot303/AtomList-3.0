@@ -56,7 +56,6 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
 
         IntStream.range(0, sheetContent.size())
                 .forEach(i -> {
-                    //TODO set width on name column
                     insertInWorksheet.accept(worksheet::value, i, sheetContent.get(i).label().substring(8));
                     insertInWorksheet.accept(worksheet::value, i, formatTotalAmountString(sheetContent.get(i)));
                     insertInWorksheet.accept(worksheet::value, i, PaymentMethodTranslate.getTranslation(sheetContent.get(i).paymentMethod()));

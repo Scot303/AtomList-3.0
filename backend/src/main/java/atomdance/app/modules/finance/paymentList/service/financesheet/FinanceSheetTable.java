@@ -33,9 +33,6 @@ public abstract class FinanceSheetTable<T> {
     protected int getTableBottomRow() {
         AtomicInteger numOfRows = new AtomicInteger(coordinates.getTopLeftRow());
         sheetContent.forEach(d -> numOfRows.incrementAndGet());
-
-        // TODO Remove test print statements
-        System.out.println("last row: " + numOfRows.intValue());
         return numOfRows.intValue();
     }
 
