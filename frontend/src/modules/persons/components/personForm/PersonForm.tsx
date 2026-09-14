@@ -1,15 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { Percent, Save, UserPlus, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Alert } from '@/components/feedback/Alert';
 import { Button } from '@/components/ui/buttons/Button';
 import { Textarea } from '@/components/ui/fields';
 import { notifySuccess } from '@/lib/toast';
+import { useConfirm } from '@/stores/dialogStore.ts';
 import { preloadModal } from '@/stores/modalRegistry';
 import { useModalStore } from '@/stores/modalStore';
 import { currentYearMonth } from '@/utils/dateUtils.ts';
 import { usePrefetchMemberships } from '../../hooks/queries/useMemberships.ts';
 import { usePrefetchPersonDiscounts } from '../../hooks/queries/usePersonDiscounts.ts';
+import { personsQuery } from '../../hooks/queries/usePersons.ts';
 import { useCreatePerson, useUpdatePerson } from '../../hooks/mutations/usePersonMutations.ts';
 import { personFormSchema, type PersonFormValues } from '../../schemas/personSchemas';
 import { blankPersonForm, buildCreatePayload, buildUpdatePayload, personToForm } from '../../utils/personForm';
@@ -29,6 +32,9 @@ interface PersonFormProps {
  * Everything held about one person, whether they exist yet or not.
  */
 export const PersonForm = ({ person }: PersonFormProps) => {
+	const queryClient = useQueryClient();
+
+	const confirm = useConfirm();
 	const closeModal = useModalStore((state) => state.closeModal);
 	const openModal = useModalStore((state) => state.openModal);
 
@@ -46,7 +52,7 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 		defaultValues: person === undefined ? blankPersonForm() : personToForm(person),
 	});
 
-	const { register, control, handleSubmit, formState: { errors } } = form;
+	const { register, control, handleSubmit, formState: { errors, isSubmitting } } = form;
 
 	const primeGroupsAction = () => {
 		preloadModal('persons.groups');
@@ -66,9 +72,40 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 		}
 	};
 
-	const onSubmit = handleSubmit((values, event) => {
+	const onSubmit = handleSubmit(async (values, event) => {
 		if (person === undefined) {
 			const shouldOpenGroups = ( event?.nativeEvent as SubmitEvent | undefined )?.submitter?.getAttribute('value') === 'groups';
+
+			if (values.dateOfBirth !== '') {
+				let persons: PersonView[];
+
+				try {
+					persons = await queryClient.ensureQueryData(personsQuery());
+				} catch {
+					return;
+				}
+
+				const name = values.name.trim().toLowerCase();
+				const lastName = values.lastName.trim().toLowerCase();
+				const hasDuplicate = persons.some((existing) =>
+					existing.name.trim().toLowerCase() === name
+					&& existing.lastName.trim().toLowerCase() === lastName
+					&& existing.dateOfBirth === values.dateOfBirth,
+				);
+
+				if (hasDuplicate) {
+					const confirmed = await confirm({
+						title: 'Wykryto potencjalny duplikat osoby',
+						message: 'W systemie istnieje już osoba o tym samym imieniu, nazwisku i dacie urodzenia. Czy mimo to dodać nową osobę z tymi danymi?',
+						confirmText: 'Dodaj mimo to',
+						variant: 'warning',
+					});
+
+					if (!confirmed) {
+						return;
+					}
+				}
+			}
 
 			createPerson.mutate(
 				buildCreatePayload(values),
@@ -115,7 +152,7 @@ export const PersonForm = ({ person }: PersonFormProps) => {
 	});
 
 
-	const busy = createPerson.isPending || updatePerson.isPending;
+	const busy = isSubmitting || createPerson.isPending || updatePerson.isPending;
 
 	const failure = createPerson.error ?? updatePerson.error;
 
