@@ -25,14 +25,22 @@ public class FinanceSheetGenerator {
     public GenResultPayload generateFinanceSheet(ListReportView lrv) throws IOException {
         try (var outputStream = new ByteArrayOutputStream(); var wb = new Workbook(outputStream, "TestWorkbook", "1.0")) {
             wb.setGlobalDefaultFont("Calibri", 10);
-            Worksheet deposits = wb.newWorksheet("Wpłaty");
+            Worksheet totals = wb.newWorksheet("Podsumowanie");
             Worksheet rows = wb.newWorksheet("Płatności");
+            Worksheet deposits = wb.newWorksheet("Wpłaty");
+
+            TotalTable totalTable = new TotalTable(describeList(lrv), totals, Coordinates.getDefaultCoordinates(), lrv.totals());
+            totalTable.createWorksheet();
+
+            RowTable rowTable = new RowTable(describeList(lrv), rows, Coordinates.getDefaultCoordinates(), lrv.rows());
+            rowTable.createWorksheet();
 
             DepositTable depositTable = new DepositTable(describeList(lrv), deposits, Coordinates.getDefaultCoordinates(), lrv.cashIn(), appClock);
             depositTable.createWorksheet();
 
-            RowTable rowTable = new RowTable(describeList(lrv), rows, Coordinates.getDefaultCoordinates(), lrv.rows());
-            rowTable.createWorksheet();
+            // TODO dodać nowy worksheet podsumowanie
+            // TODO rozwiązać problem z brakiem formatowaniana na ostatnim rzędzie
+            // TODO # brakuje w danych pobranych z atomlist
 
             wb.close();
 
