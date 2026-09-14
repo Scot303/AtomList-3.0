@@ -14,17 +14,17 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_DARK;
-import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_LIGHT;
-import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.COLOR_MEDIUM;
-import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.FONT_BLACK;
-import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.FONT_WHITE;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.BG_COLOR_DARK;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.BG_COLOR_LIGHT;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.BG_COLOR_MEDIUM;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.FONT_COLOR_BLACK;
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.FONT_COLOR_WHITE;
 import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.cellFinder;
 
 public class RowTable extends FinanceSheetTable<ListReportView.Row> {
 
     public RowTable(String listName, Worksheet worksheet, Coordinates coordinates, List<ListReportView.Row> rows) {
-        super(listName, worksheet, coordinates, rows);
+        super(listName, worksheet, coordinates, rows, false);
     }
 
     @Override
@@ -65,15 +65,16 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
 
         IntStream.range(0, sheetContent.size())
                 .forEach(i -> {
-                    insertInWorksheet.accept(worksheet::value, i, sheetContent.get(i).personName());
-                    insertInWorksheet.accept(worksheet::value, i, sheetContent.get(i).description());
-                    insertInWorksheet.accept(worksheet::value, i, PaymentChargeKindTranslate.getTranslation(sheetContent.get(i).chargeKind()));
-                    insertInWorksheet.accept(worksheet::value, i, Money.format(sheetContent.get(i).amountToPay()));
-                    insertInWorksheet.accept(worksheet::value, i, Money.format(sheetContent.get(i).amountSettled()));
-                    insertInWorksheet.accept(worksheet::value, i, Money.format(sheetContent.get(i).outstanding()));
+                    var row = sheetContent.get(i);
+                    insertInWorksheet.accept(worksheet::value, i, row.personName());
+                    insertInWorksheet.accept(worksheet::value, i, row.description());
+                    insertInWorksheet.accept(worksheet::value, i, PaymentChargeKindTranslate.getTranslation(row.chargeKind()));
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(row.amountToPay()));
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(row.amountSettled()));
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(row.outstanding()));
                     formatStatusCell(i, columnToIncrement.intValue());
-                    insertInWorksheet.accept(worksheet::value, i, formatSettled(sheetContent.get(i)));
-                    insertInWorksheet.accept(worksheet::value, i, formatRowParts(sheetContent.get(i).parts()));
+                    insertInWorksheet.accept(worksheet::value, i, formatSettled(row));
+                    insertInWorksheet.accept(worksheet::value, i, formatRowParts(row.parts()));
 
                     columnToIncrement.set(columnReset.intValue());
                 });
@@ -95,9 +96,9 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
     }
 
     private void formatStatusCell(int row, int column) {
-        worksheet.style(row, column).fillColor(COLOR_LIGHT).fontColor(FONT_BLACK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Częściowo\"", true));
-        worksheet.style(row, column).fillColor(COLOR_DARK).fontColor(FONT_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
-        worksheet.style(row, column).fillColor(COLOR_MEDIUM).fontColor(FONT_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
+        worksheet.style(row, column).fillColor(BG_COLOR_LIGHT).fontColor(FONT_COLOR_BLACK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Częściowo\"", true));
+        worksheet.style(row, column).fillColor(BG_COLOR_DARK).fontColor(FONT_COLOR_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
+        worksheet.style(row, column).fillColor(BG_COLOR_MEDIUM).fontColor(FONT_COLOR_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
     }
 
     private String formatRowParts(List<ListReportView.Part> parts) {

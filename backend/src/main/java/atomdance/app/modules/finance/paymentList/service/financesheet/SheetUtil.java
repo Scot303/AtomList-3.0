@@ -5,11 +5,12 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class SheetUtil {
     // colors picked specifically to look distinct in greyscale
-    public static final String COLOR_LIGHT = "FFEA00";
-    public static final String COLOR_MEDIUM = "873600";
-    public static final String COLOR_DARK = "003300";
-    public static final String FONT_WHITE = "FFFFFF";
-    public static final String FONT_BLACK = "000000";
+    public static final String BG_COLOR_LIGHT = "FFEA00";
+    public static final String BG_COLOR_MEDIUM = "873600";
+    public static final String BG_COLOR_DARK = "003300";
+    public static final String BG_COLOR_HEADER_BLUE = "46E1FC";
+    public static final String FONT_COLOR_WHITE = "FFFFFF";
+    public static final String FONT_COLOR_BLACK = "000000";
 
     /**
      * Find 'excel-style' cell address using fastexcel coordinates

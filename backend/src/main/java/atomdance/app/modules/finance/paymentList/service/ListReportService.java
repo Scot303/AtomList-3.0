@@ -6,6 +6,7 @@ import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.deposit.dto.CoveredPersonView;
 import atomdance.app.modules.finance.deposit.model.Deposit;
+import atomdance.app.modules.finance.deposit.model.PaymentMethod;
 import atomdance.app.modules.finance.deposit.repository.DepositRepository;
 import atomdance.app.modules.finance.payment.dto.PaymentView;
 import atomdance.app.modules.finance.payment.model.Payment;
@@ -14,6 +15,7 @@ import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.payment.repository.PaymentSettlementRepository;
 import atomdance.app.modules.finance.paymentList.dto.ListReportView;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -396,6 +398,12 @@ public class ListReportService {
 		BigDecimal spentElsewhere = Money.ZERO;
 		BigDecimal unallocated = Money.ZERO;
 
+		Map<PaymentMethod, PaymentMethodCountAndSum> depositsByPaymentMethod = new EnumMap<>(Map.of(
+			PaymentMethod.TRANSFER, new PaymentMethodCountAndSum(),
+			PaymentMethod.CASH, new PaymentMethodCountAndSum(),
+			PaymentMethod.BLIK, new PaymentMethodCountAndSum()
+		));
+
 		// Every handover that touched this sheet, whoever it belongs to. Only used to check the sheet against itself - it is not a figure anybody reads.
 		BigDecimal clearedFromAnywhere = Money.ZERO;
 
@@ -412,7 +420,14 @@ public class ListReportService {
 			clearedHere = Money.add(clearedHere, deposit.clearedOnThisList());
 			spentElsewhere = Money.add(spentElsewhere, deposit.spentElsewhere());
 			unallocated = Money.add(unallocated, deposit.unallocated());
+
+			depositsByPaymentMethod.computeIfPresent(deposit.paymentMethod(),
+					(method, countAndSum) -> countAndSum.addToCurrent(deposit.totalAmount()));
 		}
+
+		var depositsCount = depositsByPaymentMethod.values().stream()
+                .map(PaymentMethodCountAndSum::getCount)
+                .reduce(0L, Long::sum);
 
 		// No deposit can have had more spent out of it than was handed over. The residual is left unclamped in deposit() so that this can be seen here rather than rounded away into a plausible zero.
 		boolean overAllocated = cashIn.stream().anyMatch(deposit -> Money.isNegative(deposit.unallocated()));
@@ -431,11 +446,18 @@ public class ListReportService {
 		return new ListReportView.Totals(
 				rows.size(),
 				settled,
+				depositsCount,
+				depositsByPaymentMethod.get(PaymentMethod.TRANSFER).getCount(),
+				depositsByPaymentMethod.get(PaymentMethod.CASH).getCount(),
+				depositsByPaymentMethod.get(PaymentMethod.BLIK).getCount(),
 				billed,
 				collected,
 				cleared,
 				outstanding,
 				received,
+				depositsByPaymentMethod.get(PaymentMethod.TRANSFER).getSum(),
+				depositsByPaymentMethod.get(PaymentMethod.CASH).getSum(),
+				depositsByPaymentMethod.get(PaymentMethod.BLIK).getSum(),
 				countedHere,
 				clearedHere,
 				spentElsewhere,
@@ -447,5 +469,23 @@ public class ListReportService {
 
 	private String message(String key, Object[] args, String fallback) {
 		return messageSource.getMessage(key, args, fallback, LocaleContextHolder.getLocale());
+	}
+
+	@Getter
+	private static class PaymentMethodCountAndSum {
+		private long count;
+		private BigDecimal sum;
+
+		public PaymentMethodCountAndSum() {
+        	this.count = 0;
+			this.sum = Money.ZERO;
+        }
+
+		public PaymentMethodCountAndSum addToCurrent(BigDecimal amountToAdd) {
+			this.count += 1L;
+			this.sum = this.sum.add(amountToAdd);
+
+			return this;
+		}
 	}
 }

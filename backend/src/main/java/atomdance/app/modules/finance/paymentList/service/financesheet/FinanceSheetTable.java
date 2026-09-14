@@ -3,12 +3,15 @@ package atomdance.app.modules.finance.paymentList.service.financesheet;
 import atomdance.app.modules.finance.paymentList.service.financesheet.model.Coordinates;
 import lombok.Data;
 import org.dhatim.fastexcel.BorderStyle;
+import org.dhatim.fastexcel.PaperSize;
 import org.dhatim.fastexcel.Position;
 import org.dhatim.fastexcel.Range;
 import org.dhatim.fastexcel.Worksheet;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.BG_COLOR_HEADER_BLUE;
 
 @Data
 public abstract class FinanceSheetTable<T> {
@@ -17,14 +20,18 @@ public abstract class FinanceSheetTable<T> {
     protected final Worksheet worksheet;
     protected final Coordinates coordinates;
     protected final List<T> sheetContent;
-    protected final Range tableRange;
+    protected Range tableRange;
 
-    protected FinanceSheetTable(String listName, Worksheet worksheet, Coordinates coordinates, List<T> sheetContent) {
+    protected FinanceSheetTable(String listName, Worksheet worksheet, Coordinates coordinates, List<T> sheetContent, boolean setRange) {
         this.listName = listName;
         this.worksheet = worksheet;
         this.coordinates = coordinates;
         this.sheetContent = sheetContent;
-        this.tableRange = worksheet.range(coordinates.getTopLeftRow(), 0, getTableBottomRow(), getHeaders().size() - 1);
+        this.tableRange = getTableRange(setRange);
+    }
+
+    protected FinanceSheetTable(String listName, Worksheet worksheet, Coordinates coordinates, T sheetContent, boolean setRange) {
+        this(listName, worksheet, coordinates, List.of(sheetContent), setRange);
     }
 
     public abstract List<String> getHeaders();
@@ -50,6 +57,7 @@ public abstract class FinanceSheetTable<T> {
      */
     public void createWorksheet() {
         styleTable();
+        setMetadata();
         fillWorksheetContent();
     }
 
@@ -67,12 +75,15 @@ public abstract class FinanceSheetTable<T> {
                 .horizontalAlignment("left").set();
 
         // default styling of header row in table
-        for (int i = 0; i <= tableRange.getRight(); i++) {
+        for (int i = coordinates.getTopLeftColumn(); i <= tableRange.getRight(); i++) {
             worksheet
                     .style(tableRange.getTop(), i)
-                    .fillColor("46E1FC").set();
+                    .fillColor(BG_COLOR_HEADER_BLUE).set();
         }
+    }
 
+    protected void setMetadata() {
+        worksheet.paperSize(PaperSize.A4_PAPER);
         worksheet.pageOrientation("landscape");
         worksheet.pageScale(105);
         worksheet.topMargin(0.2f);
@@ -85,5 +96,13 @@ public abstract class FinanceSheetTable<T> {
 
     protected int getHeaderColumnIndex(String header) {
         return getHeaders().indexOf(header);
+    }
+
+    private Range getTableRange(boolean setRange) {
+        if (setRange) {
+            return null;
+        } else {
+            return worksheet.range(coordinates.getTopLeftRow(), 0, getTableBottomRow(), getHeaders().size() - 1);
+        }
     }
 }
