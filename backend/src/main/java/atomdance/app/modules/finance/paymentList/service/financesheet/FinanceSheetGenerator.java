@@ -37,10 +37,7 @@ public class FinanceSheetGenerator {
 
             DepositTable depositTable = new DepositTable(describeList(lrv), deposits, Coordinates.getDefaultCoordinates(), lrv.cashIn(), appClock);
             depositTable.createWorksheet();
-
-            // TODO dodać nowy worksheet podsumowanie
             // TODO rozwiązać problem z brakiem formatowaniana na ostatnim rzędzie
-            // TODO # brakuje w danych pobranych z atomlist
 
             wb.close();
 
