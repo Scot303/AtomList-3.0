@@ -19,8 +19,9 @@ public class SheetUtil {
      */
     public static String cellFinder(int row, int column) {
         final var ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        final var INHERENT_ROW_OFFSET = 1;
         var columnLetter = ALPHABET.charAt(column);
-        return "" + columnLetter + row;
+        return "" + columnLetter + (row + INHERENT_ROW_OFFSET);
     }
 
     /**

@@ -4,6 +4,7 @@ import atomdance.app.common.utils.AppClock;
 import atomdance.app.modules.attendance.model.GenResultPayload;
 import atomdance.app.modules.finance.paymentList.dto.ListReportView;
 import atomdance.app.modules.finance.paymentList.service.financesheet.model.Coordinates;
+import atomdance.app.modules.finance.transaction.dto.TransactionView;
 import lombok.RequiredArgsConstructor;
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
@@ -11,7 +12,13 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
 
+
+// ignore warnings related to closing resources
+// wb.close() takes care of everything
+@SuppressWarnings({"java:S2095", "java:S4087"})
 @Component
 @RequiredArgsConstructor
 public class FinanceSheetGenerator {
@@ -19,15 +26,12 @@ public class FinanceSheetGenerator {
     private static final String FILENAME_TEMPLATE = "%s.xlsx";
     private final AppClock appClock;
 
-    // ignore warnings related to closing resources
-    // wb.close() takes care of everything
-    @SuppressWarnings({"java:S2095", "java:S4087"})
-    public GenResultPayload generateFinanceSheet(ListReportView lrv) throws IOException {
-        try (var outputStream = new ByteArrayOutputStream(); var wb = new Workbook(outputStream, "TestWorkbook", "1.0")) {
-            wb.setGlobalDefaultFont("Calibri", 10);
+    public GenResultPayload generatePaymentListFullReport(ListReportView lrv, List<TransactionView> transactionViews) throws IOException {
+        try (var outputStream = new ByteArrayOutputStream(); var wb = getNewWorkbook(outputStream, "PaymentListWorkbook")) {
             Worksheet totals = wb.newWorksheet("Podsumowanie");
             Worksheet rows = wb.newWorksheet("Płatności");
             Worksheet deposits = wb.newWorksheet("Wpłaty");
+            Worksheet transactions = wb.newWorksheet("Transakcje");
 
             TotalTable totalTable = new TotalTable(describeList(lrv), totals, Coordinates.getDefaultCoordinates(), lrv.totals());
             totalTable.createWorksheet();
@@ -38,9 +42,8 @@ public class FinanceSheetGenerator {
             DepositTable depositTable = new DepositTable(describeList(lrv), deposits, Coordinates.getDefaultCoordinates(), lrv.cashIn(), appClock);
             depositTable.createWorksheet();
 
-            // TODO dodać nowy worksheet podsumowanie
-            // TODO rozwiązać problem z brakiem formatowaniana na ostatnim rzędzie
-            // TODO # brakuje w danych pobranych z atomlist
+            TransactionTable transactionTable = new TransactionTable(describeList(lrv), transactions, Coordinates.getDefaultCoordinates(), transactionViews);
+            transactionTable.createWorksheet();
 
             wb.close();
 
@@ -56,5 +59,11 @@ public class FinanceSheetGenerator {
         }
 
         return list.name() != null ? "'" + list.name() + "'" : "Lista";
+    }
+
+    private Workbook getNewWorkbook(OutputStream os, String workbookName) {
+        Workbook wb = new Workbook(os, workbookName, "1.0");
+        wb.setGlobalDefaultFont("Calibri", 10);
+        return wb;
     }
 }

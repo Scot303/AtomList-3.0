@@ -18,7 +18,7 @@ public class TotalTable extends FinanceSheetTable<ListReportView.Totals> {
 
 
     protected TotalTable(String listName, Worksheet worksheet, Coordinates coordinates, ListReportView.Totals sheetContent) {
-        super(listName, worksheet, coordinates, sheetContent, false);
+        super(listName, worksheet, coordinates, sheetContent);
     }
 
     @Override

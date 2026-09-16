@@ -7,6 +7,7 @@ import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
 import atomdance.app.modules.finance.paymentList.service.financesheet.FinanceSheetGenerator;
+import atomdance.app.modules.finance.transaction.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,26 +25,28 @@ public class FinanceSheetService {
 	private final ListReportService listReportService;
 	private final FinanceSheetGenerator financeSheetGenerator;
 	private final PaymentListService paymentListService;
+	private final TransactionService transactionService;
 	private final PaymentRepository paymentRepository;
 	private final AuditLogger auditLogger;
 
 
 	@Transactional(readOnly = true)
-	public GenResultPayload getPaymentSpreadsheet(UUID id) throws IOException {
-		PaymentList list = paymentListService.getOrThrow(id);
+	public GenResultPayload getPaymentSpreadsheet(UUID listId) throws IOException {
+		PaymentList list = paymentListService.getOrThrow(listId);
 
-		List<Payment> payments = paymentRepository.findByListIdWithSettlements(id).stream()
+		List<Payment> payments = paymentRepository.findByListIdWithSettlements(listId).stream()
 				.sorted(Comparator
 						.comparing((Payment payment) -> !payment.isSettled())
 						.thenComparing(payment -> !payment.holdsSettlements()))
 				.toList();
 
 		var listReportView = listReportService.buildListReportView(list, payments);
+		var transactionViews = transactionService.getAllForList(listId);
 
 		GenResultPayload genResult;
 
 		try {
-			genResult = financeSheetGenerator.generateFinanceSheet(listReportView);
+			genResult = financeSheetGenerator.generatePaymentListFullReport(listReportView, transactionViews);
 		} catch (IOException e) {
 			var errorMsg = "Failed to create payment list %s spreadsheet".formatted(list.getName());
 			auditLogger.failure(AuditEventType.PAYMENT_SPREADSHEET_CREATION, list.getId(), errorMsg);

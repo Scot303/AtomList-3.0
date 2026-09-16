@@ -22,16 +22,16 @@ public abstract class FinanceSheetTable<T> {
     protected final List<T> sheetContent;
     protected Range tableRange;
 
-    protected FinanceSheetTable(String listName, Worksheet worksheet, Coordinates coordinates, List<T> sheetContent, boolean setRange) {
+    protected FinanceSheetTable(String listName, Worksheet worksheet, Coordinates coordinates, List<T> sheetContent) {
         this.listName = listName;
         this.worksheet = worksheet;
         this.coordinates = coordinates;
         this.sheetContent = sheetContent;
-        this.tableRange = getTableRange(setRange);
+        this.tableRange = worksheet.range(coordinates.getTopLeftRow(), 0, getTableBottomRow(), getHeaders().size() - 1);
     }
 
-    protected FinanceSheetTable(String listName, Worksheet worksheet, Coordinates coordinates, T sheetContent, boolean setRange) {
-        this(listName, worksheet, coordinates, List.of(sheetContent), setRange);
+    protected FinanceSheetTable(String listName, Worksheet worksheet, Coordinates coordinates, T sheetContent) {
+        this(listName, worksheet, coordinates, List.of(sheetContent));
     }
 
     public abstract List<String> getHeaders();
@@ -96,13 +96,5 @@ public abstract class FinanceSheetTable<T> {
 
     protected int getHeaderColumnIndex(String header) {
         return getHeaders().indexOf(header);
-    }
-
-    private Range getTableRange(boolean setRange) {
-        if (setRange) {
-            return null;
-        } else {
-            return worksheet.range(coordinates.getTopLeftRow(), 0, getTableBottomRow(), getHeaders().size() - 1);
-        }
     }
 }
