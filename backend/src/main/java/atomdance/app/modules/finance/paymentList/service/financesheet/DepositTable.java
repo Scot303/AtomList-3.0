@@ -60,8 +60,7 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
         IntStream.range(0, sheetContent.size())
                 .forEach(i -> {
                     var deposit = sheetContent.get(i);
-                    worksheet.style(i, columnToIncrement.intValue()).format("@").set();
-                    insertInWorksheet.accept(worksheet::value, i, deposit.label().substring(8));
+                    insertInWorksheet.accept(worksheet::value, i, "'" + deposit.label().substring(8));
                     insertInWorksheet.accept(worksheet::value, i, formatTotalAmountString(deposit));
                     insertInWorksheet.accept(worksheet::value, i, PaymentMethodTranslate.getTranslation(deposit.paymentMethod()));
                     insertInWorksheet.accept(worksheet::value, i, DateTimeFormatter.ofPattern("dd-MM-yyyy").withZone(appClock.getZone()).format(deposit.receivedAt()));
