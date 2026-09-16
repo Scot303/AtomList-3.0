@@ -19,9 +19,10 @@ public final class Money {
 
 	static {
 		DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-		symbols.setDecimalSeparator(',');
+		symbols.setMonetaryDecimalSeparator(',');
+		symbols.setMonetaryGroupingSeparator(' ');
 		symbols.setCurrencySymbol("zł");
-		FORMATTER = new DecimalFormat("0.00¤", symbols);
+		FORMATTER = new DecimalFormat("#,##0.00¤", symbols);
 	}
 
 	private Money() {

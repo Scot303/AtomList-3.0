@@ -26,7 +26,7 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
     private final AppClock appClock;
 
     public DepositTable(String listName, Worksheet worksheet, Coordinates coordinates, List<ListReportView.Deposit> deposits, AppClock appClock) {
-        super(listName, worksheet, coordinates, deposits, false);
+        super(listName, worksheet, coordinates, deposits);
         this.appClock = appClock;
     }
 
@@ -60,7 +60,7 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
         IntStream.range(0, sheetContent.size())
                 .forEach(i -> {
                     var deposit = sheetContent.get(i);
-                    worksheet.style(i, columnToIncrement.intValue()).format("@");
+                    worksheet.style(i, columnToIncrement.intValue()).format("@").set();
                     insertInWorksheet.accept(worksheet::value, i, deposit.label().substring(8));
                     insertInWorksheet.accept(worksheet::value, i, formatTotalAmountString(deposit));
                     insertInWorksheet.accept(worksheet::value, i, PaymentMethodTranslate.getTranslation(deposit.paymentMethod()));
@@ -81,6 +81,6 @@ public class DepositTable extends FinanceSheetTable<ListReportView.Deposit> {
     }
 
     private void formatBelongsHereCell(int row, int column) {
-        worksheet.style(row, column).fillColor(BG_COLOR_MEDIUM).fontColor(FONT_COLOR_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"TAK\"", true));
+        worksheet.style(row + getFirstDataRowIndex(), column).fillColor(BG_COLOR_MEDIUM).fontColor(FONT_COLOR_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"TAK\"", true));
     }
 }

@@ -24,7 +24,7 @@ import static atomdance.app.modules.finance.paymentList.service.financesheet.She
 public class RowTable extends FinanceSheetTable<ListReportView.Row> {
 
     public RowTable(String listName, Worksheet worksheet, Coordinates coordinates, List<ListReportView.Row> rows) {
-        super(listName, worksheet, coordinates, rows, false);
+        super(listName, worksheet, coordinates, rows);
     }
 
     @Override
@@ -96,9 +96,10 @@ public class RowTable extends FinanceSheetTable<ListReportView.Row> {
     }
 
     private void formatStatusCell(int row, int column) {
-        worksheet.style(row, column).fillColor(BG_COLOR_LIGHT).fontColor(FONT_COLOR_BLACK).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Częściowo\"", true));
-        worksheet.style(row, column).fillColor(BG_COLOR_DARK).fontColor(FONT_COLOR_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Opłacono\"", true));
-        worksheet.style(row, column).fillColor(BG_COLOR_MEDIUM).fontColor(FONT_COLOR_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(row, getFirstDataRowIndex(), column) + "=\"Nie opłacono\"", true));
+        final var rowToStyle = row + getFirstDataRowIndex();
+        worksheet.style(rowToStyle, column).fillColor(BG_COLOR_LIGHT).fontColor(FONT_COLOR_BLACK).set(new ConditionalFormattingExpressionRule(cellFinder(rowToStyle, column) + "=\"Częściowo\"", true));
+        worksheet.style(rowToStyle, column).fillColor(BG_COLOR_DARK).fontColor(FONT_COLOR_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(rowToStyle, column) + "=\"Opłacono\"", true));
+        worksheet.style(rowToStyle, column).fillColor(BG_COLOR_MEDIUM).fontColor(FONT_COLOR_WHITE).set(new ConditionalFormattingExpressionRule(cellFinder(rowToStyle, column) + "=\"Nie opłacono\"", true));
     }
 
     private String formatRowParts(List<ListReportView.Part> parts) {
