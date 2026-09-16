@@ -1,6 +1,7 @@
 package atomdance.app.modules.finance.deposit.repository;
 
 import atomdance.app.modules.finance.deposit.model.Deposit;
+import atomdance.app.modules.finance.deposit.model.DepositScope;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,9 +43,10 @@ public interface DepositRepository extends JpaRepository<Deposit, UUID> {
 	@Query("""
 			SELECT d FROM Deposit d
 			WHERE d.receivedAt >= :from AND d.receivedAt < :until
+			  AND d.scope = :scope
 			ORDER BY d.receivedAt ASC, d.number ASC
 			""")
-	List<Deposit> findReceivedBetween(@Param("from") Instant from, @Param("until") Instant until);
+	List<Deposit> findReceivedBetween(@Param("from") Instant from, @Param("until") Instant until, @Param("scope") DepositScope scope);
 
 	/**
 	 * Every bit of credit still in hand for any of these people, oldest first - so the earliest money is spent first.

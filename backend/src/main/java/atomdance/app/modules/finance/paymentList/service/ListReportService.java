@@ -192,7 +192,7 @@ public class ListReportService {
 		YearMonth month = list.yearMonth();
 
 		if (month != null) {
-			for (Deposit deposit : depositRepository.findReceivedBetween(clock.startOf(month), clock.endOf(month))) {
+			for (Deposit deposit : depositRepository.findReceivedBetween(clock.startOf(month), clock.endOf(month), list.scope())) {
 				byId.putIfAbsent(deposit.getId(), deposit);
 				owned.add(deposit.getId());
 			}
