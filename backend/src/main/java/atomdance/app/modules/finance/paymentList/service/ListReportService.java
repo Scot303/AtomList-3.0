@@ -297,7 +297,7 @@ public class ListReportService {
 				unallocated,
 				Money.isPositive(spentElsewhere) || Money.isPositive(unallocated),
 				deposit.getNote(),
-				message("report.deposit", new Object[]{ref, deposit.getCode()}, "Deposit #" + ref + " (" + deposit.getCode() + ")"),
+				"#" + ref + " (" + deposit.getCode() + ")",
 				Money.isPositive(unallocated) ? message("report.allocation.credit", new Object[0], "Credit not yet assigned") : null,
 				List.copyOf(allocations)
 		);
