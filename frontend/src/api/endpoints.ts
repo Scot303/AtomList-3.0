@@ -170,7 +170,7 @@ export const INSTRUCTOR_ENDPOINTS = {
 export const DEPOSIT_ENDPOINTS = {
 	base: DEPOSITS,
 	byId: (id: string) => `${ DEPOSITS }/${ id }`,
-	byCode: (code: string) => `${ DEPOSITS }/by-code/${ encodeURIComponent(code) }`,
+	byCode: (code: string) => `${ DEPOSITS }/by-code?code=${ encodeURIComponent(code) }`,
 	plan: `${ DEPOSITS }/plan`,
 	credit: (personId: string) => `${ DEPOSITS }/credit/${ personId }`,
 	allocate: (id: string) => `${ DEPOSITS }/${ id }/allocate`,

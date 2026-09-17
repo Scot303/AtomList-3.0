@@ -19,6 +19,7 @@ import java.util.UUID;
 public record DepositView(
 		UUID id,
 		Long number,
+		Integer codeYear,
 		String code,
 		List<CoveredPersonView> coveredPersons,
 		BigDecimal totalAmount,
@@ -68,6 +69,7 @@ public record DepositView(
 		return new DepositView(
 				deposit.getId(),
 				deposit.getNumber(),
+				deposit.getCodeYear(),
 				deposit.getCode(),
 				deposit.getCoveredPersonsInDisplayOrder().stream().map(CoveredPersonView::from).toList(),
 				deposit.getTotalAmount(),

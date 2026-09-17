@@ -11,6 +11,7 @@ import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.model.PaymentChargeKind;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.payment.service.PaymentCalculator;
+import atomdance.app.modules.finance.payment.service.PaymentNumberAllocator;
 import atomdance.app.modules.finance.paymentList.dto.AddPersonsRequest;
 import atomdance.app.modules.finance.paymentList.dto.CreateCustomListRequest;
 import atomdance.app.modules.finance.paymentList.dto.PaymentListView;
@@ -60,6 +61,7 @@ public class PaymentListService {
 	private final PersonRepository personRepository;
 	private final DiscountService discountService;
 	private final PaymentCalculator paymentCalculator;
+	private final PaymentNumberAllocator paymentNumbers;
 	private final StandardListProvisioner standardListProvisioner;
 	private final InstructorExpenseService instructorExpenseService;
 	private final InstructorService instructorService;
@@ -397,6 +399,7 @@ public class PaymentListService {
 
 		PaymentCalculator.Recalculation result = paymentCalculator.recalculate(list, existing, billable, monthMemberships, discountService.currentRules());
 
+		paymentNumbers.number(list.getId(), result.created());
 		paymentRepository.saveAll(result.created());
 
 		// Removes former membership-derived payments no longer represented by a billable membership and with no money settled against them
@@ -485,15 +488,19 @@ public class PaymentListService {
 				: paymentRepository.findPersonIdsByListIdAndGroupId(list.getId(), group.getId()));
 
 		List<Person> added = new ArrayList<>();
+		List<Payment> charges = new ArrayList<>();
 
 		for (Person person : persons) {
 			if (alreadyBilled.contains(person.getId())) {
 				continue;
 			}
 
-			paymentRepository.save(handAddedCharge(list, person, group));
+			charges.add(handAddedCharge(list, person, group));
 			added.add(person);
 		}
+
+		paymentNumbers.number(list.getId(), charges);
+		paymentRepository.saveAll(charges);
 
 		return added;
 	}

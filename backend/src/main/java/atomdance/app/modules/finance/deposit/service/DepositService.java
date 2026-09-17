@@ -43,7 +43,7 @@ public class DepositService {
 	 */
 	private static final int DEFAULT_MONTHS_AHEAD = 1;
 
-	private static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "receivedAt", "number");
+	private static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "receivedAt", "codeYear", "number");
 
 	private final DepositRepository depositRepository;
 	private final PaymentRepository paymentRepository;
@@ -84,12 +84,17 @@ public class DepositService {
 	}
 
 
+	/**
+	 * Finds one deposit by the code on its receipt. A code with no year on it is taken to mean this year.
+	 */
 	@Transactional(readOnly = true)
 	public DepositView getByCode(String code) {
-		Long number = DepositCode.parse(code)
+		DepositCode.Ref ref = DepositCode.parse(code)
 				.orElseThrow(() -> new NotFoundException("entity.deposit"));
 
-		return withSettlementDetail(depositRepository.findByNumberWithSettlements(number)
+		int year = ref.year() != null ? ref.year() : clock.today().getYear();
+
+		return withSettlementDetail(depositRepository.findByCodeWithSettlements(year, ref.number())
 				.orElseThrow(() -> new NotFoundException("entity.deposit")));
 	}
 
@@ -135,6 +140,17 @@ public class DepositService {
 
 
 	/**
+	 * Gives a deposit its code: the next number in the year it was received.
+	 */
+	private void number(Deposit deposit) {
+		int year = clock.monthOf(deposit.getReceivedAt()).getYear();
+
+		deposit.setCodeYear(year);
+		deposit.setNumber(depositRepository.highestNumberInYear(year) + 1);
+	}
+
+
+	/**
 	 * Records the money and settles what the manager approved.
 	 */
 	@Transactional
@@ -156,6 +172,7 @@ public class DepositService {
 				.createdByUserId(securityService.getCurrentUserId())
 				.build();
 
+		number(deposit);
 		depositRepository.saveAndFlush(deposit);
 
 		List<Payment> outstanding = paymentRepository.findOutstandingStandardForPersons(personIds, ListType.standardFor(request.scope()));
@@ -195,6 +212,7 @@ public class DepositService {
 				.createdByUserId(securityService.getCurrentUserId())
 				.build();
 
+		number(deposit);
 		depositRepository.saveAndFlush(deposit);
 
 		settlementService.settle(deposit, payment, request.amount(), receivedAt);

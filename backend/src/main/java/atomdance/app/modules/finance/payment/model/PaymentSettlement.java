@@ -31,7 +31,7 @@ public class PaymentSettlement {
 	private UUID id;
 
 	/**
-	 * The settlement's half of "P-1234/1" - see {@link #getCode()}.
+	 * The settlement's half of "P-12/1" - see {@link #getCode()}.
 	 */
 	@Column(name = "number", nullable = false, updatable = false)
 	@Setter(AccessLevel.PACKAGE)

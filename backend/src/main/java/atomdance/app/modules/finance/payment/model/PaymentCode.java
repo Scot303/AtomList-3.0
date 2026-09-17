@@ -2,18 +2,16 @@ package atomdance.app.modules.finance.payment.model;
 
 import atomdance.app.common.utils.SpokenCode;
 
-import java.util.Optional;
-
 
 /**
- * The spoken form of {@link Payment#getNumber()}: "P-1234".
+ * The spoken form of {@link Payment#getNumber()}: "P-12".
  */
 public final class PaymentCode {
 
 	public static final String PREFIX = "P-";
 
 	/**
-	 * Separates a payment from one of its settlements: "P-1234/1".
+	 * Separates a payment from one of its settlements: "P-12/1".
 	 */
 	public static final String PART_SEPARATOR = "/";
 
@@ -31,7 +29,7 @@ public final class PaymentCode {
 
 
 	/**
-	 * Names one settlement: its payment's code, then the settlement's own number - "P-1234/1", "P-1234/2".
+	 * Names one settlement: its payment's code, then the settlement's own number - "P-12/1", "P-12/2".
 	 */
 	public static String formatLine(String paymentCode, Long number) {
 		if (paymentCode == null || number == null) {
@@ -41,11 +39,4 @@ public final class PaymentCode {
 		return paymentCode + PART_SEPARATOR + number;
 	}
 
-
-	/**
-	 * Reads back what somebody actually types: "P-1234", "p-1234", a bare "1234", any of them padded with spaces, or one of a payment's settlements - "P-1234/2" finds P-1234.
-	 */
-	public static Optional<Long> parse(String code) {
-		return SpokenCode.parse(PREFIX, PART_SEPARATOR, code);
-	}
 }

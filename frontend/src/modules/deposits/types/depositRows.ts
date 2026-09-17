@@ -4,10 +4,6 @@ import { coveredPersonsNames, type CoveredPersonView, type PaymentMethod } from 
 import type { DepositOrigin, DepositScope, DepositView } from './types.ts';
 
 
-/** How a deposit's number is written and spoken - the mirror of the backend's `DepositCode.PREFIX`. */
-export const DEPOSIT_CODE_PREFIX = 'W-';
-
-
 /* ── How much of it has been spent ───────────────────────────────────────── */
 
 export const SPENT_ALL_ID = 'all';
@@ -62,6 +58,7 @@ export const ORIGIN_OPTIONS: TagOption[] = tagOptions(ORIGIN_TAGS);
 export interface DepositRow {
 	id: string;
 	number: number | null;
+	codeYear: number | null;
 	code: string;
 	/** Everybody the money was for. */
 	coveredPersons: CoveredPersonView[];
@@ -88,6 +85,7 @@ export function toDepositRow(deposit: DepositView): DepositRow {
 	return {
 		id: deposit.id,
 		number: deposit.number,
+		codeYear: deposit.codeYear,
 		code: deposit.code,
 		coveredPersons: deposit.coveredPersons,
 		coveredNames: coveredPersonsNames(deposit.coveredPersons),
