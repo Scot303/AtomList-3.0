@@ -3,6 +3,8 @@ package atomdance.app.modules.finance.paymentList.service.financesheet;
 import atomdance.app.common.utils.Money;
 import atomdance.app.modules.finance.paymentList.dto.ListReportView;
 import atomdance.app.modules.finance.paymentList.service.financesheet.model.Coordinates;
+import atomdance.app.modules.finance.transaction.dto.TransactionView;
+import atomdance.app.modules.finance.transaction.model.TransactionType;
 import org.apache.commons.lang3.function.TriConsumer;
 import org.dhatim.fastexcel.BorderStyle;
 import org.dhatim.fastexcel.Worksheet;
@@ -14,10 +16,10 @@ import java.util.stream.IntStream;
 
 import static atomdance.app.modules.finance.paymentList.service.financesheet.SheetUtil.BG_COLOR_HEADER_BLUE;
 
-public class TotalTable extends FinanceSheetTable<ListReportView.Totals> {
+public class TotalTable extends FinanceSheetTable<FinanceSheetGenerator.TotalsWithTransactions> {
 
 
-    protected TotalTable(String listName, Worksheet worksheet, Coordinates coordinates, ListReportView.Totals sheetContent) {
+    protected TotalTable(String listName, Worksheet worksheet, Coordinates coordinates, FinanceSheetGenerator.TotalsWithTransactions sheetContent) {
         super(listName, worksheet, coordinates, sheetContent);
     }
 
@@ -38,7 +40,13 @@ public class TotalTable extends FinanceSheetTable<ListReportView.Totals> {
                 "Suma przyjętych wpłat w tym miesiącu",
                 "Suma w przelewie",
                 "Suma w gotówce",
-                "Suma w BLIK"
+                "Suma w BLIK",
+
+                "",
+                "Bilans",
+                "Suma dodatkowych przychodów",
+                "Suma wydatków",
+                "Dochód w miesiącu"
                 );
     }
 
@@ -58,6 +66,11 @@ public class TotalTable extends FinanceSheetTable<ListReportView.Totals> {
                 .set();
 
         worksheet.range(coordinates.getTopLeftColumn() + 10, 0, 13, 1).style()
+                .borderStyle(BorderStyle.THIN)
+                .horizontalAlignment("left")
+                .set();
+
+        worksheet.range(coordinates.getTopLeftColumn() + 16, 0, 18, 1).style()
                 .borderStyle(BorderStyle.THIN)
                 .horizontalAlignment("left")
                 .set();
@@ -91,7 +104,10 @@ public class TotalTable extends FinanceSheetTable<ListReportView.Totals> {
 
         IntStream.range(0, sheetContent.size())
                 .forEach(i -> {
-                    var totals = sheetContent.get(i);
+                    var totals = sheetContent.get(i).totals();
+                    var transactionViews = sheetContent.get(i).transactionViews();
+                    var sumIncomeTransactions = sumTransactions(transactionViews, TransactionType.INCOME);
+                    var sumExpenseTransactions = sumTransactions(transactionViews, TransactionType.EXPENSE);
                     insertInWorksheet.accept(worksheet::value, i, Long.toString(totals.rowCount()));
                     insertInWorksheet.accept(worksheet::value, i, Long.toString(totals.settledCount()));
                     insertInWorksheet.accept(worksheet::value, i, formatUnsettledCount(totals));
@@ -106,6 +122,11 @@ public class TotalTable extends FinanceSheetTable<ListReportView.Totals> {
                     insertInWorksheet.accept(worksheet::value, i, formatPaymentMethodSumAndCount(totals.depositsReceivedCashCount(), totals.depositsReceivedCash()));
                     insertInWorksheet.accept(worksheet::value, i, formatPaymentMethodSumAndCount(totals.depositsReceivedBlikCount(), totals.depositsReceivedBlik()));
 
+                    rowToIncrement.addAndGet(2);
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(sumIncomeTransactions));
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(sumExpenseTransactions));
+                    insertInWorksheet.accept(worksheet::value, i, Money.format(totals.collectedTotal().add(sumIncomeTransactions).subtract(sumExpenseTransactions)));
+
                     rowToIncrement.set(rowReset.intValue());
                 });
     }
@@ -119,6 +140,13 @@ public class TotalTable extends FinanceSheetTable<ListReportView.Totals> {
     }
 
     private boolean rowIndexIsSpecialHeaderOrGap(int i) {
-        return i == 0 || i == 8 || i == 9;
+        return i == 0 || i == 8 || i == 9 || i == 14 || i == 15;
+    }
+
+    private BigDecimal sumTransactions(List<TransactionView> transactionViews, TransactionType transactionType) {
+        return transactionViews.stream()
+                .filter(transactionView -> transactionView.type().equals(transactionType))
+                .map(TransactionView::amount)
+                .reduce(Money.ZERO, Money::add);
     }
 }

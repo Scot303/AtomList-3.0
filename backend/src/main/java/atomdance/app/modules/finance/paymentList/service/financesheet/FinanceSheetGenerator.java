@@ -33,7 +33,7 @@ public class FinanceSheetGenerator {
             Worksheet deposits = wb.newWorksheet("Wpłaty");
             Worksheet transactions = wb.newWorksheet("Transakcje");
 
-            TotalTable totalTable = new TotalTable(describeList(lrv), totals, Coordinates.getDefaultCoordinates(), lrv.totals());
+            TotalTable totalTable = new TotalTable(describeList(lrv), totals, Coordinates.getDefaultCoordinates(), new TotalsWithTransactions(lrv.totals(), transactionViews));
             totalTable.createWorksheet();
 
             RowTable rowTable = new RowTable(describeList(lrv), rows, Coordinates.getDefaultCoordinates(), lrv.rows());
@@ -66,4 +66,6 @@ public class FinanceSheetGenerator {
         wb.setGlobalDefaultFont("Calibri", 10);
         return wb;
     }
+
+    protected record TotalsWithTransactions(ListReportView.Totals totals, List<TransactionView> transactionViews) {}
 }
