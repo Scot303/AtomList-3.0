@@ -49,10 +49,13 @@ export function fileNameFromDisposition(header: unknown): string | null {
  */
 export function openBlobInNewTab(blob: Blob, fileName: string): void {
 	const url = URL.createObjectURL(blob);
-	const tab = window.open(url, '_blank', 'noopener,noreferrer');
+	const tab = window.open('about:blank', '_blank');
 
 	if (!tab) {
 		triggerDownload(url, fileName);
+	} else {
+		tab.opener = null;
+		tab.location.replace(url);
 	}
 
 	window.setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
