@@ -45,13 +45,6 @@ public record PaymentView(
 	/**
 	 * How a list reads on screen and on paper: people alphabetically, each person's groups by name.
 	 */
-	public static final Comparator<Payment> DISPLAY_ORDER = Comparator
-			.comparing((Payment payment) -> payment.getPerson().getLastName(), String.CASE_INSENSITIVE_ORDER)
-			.thenComparing(payment -> payment.getPerson().getName(), String.CASE_INSENSITIVE_ORDER)
-			.thenComparingInt(payment -> payment.getChargeKind() == null ? 0 : payment.getChargeKind().ordinal())
-			.thenComparing(Payment::getLabel, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
-			.thenComparing(Payment::getNumber, Comparator.nullsLast(Comparator.naturalOrder()));
-
 	private static final Comparator<PaymentSettlement> SETTLEMENT_ORDER = Comparator
 			.comparing(PaymentSettlement::getSettledAt, Comparator.nullsLast(Comparator.reverseOrder()))
 			.thenComparing(PaymentSettlement::getNumber, Comparator.nullsLast(Comparator.naturalOrder()));

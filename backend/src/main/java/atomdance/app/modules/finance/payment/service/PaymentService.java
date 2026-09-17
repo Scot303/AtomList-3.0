@@ -8,6 +8,7 @@ import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.payment.dto.*;
 import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.model.PaymentChargeKind;
+import atomdance.app.modules.finance.payment.model.PaymentOrder;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
@@ -52,7 +53,7 @@ public class PaymentService {
 		auditLogger.read(AuditEventType.PAYMENT_PREVIEW, listId, "Previewed payments for list %s.", PaymentListService.describeList(list));
 
 		return paymentRepository.findByListIdWithSettlements(listId).stream()
-				.sorted(PaymentView.DISPLAY_ORDER)
+				.sorted(PaymentOrder.DISPLAY_ORDER)
 				.map(PaymentView::withoutSettlements)
 				.toList();
 	}

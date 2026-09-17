@@ -26,7 +26,6 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
 			WHERE m.joinedAt <= :monthEnd
 			  AND (m.leftAt IS NULL OR m.leftAt >= :monthStart)
 			  AND (:activePersonsOnly = FALSE OR p.isActive = TRUE)
-			ORDER BY p.lastName, p.name, m.joinedAt ASC
 			""")
 	List<Membership> findActiveDuring(@Param("monthStart") LocalDate monthStart, @Param("monthEnd") LocalDate monthEnd, @Param("activePersonsOnly") boolean activePersonsOnly);
 

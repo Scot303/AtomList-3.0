@@ -8,8 +8,8 @@ import atomdance.app.modules.finance.deposit.dto.CoveredPersonView;
 import atomdance.app.modules.finance.deposit.model.Deposit;
 import atomdance.app.modules.finance.deposit.model.PaymentMethod;
 import atomdance.app.modules.finance.deposit.repository.DepositRepository;
-import atomdance.app.modules.finance.payment.dto.PaymentView;
 import atomdance.app.modules.finance.payment.model.Payment;
+import atomdance.app.modules.finance.payment.model.PaymentOrder;
 import atomdance.app.modules.finance.payment.model.PaymentSettlement;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.payment.repository.PaymentSettlementRepository;
@@ -51,7 +51,7 @@ public class ListReportService {
 		PaymentList list = paymentListService.getOrThrow(listId);
 
 		List<Payment> payments = paymentRepository.findByListIdWithSettlements(listId).stream()
-				.sorted(PaymentView.DISPLAY_ORDER)
+				.sorted(PaymentOrder.DISPLAY_ORDER)
 				.toList();
 
 		return buildListReportView(list, payments);
@@ -399,9 +399,9 @@ public class ListReportService {
 		BigDecimal unallocated = Money.ZERO;
 
 		Map<PaymentMethod, PaymentMethodCountAndSum> depositsByPaymentMethod = new EnumMap<>(Map.of(
-			PaymentMethod.TRANSFER, new PaymentMethodCountAndSum(),
-			PaymentMethod.CASH, new PaymentMethodCountAndSum(),
-			PaymentMethod.BLIK, new PaymentMethodCountAndSum()
+				PaymentMethod.TRANSFER, new PaymentMethodCountAndSum(),
+				PaymentMethod.CASH, new PaymentMethodCountAndSum(),
+				PaymentMethod.BLIK, new PaymentMethodCountAndSum()
 		));
 
 		// Every handover that touched this sheet, whoever it belongs to. Only used to check the sheet against itself - it is not a figure anybody reads.
@@ -426,8 +426,8 @@ public class ListReportService {
 		}
 
 		var depositsCount = depositsByPaymentMethod.values().stream()
-                .map(PaymentMethodCountAndSum::getCount)
-                .reduce(0L, Long::sum);
+				.map(PaymentMethodCountAndSum::getCount)
+				.reduce(0L, Long::sum);
 
 		// No deposit can have had more spent out of it than was handed over. The residual is left unclamped in deposit() so that this can be seen here rather than rounded away into a plausible zero.
 		boolean overAllocated = cashIn.stream().anyMatch(deposit -> Money.isNegative(deposit.unallocated()));
@@ -471,15 +471,19 @@ public class ListReportService {
 		return messageSource.getMessage(key, args, fallback, LocaleContextHolder.getLocale());
 	}
 
+
 	@Getter
 	private static class PaymentMethodCountAndSum {
+
 		private long count;
 		private BigDecimal sum;
 
+
 		public PaymentMethodCountAndSum() {
-        	this.count = 0;
+			this.count = 0;
 			this.sum = Money.ZERO;
-        }
+		}
+
 
 		public PaymentMethodCountAndSum addToCurrent(BigDecimal amountToAdd) {
 			this.count += 1L;
