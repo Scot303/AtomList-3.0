@@ -37,7 +37,10 @@ public class FinanceSheetService {
 		List<Payment> payments = paymentRepository.findByListIdWithSettlements(listId).stream()
 				.sorted(Comparator
 						.comparing((Payment payment) -> !payment.isSettled())
-						.thenComparing(payment -> !payment.holdsSettlements()))
+						.thenComparing(payment -> !payment.holdsSettlements())
+						.thenComparing(payment -> payment.getPerson().getLastName(), String.CASE_INSENSITIVE_ORDER)
+						.thenComparing(payment -> payment.getPerson().getName(), String.CASE_INSENSITIVE_ORDER)
+						.thenComparing(Payment::getDescription, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
 				.toList();
 
 		var listReportView = listReportService.buildListReportView(list, payments);
