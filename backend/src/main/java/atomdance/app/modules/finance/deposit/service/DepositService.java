@@ -43,7 +43,7 @@ public class DepositService {
 	 */
 	private static final int DEFAULT_MONTHS_AHEAD = 1;
 
-	private static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "receivedAt", "codeYear", "number");
+	private static final Sort NEWEST_FIRST = Sort.by(Sort.Direction.DESC, "codeYear", "number");
 
 	private final DepositRepository depositRepository;
 	private final PaymentRepository paymentRepository;
