@@ -210,8 +210,9 @@ public class ListReportService {
 		}
 
 		List<Deposit> deposits = byId.values().stream()
-				.sorted(Comparator.comparing(Deposit::getReceivedAt, Comparator.nullsLast(Comparator.naturalOrder()))
-						.thenComparing(Deposit::getNumber, Comparator.nullsLast(Comparator.naturalOrder())))
+				.sorted(Comparator.comparing((Deposit deposit) -> !owned.contains(deposit.getId()))
+						.thenComparing(Deposit::getCodeYear)
+						.thenComparing(Deposit::getNumber))
 				.toList();
 
 		return new CashIn(deposits, owned);
