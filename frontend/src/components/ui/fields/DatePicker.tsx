@@ -3,7 +3,7 @@ import { Calendar as CalendarIcon, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { usePopover } from '@/hooks/usePopover';
 import { Popover } from '@/components/ui/popover';
-import { Calendar } from './Calendar';
+import { Calendar } from '@/components/ui/calendar';
 import { FieldShell } from './FieldShell';
 import { formatLongDate, parseISODate } from '@/utils/dateUtils.ts';
 import { fieldControl, fieldControlWithLeftIcon, fieldControlWithRightAdornment, fieldLeftIcon, fieldRightAdornment, type FieldSize, } from './fieldStyles';

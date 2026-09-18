@@ -3,7 +3,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { usePopover } from '@/hooks/usePopover';
 import { Popover } from '@/components/ui/popover';
 import { cn } from '@/lib/cn';
-import { Calendar } from './Calendar';
+import { Calendar } from '@/components/ui/calendar';
 import { formatLongDate, parseISODate } from '@/utils/dateUtils.ts';
 
 
