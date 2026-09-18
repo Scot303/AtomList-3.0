@@ -155,7 +155,7 @@ public class TotalTable extends FinanceSheetTable<FinanceSheetGenerator.TotalsWi
 	private BigDecimal sumTransactions(List<TransactionView> transactionViews, TransactionType transactionType) {
 		return transactionViews.stream()
 				.filter(transactionView -> transactionView.type().equals(transactionType))
-				.map(TransactionView::amount)
+				.map(TransactionView::total)
 				.reduce(Money.ZERO, Money::add);
 	}
 }
