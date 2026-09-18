@@ -18,6 +18,9 @@ import static atomdance.app.modules.finance.paymentList.service.financesheet.She
 
 public class TransactionTable extends FinanceSheetTable<TransactionView> {
 
+	private static final DateTimeFormatter PAYMENT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+
 	protected TransactionTable(String listName, Worksheet worksheet, Coordinates coordinates, List<TransactionView> sheetContent) {
 		super(listName, worksheet, coordinates, sheetContent);
 	}
@@ -58,11 +61,16 @@ public class TransactionTable extends FinanceSheetTable<TransactionView> {
 					formatTransactionType(i, columnToIncrement.intValue());
 					insertInWorksheet.accept(worksheet::value, i, TransactionTypeTranslate.getTranslation(transactionView.type()));
 					insertInWorksheet.accept(worksheet::value, i, transactionView.invoiceNumber());
-					insertInWorksheet.accept(worksheet::value, i, transactionView.paymentDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
+					insertInWorksheet.accept(worksheet::value, i, formatPaymentDate(transactionView));
 					insertInWorksheet.accept(worksheet::value, i, transactionView.note());
 
 					columnToIncrement.set(columnReset.intValue());
 				});
+	}
+
+
+	private static String formatPaymentDate(TransactionView transaction) {
+		return transaction.paymentDate() == null ? "" : transaction.paymentDate().format(PAYMENT_DATE_FORMATTER);
 	}
 
 
