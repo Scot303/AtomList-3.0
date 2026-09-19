@@ -4,6 +4,7 @@ import { CellPlaceholder } from './CellPlaceholder';
 import type { CellEditorProps } from './cellTypes';
 import { useOptimisticCellValue } from './useOptimisticCellValue';
 
+
 /**
  * A cell edited as free text. Also handles numbers.
  * Double-click to edit, Enter or blur to commit, Escape to abandon.
@@ -105,6 +106,7 @@ export const TextCell = (props: CellEditorProps) => {
 				} }
 				className={ cn(
 					'w-full bg-transparent text-sm outline-none',
+					isNumber ? 'tabular-nums' : '',
 					invalid ? 'text-os-error' : 'text-os-text',
 				) }
 			/>
@@ -123,7 +125,10 @@ export const TextCell = (props: CellEditorProps) => {
 		<span
 			role="button"
 			tabIndex={ 0 }
-			className="block w-full cursor-text rounded-sm outline-none focus-visible:ring-1 focus-visible:ring-os-primary"
+			className={ cn(
+				'block w-full cursor-text rounded-sm outline-none focus-visible:ring-1 focus-visible:ring-os-primary',
+				isNumber ? 'tabular-nums' : '',
+			) }
 			onDoubleClick={ beginEditing }
 			onKeyDown={ (event) => {
 				if (event.key === 'Enter' || event.key === 'F2') {

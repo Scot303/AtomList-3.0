@@ -67,6 +67,7 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
 	READ_SMS: 'Wyświetlanie SMS',
 	SEND_SMS: 'Wysyłanie SMS',
 	PRINT_ATTENDANCE: 'Drukowanie list obecności',
+	GENERATE_LIST_REPORT: 'Drukowanie raportów',
 };
 
 /** All of them, in the order the backend declares them, which groups related ones together. */

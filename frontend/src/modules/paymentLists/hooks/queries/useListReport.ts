@@ -17,7 +17,7 @@ export function useListReport(listId: string) {
 
 	return useQuery({
 		...listReportQuery(listId),
-		enabled: listId !== '' && hasPermission('READ_LISTS') && hasPermission('READ_PAYMENTS'),
+		enabled: listId !== '' && hasPermission('GENERATE_LIST_REPORT') && hasPermission('READ_PAYMENTS'),
 	});
 }
 

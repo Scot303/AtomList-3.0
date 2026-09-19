@@ -8,7 +8,7 @@ import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.payment.dto.*;
 import atomdance.app.modules.finance.payment.model.Payment;
 import atomdance.app.modules.finance.payment.model.PaymentChargeKind;
-import atomdance.app.modules.finance.payment.model.PaymentCode;
+import atomdance.app.modules.finance.payment.model.PaymentOrder;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
 import atomdance.app.modules.finance.paymentList.service.PaymentListService;
@@ -34,6 +34,7 @@ public class PaymentService {
 
 	private final PaymentRepository paymentRepository;
 	private final PaymentListService paymentListService;
+	private final PaymentNumberAllocator paymentNumbers;
 	private final GroupService groupService;
 	private final PersonRepository personRepository;
 	private final AuditLogger auditLogger;
@@ -52,7 +53,7 @@ public class PaymentService {
 		auditLogger.read(AuditEventType.PAYMENT_PREVIEW, listId, "Previewed payments for list %s.", PaymentListService.describeList(list));
 
 		return paymentRepository.findByListIdWithSettlements(listId).stream()
-				.sorted(PaymentView.DISPLAY_ORDER)
+				.sorted(PaymentOrder.DISPLAY_ORDER)
 				.map(PaymentView::withoutSettlements)
 				.toList();
 	}
@@ -63,19 +64,6 @@ public class PaymentService {
 		Payment payment = getOrThrow(id);
 
 		auditLogger.read(AuditEventType.PAYMENT_PREVIEW, id, "Previewed payment %s for %s.", payment.getCode(), payment.getPerson().getFullName());
-		return PaymentView.from(payment);
-	}
-
-
-	@Transactional(readOnly = true)
-	public PaymentView getByCode(String code) {
-		Long number = PaymentCode.parse(code)
-				.orElseThrow(() -> new NotFoundException("entity.payment"));
-
-		Payment payment = paymentRepository.findByNumberWithSettlements(number)
-				.orElseThrow(() -> new NotFoundException("entity.payment"));
-
-		auditLogger.read(AuditEventType.PAYMENT_PREVIEW, payment.getId(), "Previewed payment %s for %s.", payment.getCode(), payment.getPerson().getFullName());
 		return PaymentView.from(payment);
 	}
 
@@ -134,6 +122,8 @@ public class PaymentService {
 		pointAtCharge(payment, list, request);
 
 		payment.applyDiscount(Money.ZERO);
+
+		paymentNumbers.number(list.getId(), List.of(payment));
 		paymentRepository.save(payment);
 
 		auditLogger.success(AuditEventType.PAYMENT_MANAGEMENT, payment.getId(), "One-off charge '%s' of %s added for %s on list %s.", payment.getLabel(), payment.getAmountToPay(), person.getFullName(), PaymentListService.describeList(list));

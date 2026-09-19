@@ -42,7 +42,7 @@ export default function FindDepositModal() {
 					label="Numer wpłaty"
 					autoComplete="off"
 					autoFocus
-					placeholder="np. W-1234"
+					placeholder="np. W-1234/26"
 					error={ errors.code?.message }
 					{ ...register('code') }
 				/>

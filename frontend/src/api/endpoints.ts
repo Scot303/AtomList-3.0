@@ -121,6 +121,7 @@ export const PAYMENT_LIST_ENDPOINTS = {
 	seasonSummary: (startYear: number) => `${ LISTS }/summary/${ startYear }`,
 	standard: (year: number, month: number) => `${ LISTS }/standard/${ year }/${ month }`,
 	report: (id: string) => `${ LISTS }/${ id }/report`,
+	spreadsheet: (id: string) => `${ LISTS }/${ id }/spreadsheet`,
 	overpayments: (id: string) => `${ LISTS }/${ id }/overpayments`,
 	settleOverpayments: (id: string) => `${ LISTS }/${ id }/overpayments/settle`,
 	repopulate: (id: string) => `${ LISTS }/${ id }/repopulate`,
@@ -169,7 +170,7 @@ export const INSTRUCTOR_ENDPOINTS = {
 export const DEPOSIT_ENDPOINTS = {
 	base: DEPOSITS,
 	byId: (id: string) => `${ DEPOSITS }/${ id }`,
-	byCode: (code: string) => `${ DEPOSITS }/by-code/${ encodeURIComponent(code) }`,
+	byCode: (code: string) => `${ DEPOSITS }/by-code?code=${ encodeURIComponent(code) }`,
 	plan: `${ DEPOSITS }/plan`,
 	credit: (personId: string) => `${ DEPOSITS }/credit/${ personId }`,
 	allocate: (id: string) => `${ DEPOSITS }/${ id }/allocate`,

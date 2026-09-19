@@ -67,7 +67,8 @@ public class AuditRetentionService {
 			Map.entry(AuditEventType.SMS_CREATION, DEFAULT_RETENTION),
 			Map.entry(AuditEventType.SMS_SEND, DEFAULT_RETENTION),
 
-			Map.entry(AuditEventType.ATTENDANCE_PDF_CREATION, DEFAULT_RETENTION)
+			Map.entry(AuditEventType.ATTENDANCE_PDF_CREATION, DEFAULT_RETENTION),
+			Map.entry(AuditEventType.PAYMENT_SPREADSHEET_CREATION, DEFAULT_RETENTION)
 	));
 
 	private final AuditEventRepository repository;

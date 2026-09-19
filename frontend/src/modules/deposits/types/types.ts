@@ -15,8 +15,11 @@ export type DepositScope = 'OPEN' | 'TOURNAMENT';
  */
 export interface DepositView {
 	id: string;
+	/** Counts from 1 again in every `codeYear`, so it only names a deposit alongside that year. */
 	number: number | null;
-	/** The number rendered as `W-1234`. */
+	/** The year the number was handed out in - the year `receivedAt` falls in. */
+	codeYear: number | null;
+	/** The number and its year rendered as `W-1234/26`. */
 	code: string;
 	coveredPersons: CoveredPersonView[];
 	totalAmount: number;

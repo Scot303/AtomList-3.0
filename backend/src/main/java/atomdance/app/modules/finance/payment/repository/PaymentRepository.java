@@ -65,19 +65,10 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 	Optional<Payment> findByIdWithSettlements(@Param("id") UUID id);
 
 	/**
-	 * Backs a lookup by the code somebody was given verbally.
+	 * @return the last number handed out on this list, or 0 if it bills nothing yet
 	 */
-	@Query("""
-			SELECT DISTINCT p FROM Payment p
-			JOIN FETCH p.person person
-			LEFT JOIN FETCH person.family
-			LEFT JOIN FETCH p.group
-			LEFT JOIN FETCH p.list
-			LEFT JOIN FETCH p.settlements settlement
-			LEFT JOIN FETCH settlement.deposit
-			WHERE p.number = :number
-			""")
-	Optional<Payment> findByNumberWithSettlements(@Param("number") Long number);
+	@Query("SELECT COALESCE(MAX(p.number), 0) FROM Payment p WHERE p.list.id = :listId")
+	long highestNumberOnList(@Param("listId") UUID listId);
 
 	/**
 	 * Everything the given people still owe on the monthly sheets of one kind, oldest month first, which is the order a deposit is spent in.
@@ -109,7 +100,7 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 			JOIN FETCH p.list list
 			WHERE person.id = :personId
 			  AND p.amountToPay > p.amountSettled
-			ORDER BY list.year ASC, list.month ASC, p.number ASC
+			ORDER BY list.year ASC, list.month ASC, list.createdAt ASC, p.number ASC
 			""")
 	List<Payment> findOutstandingForPerson(@Param("personId") UUID personId);
 

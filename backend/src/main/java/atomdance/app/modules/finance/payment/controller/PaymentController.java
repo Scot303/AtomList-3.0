@@ -57,13 +57,6 @@ public class PaymentController {
 	}
 
 
-	@GetMapping("/payments/by-code/{code}")
-	@PreAuthorize("hasAuthority('READ_PAYMENTS')")
-	public PaymentView getByCode(@PathVariable String code) {
-		return paymentService.getByCode(code);
-	}
-
-
 	@PatchMapping("/payments/{id}")
 	@PreAuthorize("hasAuthority('MODIFY_PAYMENTS')")
 	public PaymentView update(@PathVariable UUID id, @RequestBody @Valid UpdatePaymentRequest request) {

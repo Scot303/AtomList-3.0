@@ -6,14 +6,16 @@ import atomdance.app.modules.audit.model.AuditEventType;
 import atomdance.app.modules.audit.service.AuditLogger;
 import atomdance.app.modules.finance.deposit.dto.CoveredPersonView;
 import atomdance.app.modules.finance.deposit.model.Deposit;
+import atomdance.app.modules.finance.deposit.model.PaymentMethod;
 import atomdance.app.modules.finance.deposit.repository.DepositRepository;
-import atomdance.app.modules.finance.payment.dto.PaymentView;
 import atomdance.app.modules.finance.payment.model.Payment;
+import atomdance.app.modules.finance.payment.model.PaymentOrder;
 import atomdance.app.modules.finance.payment.model.PaymentSettlement;
 import atomdance.app.modules.finance.payment.repository.PaymentRepository;
 import atomdance.app.modules.finance.payment.repository.PaymentSettlementRepository;
 import atomdance.app.modules.finance.paymentList.dto.ListReportView;
 import atomdance.app.modules.finance.paymentList.model.PaymentList;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -45,20 +47,25 @@ public class ListReportService {
 
 
 	@Transactional(readOnly = true)
-	public ListReportView build(UUID listId) {
+	public ListReportView buildForModal(UUID listId) {
 		PaymentList list = paymentListService.getOrThrow(listId);
 
 		List<Payment> payments = paymentRepository.findByListIdWithSettlements(listId).stream()
-				.sorted(PaymentView.DISPLAY_ORDER)
+				.sorted(PaymentOrder.DISPLAY_ORDER)
 				.toList();
 
+		return buildListReportView(list, payments);
+	}
+
+
+	protected ListReportView buildListReportView(PaymentList list, List<Payment> payments) {
 		CashIn cash = cashInFor(list, payments);
 		Map<UUID, Integer> refs = referenceNumbers(cash.deposits());
 
 		List<ListReportView.Row> rows = payments.stream().map(payment -> row(payment, refs)).toList();
 		List<ListReportView.Deposit> cashIn = cash.deposits().stream().map(deposit -> deposit(deposit, list, refs, cash.belongsHere(deposit))).toList();
 
-		auditLogger.read(AuditEventType.LIST_PREVIEW, listId, "List report generated for %s.", list.getName());
+		auditLogger.read(AuditEventType.LIST_PREVIEW, list.getId(), "List report generated for %s.", list.getName());
 
 		return new ListReportView(
 				list.getId(),
@@ -185,7 +192,7 @@ public class ListReportService {
 		YearMonth month = list.yearMonth();
 
 		if (month != null) {
-			for (Deposit deposit : depositRepository.findReceivedBetween(clock.startOf(month), clock.endOf(month))) {
+			for (Deposit deposit : depositRepository.findReceivedBetween(clock.startOf(month), clock.endOf(month), list.scope())) {
 				byId.putIfAbsent(deposit.getId(), deposit);
 				owned.add(deposit.getId());
 			}
@@ -203,8 +210,9 @@ public class ListReportService {
 		}
 
 		List<Deposit> deposits = byId.values().stream()
-				.sorted(Comparator.comparing(Deposit::getReceivedAt, Comparator.nullsLast(Comparator.naturalOrder()))
-						.thenComparing(Deposit::getNumber, Comparator.nullsLast(Comparator.naturalOrder())))
+				.sorted(Comparator.comparing((Deposit deposit) -> !owned.contains(deposit.getId()))
+						.thenComparing(Deposit::getCodeYear)
+						.thenComparing(Deposit::getNumber))
 				.toList();
 
 		return new CashIn(deposits, owned);
@@ -290,7 +298,7 @@ public class ListReportService {
 				unallocated,
 				Money.isPositive(spentElsewhere) || Money.isPositive(unallocated),
 				deposit.getNote(),
-				message("report.deposit", new Object[]{ref, deposit.getCode()}, "Deposit #" + ref + " (" + deposit.getCode() + ")"),
+				"#" + ref + " (" + deposit.getCode() + ")",
 				Money.isPositive(unallocated) ? message("report.allocation.credit", new Object[0], "Credit not yet assigned") : null,
 				List.copyOf(allocations)
 		);
@@ -391,6 +399,12 @@ public class ListReportService {
 		BigDecimal spentElsewhere = Money.ZERO;
 		BigDecimal unallocated = Money.ZERO;
 
+		Map<PaymentMethod, PaymentMethodCountAndSum> depositsByPaymentMethod = new EnumMap<>(Map.of(
+				PaymentMethod.TRANSFER, new PaymentMethodCountAndSum(),
+				PaymentMethod.CASH, new PaymentMethodCountAndSum(),
+				PaymentMethod.BLIK, new PaymentMethodCountAndSum()
+		));
+
 		// Every handover that touched this sheet, whoever it belongs to. Only used to check the sheet against itself - it is not a figure anybody reads.
 		BigDecimal clearedFromAnywhere = Money.ZERO;
 
@@ -407,7 +421,14 @@ public class ListReportService {
 			clearedHere = Money.add(clearedHere, deposit.clearedOnThisList());
 			spentElsewhere = Money.add(spentElsewhere, deposit.spentElsewhere());
 			unallocated = Money.add(unallocated, deposit.unallocated());
+
+			depositsByPaymentMethod.computeIfPresent(deposit.paymentMethod(),
+					(method, countAndSum) -> countAndSum.addToCurrent(deposit.totalAmount()));
 		}
+
+		var depositsCount = depositsByPaymentMethod.values().stream()
+				.map(PaymentMethodCountAndSum::getCount)
+				.reduce(0L, Long::sum);
 
 		// No deposit can have had more spent out of it than was handed over. The residual is left unclamped in deposit() so that this can be seen here rather than rounded away into a plausible zero.
 		boolean overAllocated = cashIn.stream().anyMatch(deposit -> Money.isNegative(deposit.unallocated()));
@@ -426,11 +447,18 @@ public class ListReportService {
 		return new ListReportView.Totals(
 				rows.size(),
 				settled,
+				depositsCount,
+				depositsByPaymentMethod.get(PaymentMethod.TRANSFER).getCount(),
+				depositsByPaymentMethod.get(PaymentMethod.CASH).getCount(),
+				depositsByPaymentMethod.get(PaymentMethod.BLIK).getCount(),
 				billed,
 				collected,
 				cleared,
 				outstanding,
 				received,
+				depositsByPaymentMethod.get(PaymentMethod.TRANSFER).getSum(),
+				depositsByPaymentMethod.get(PaymentMethod.CASH).getSum(),
+				depositsByPaymentMethod.get(PaymentMethod.BLIK).getSum(),
 				countedHere,
 				clearedHere,
 				spentElsewhere,
@@ -442,5 +470,27 @@ public class ListReportService {
 
 	private String message(String key, Object[] args, String fallback) {
 		return messageSource.getMessage(key, args, fallback, LocaleContextHolder.getLocale());
+	}
+
+
+	@Getter
+	private static class PaymentMethodCountAndSum {
+
+		private long count;
+		private BigDecimal sum;
+
+
+		public PaymentMethodCountAndSum() {
+			this.count = 0;
+			this.sum = Money.ZERO;
+		}
+
+
+		public PaymentMethodCountAndSum addToCurrent(BigDecimal amountToAdd) {
+			this.count += 1L;
+			this.sum = this.sum.add(amountToAdd);
+
+			return this;
+		}
 	}
 }

@@ -3,7 +3,7 @@ import { formatInstantDate } from '@/utils/dateUtils.ts';
 import { TagBadgeOf } from '@/components/ui/tags';
 import { formatCurrency } from '@/lib/locale';
 import { coveredPersonsSummary, PAYMENT_METHOD_OPTIONS, PAYMENT_METHOD_TAGS } from '@/types/finance.ts';
-import { ALLOCATION_STATE_OPTIONS, ALLOCATION_STATE_TAGS, DEPOSIT_CODE_PREFIX, type DepositRow, ORIGIN_OPTIONS, ORIGIN_TAGS, SCOPE_OPTIONS, SCOPE_TAGS, } from './depositRows.ts';
+import { ALLOCATION_STATE_OPTIONS, ALLOCATION_STATE_TAGS, type DepositRow, ORIGIN_OPTIONS, ORIGIN_TAGS, SCOPE_OPTIONS, SCOPE_TAGS, } from './depositRows.ts';
 
 
 function moneyColumn(accessorKey: keyof DepositRow, header: string): AppColumnDef<DepositRow> {
@@ -23,20 +23,15 @@ function moneyColumn(accessorKey: keyof DepositRow, header: string): AppColumnDe
 }
 
 
-function spokenCode(value: unknown): string {
-	return value == null || value === '' ? '' : `${ DEPOSIT_CODE_PREFIX }${ String(value) }`;
-}
-
-
 export function buildDepositColumns(): AppColumnDef<DepositRow>[] {
 	return [
 		{
 			accessorKey: 'code',
 			header: 'Nr',
 			fieldType: 'text',
-			size: 110,
-			sortValue: (row) => row.number,
-			meta: { globalSearch: true, searchText: (value) => spokenCode(value) },
+			size: 125,
+			sortValue: (row) => ( row.codeYear ?? 0 ) * 1_000_000 + ( row.number ?? 0 ),
+			meta: { globalSearch: true },
 		},
 		{
 			accessorKey: 'coveredNames',

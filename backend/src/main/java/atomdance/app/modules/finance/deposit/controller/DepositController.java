@@ -55,9 +55,9 @@ public class DepositController {
 	}
 
 
-	@GetMapping("/by-code/{code}")
+	@GetMapping("/by-code")
 	@PreAuthorize("hasAuthority('READ_PAYMENTS')")
-	public DepositView getByCode(@PathVariable String code) {
+	public DepositView getByCode(@RequestParam String code) {
 		return depositService.getByCode(code);
 	}
 

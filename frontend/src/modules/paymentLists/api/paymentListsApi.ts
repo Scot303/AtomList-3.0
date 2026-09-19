@@ -1,5 +1,7 @@
 import { axiosInstance } from '@/api/axiosInstance';
+import { DOCUMENT_TIMEOUT_MS } from '@/api/config';
 import { PAYMENT_LIST_ENDPOINTS } from '@/api/endpoints';
+import { type DownloadedFile, fileNameFromDisposition } from '@/lib/download';
 import type {
 	AddPersonsPayload,
 	CreateCustomListPayload,
@@ -11,6 +13,9 @@ import type {
 	SettleCreditPayload,
 	UpdateCustomListPayload,
 } from '../types/types.ts';
+
+
+const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 
 export async function fetchCustomLists(): Promise<PaymentListView[]> {
@@ -68,6 +73,29 @@ export async function fetchListReport(id: string): Promise<ListReportView> {
 	const { data } = await axiosInstance.get<ListReportView>(PAYMENT_LIST_ENDPOINTS.report(id));
 
 	return data;
+}
+
+
+export async function fetchListSpreadsheet(id: string, onTransferStart?: () => void): Promise<DownloadedFile> {
+	let announced = false;
+
+	const response = await axiosInstance.get<Blob>(PAYMENT_LIST_ENDPOINTS.spreadsheet(id), {
+		responseType: 'blob',
+		timeout: DOCUMENT_TIMEOUT_MS,
+		headers: { Accept: `${ XLSX_MIME }, application/json` },
+
+		onDownloadProgress: () => {
+			if (!announced) {
+				announced = true;
+				onTransferStart?.();
+			}
+		},
+	});
+
+	return {
+		blob: response.data,
+		fileName: fileNameFromDisposition(response.headers['content-disposition']) ?? 'raport.xlsx',
+	};
 }
 
 
